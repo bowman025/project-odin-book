@@ -1,0 +1,25 @@
+{
+  "name": "project-odin-book",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A social media app.",
+  "main": "index.js",
+  "scripts": {
+    "format": "pnpm biome check --write .",
+    "lint": "pnpm biome lint ."
+  },
+  "keywords": [],
+  "author": "Rastko Andonov",
+  "license": "MIT",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.8.0",
+      "onFail": "download"
+    }
+  },
+  "type": "module",
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0"
+  }
+}

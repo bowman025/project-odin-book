@@ -1,0 +1,18 @@
+{
+  "name": "@project-odin-book/db",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "type": "module",
+  "devDependencies": {
+    "prisma": "^7.8.0",
+    "prisma-zod-generator": "^2.1.4",
+    "typescript": "^6.0.3",
+    "zod": "^4.4.3"
+  }
+}
