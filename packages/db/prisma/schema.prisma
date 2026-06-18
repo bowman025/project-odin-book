@@ -3,11 +3,6 @@ generator client {
   output   = "../generated/prisma"
 }
 
-generator zod {
-  provider = "prisma-zod-generator"
-  output   = "../generated"
-}
-
 datasource db {
   provider = "postgresql"
 }
@@ -40,12 +35,6 @@ model Follow {
   receiver User @relation("FollowReceiver", fields: [receiverId], references: [id])
 
   @@unique([senderId, receiverId])
-}
-
-enum FollowStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
 }
 
 model Post {
@@ -92,4 +81,10 @@ model Comment {
 
   author User @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
   post   Post @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
+}
+
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
