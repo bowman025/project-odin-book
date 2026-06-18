@@ -3,6 +3,93 @@ generator client {
   output   = "../generated/prisma"
 }
 
+generator zod {
+  provider = "prisma-zod-generator"
+  output   = "../generated"
+}
+
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id             String   @id @default(cuid(2))
+  email          String   @unique
+  username       String   @unique
+  passwordHash   String?
+  profilePicture String?
+  bio            String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  sentFollows     Follow[]  @relation("FollowSender")
+  receivedFollows Follow[]  @relation("FollowReceiver")
+  posts           Post[]    @relation("UserPosts")
+  likes           Like[]    @relation("UserLikes")
+  comments        Comment[] @relation("UserComments")
+}
+
+model Follow {
+  id         String       @id @default(cuid(2))
+  senderId   String
+  receiverId String
+  status     FollowStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+
+  sender   User @relation("FollowSender", fields: [senderId], references: [id])
+  receiver User @relation("FollowReceiver", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+}
+
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Post {
+  id        String   @id @default(cuid(2))
+  content   String
+  imageUrl  String?
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author   User      @relation("UserPosts", fields: [authorId], references: [id])
+  tags     Tag[]     @relation("PostTags")
+  likes    Like[]    @relation("PostLikes")
+  comments Comment[] @relation("PostComments")
+}
+
+model Tag {
+  id        String   @id @default(cuid(2))
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  posts Post[] @relation("PostTags")
+}
+
+model Like {
+  id        String   @id @default(cuid(2))
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation("PostLikes", fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model Comment {
+  id        String   @id @default(cuid(2))
+  content   String
+  authorId  String
+  postId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author User @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
+  post   Post @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
 }
