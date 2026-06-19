@@ -17,11 +17,13 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  sentFollows     Follow[]  @relation("FollowSender")
-  receivedFollows Follow[]  @relation("FollowReceiver")
-  posts           Post[]    @relation("UserPosts")
-  likes           Like[]    @relation("UserLikes")
-  comments        Comment[] @relation("UserComments")
+  sentFollows     Follow[]      @relation("FollowSender")
+  receivedFollows Follow[]      @relation("FollowReceiver")
+  posts           Post[]
+  likes           Like[]
+  comments        Comment[]
+  conversations   Participant[]
+  messages        Message[]
 }
 
 model Follow {
@@ -45,10 +47,10 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author   User      @relation("UserPosts", fields: [authorId], references: [id])
-  tags     Tag[]     @relation("PostTags")
-  likes    Like[]    @relation("PostLikes")
-  comments Comment[] @relation("PostComments")
+  author   User      @relation(fields: [authorId], references: [id])
+  tags     Tag[]
+  likes    Like[]
+  comments Comment[]
 }
 
 model Tag {
@@ -56,7 +58,7 @@ model Tag {
   name      String   @unique
   createdAt DateTime @default(now())
 
-  posts Post[] @relation("PostTags")
+  posts Post[]
 }
 
 model Like {
@@ -65,8 +67,8 @@ model Like {
   postId    String
   createdAt DateTime @default(now())
 
-  user User @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation("PostLikes", fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
 }
@@ -79,8 +81,42 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author User @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
-  post   Post @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id        String   @id @default(cuid(2))
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants Participant[]
+  messages     Message[]
+}
+
+model Participant {
+  id             String   @id @default(cuid(2))
+  userId         String
+  conversationId String
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  @@unique([userId, conversationId])
+}
+
+model Message {
+  id             String   @id @default(cuid(2))
+  content        String
+  senderId       String
+  conversationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  edited         Boolean  @default(false)
+
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
 
 enum FollowStatus {
