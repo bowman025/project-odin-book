@@ -48,6 +48,7 @@ model Post {
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  edited    Boolean  @default(false)
 
   author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   tags     Tag[]
@@ -85,6 +86,7 @@ model Comment {
   postId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  edited    Boolean  @default(false)
 
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
