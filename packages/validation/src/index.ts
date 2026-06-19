@@ -52,13 +52,50 @@ export const RegisterSchema = z
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 
+export const LoginSchema = z.object({
+  username: z.string().min(1, { error: 'Username or email is required' }),
+
+  password: z.string().min(1, { error: 'Password is required' }),
+});
+
+export type LoginInput = z.infer<typeof LoginSchema>;
+
+export const UpdateProfileSchema = z.object({
+  bio: z
+    .string()
+    .trim()
+    .max(160, { error: 'Bio cannot exceed 160 characters' })
+    .transform((val) => (val === '' ? null : val))
+    .nullable()
+    .optional(),
+
+  profilePicture: z
+    .url({
+      protocol: /^https$/,
+      hostname: /^(.*\.)?cloudinary\.com$/,
+      error: 'Profile picture URL must be a valid Cloudinary HTTPS URL',
+    })
+    .nullable()
+    .optional(),
+});
+
+export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
+
 export const CreatePostSchema = z.object({
   content: z
     .string()
+    .trim()
     .min(1, { error: 'Post content cannot be empty' })
     .max(280, { error: 'Post cannot exceed 280 characters' }),
 
-  imageUrl: z.url({ error: 'Please provide a valid image URL' }).optional(),
+  imageUrl: z
+    .url({
+      protocol: /^https$/,
+      hostname: /^(.*\.)?cloudinary\.com$/,
+      error: 'Image URL must be a valid Cloudinary HTTPS URL',
+    })
+    .nullable()
+    .optional(),
 
   tags: z.array(z.string()).optional(),
 });
