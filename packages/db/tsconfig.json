@@ -2,8 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "types": ["node"]
+    "rootDir": "./src",
+    "types": ["node"],
+    "declaration": true,
+    "declarationMap": true
   },
-  "files": ["prisma.config.ts"],
-  "include": ["src/**/*", "generated/**/*"]
+  "files": ["src/prisma.config.ts"],
+  "include": ["src/**/*"]
 }
