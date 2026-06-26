@@ -17,6 +17,7 @@ export const REFRESH_TOKEN_EXPIRY = '7d';
 export const signAccessToken = (payload: {
   id: string;
   username: string;
+  email: string;
 }): string => {
   const validated = accessTokenPayloadSchema.parse({
     ...payload,
@@ -32,6 +33,7 @@ export const signAccessToken = (payload: {
 export const signRefreshToken = (payload: {
   id: string;
   username: string;
+  email: string;
 }): string => {
   const validated = refreshTokenPayloadSchema.parse({
     ...payload,
@@ -47,7 +49,7 @@ export const signRefreshToken = (payload: {
 export const verifyAccessToken = (token: string): AccessTokenPayload => {
   try {
     const decoded = jwt.verify(token, JWT_ACCESS_SECRET);
-    return accessTokenPayloadSchema.parse(decoded);
+    return accessTokenPayloadSchema.parse(decoded) as AccessTokenPayload;
   } catch (error) {
     throw new AppError('Invalid or expired access token', 401, true, {
       cause: error,
@@ -58,7 +60,7 @@ export const verifyAccessToken = (token: string): AccessTokenPayload => {
 export const verifyRefreshToken = (token: string): RefreshTokenPayload => {
   try {
     const decoded = jwt.verify(token, JWT_REFRESH_SECRET);
-    return refreshTokenPayloadSchema.parse(decoded);
+    return refreshTokenPayloadSchema.parse(decoded) as RefreshTokenPayload;
   } catch (error) {
     throw new AppError('Invalid or expired refresh token', 401, true, {
       cause: error,

@@ -3,6 +3,7 @@ import { z } from 'zod';
 const baseTokenPayloadSchema = z.object({
   id: z.string(),
   username: z.string(),
+  email: z.email(),
 });
 
 export const accessTokenPayloadSchema = baseTokenPayloadSchema.extend({
