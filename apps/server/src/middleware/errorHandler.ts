@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { env } from '../config/env.js';
 import { toAppError } from '../errors/toAppError.js';
 
 export const errorHandler = (
@@ -17,7 +18,7 @@ export const errorHandler = (
     status: 'error',
     message: appError.message,
     ...(appError.details !== undefined && { errors: appError.details }),
-    ...(process.env.NODE_ENV !== 'production' && appError.stack
+    ...(env.NODE_ENV !== 'production' && appError.stack
       ? { stack: appError.stack }
       : {}),
   });
