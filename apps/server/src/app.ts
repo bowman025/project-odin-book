@@ -6,13 +6,17 @@ import express, { type Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { Server } from 'socket.io';
-import { env } from './config/env.js';
+import { env, isProduction } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { authRouter } from './routes/authRoutes.js';
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: env.CLIENT_URL || 'http://localhost:5173' },
+  cors: {
+    origin: env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+  },
 });
 
 const PORT = env.PORT || 3000;
@@ -25,12 +29,14 @@ app.use(
   }),
 );
 
-if (env.NODE_ENV !== 'production') {
+if (!isProduction) {
   app.use(morgan('dev'));
 }
 
 app.use(express.json());
 app.use(cookieParser(env.COOKIE_SECRET));
+
+app.use('/auth', authRouter);
 
 app.get('/status', (_, res: Response) => {
   res.json({ status: 'ok' });
@@ -41,3 +47,5 @@ app.use(errorHandler);
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+export { app, httpServer, io };
