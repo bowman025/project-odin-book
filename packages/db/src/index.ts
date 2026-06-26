@@ -6,5 +6,7 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 
 export const db = new PrismaClient({ adapter });
+
+export type * from './generated/prisma/client.js';
 export { PrismaClient } from './generated/prisma/client.js';
 export { Prisma };
