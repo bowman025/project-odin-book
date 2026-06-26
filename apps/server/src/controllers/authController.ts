@@ -1,5 +1,7 @@
 import crypto from 'node:crypto';
 import { db, type User } from '@project-odin-book/db';
+import { RegisterSchema } from '@project-odin-book/validation';
+import bcrypt from 'bcryptjs';
 import type { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
 import {
@@ -7,7 +9,7 @@ import {
   signRefreshToken,
   verifyRefreshToken,
 } from '../auth/jwt.js';
-import { env } from '../config/env.js';
+import { isProduction } from '../config/env.js';
 import { AppError } from '../errors/AppError.js';
 
 type PassportInfo = {
@@ -18,6 +20,46 @@ type AuthUser = {
   id: string;
   username: string;
   email: string;
+};
+
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const result = RegisterSchema.safeParse(req.body);
+
+    if (!result.success) {
+      throw result.error;
+    }
+
+    const { username, email, password } = result.data;
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const newUser = await db.user.create({
+      data: {
+        username,
+        email,
+        passwordHash,
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        createdAt: true,
+      },
+    });
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Account registered successfully',
+      user: newUser,
+    });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 export const login = (req: Request, res: Response, next: NextFunction) => {
@@ -49,8 +91,6 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
           .update(refreshToken)
           .digest('hex');
 
-        const isProduction = env.NODE_ENV === 'production';
-
         await db.user.update({
           where: { id: user.id },
           data: { refreshToken: hashedRefreshToken },
@@ -59,7 +99,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: isProduction,
-          sameSite: 'none',
+          sameSite: isProduction ? 'none' : 'lax',
           maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -139,6 +179,61 @@ export const refresh = async (
     return res.status(200).json({
       status: 'success',
       accessToken: newAccessToken,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const rawRefreshToken = req.cookies?.refreshToken;
+
+    if (rawRefreshToken) {
+      try {
+        const decoded = verifyRefreshToken(rawRefreshToken);
+        const hashedTokenFromCookie = crypto
+          .createHash('sha256')
+          .update(rawRefreshToken)
+          .digest('hex');
+
+        const user = await db.user.findUnique({
+          where: { id: decoded.id },
+          select: { id: true, refreshToken: true },
+        });
+
+        const isValid =
+          user?.refreshToken &&
+          user.refreshToken.length === hashedTokenFromCookie.length &&
+          crypto.timingSafeEqual(
+            Buffer.from(user.refreshToken),
+            Buffer.from(hashedTokenFromCookie),
+          );
+
+        if (isValid) {
+          await db.user.update({
+            where: { id: decoded.id },
+            data: { refreshToken: null },
+          });
+        }
+      } catch (error) {
+        console.error('[Logout cleanup skipped]:', error);
+      }
+    }
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Logged out successfully',
     });
   } catch (error) {
     return next(error);

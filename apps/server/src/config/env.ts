@@ -26,3 +26,5 @@ const envSchema = z
   });
 
 export const env = envSchema.parse(process.env);
+
+export const isProduction = env.NODE_ENV === 'production';
