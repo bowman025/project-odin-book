@@ -14,6 +14,10 @@ export const errorHandler = (
     console.error('[Cause]:', appError.cause);
   }
 
+  if (!appError.isOperational) {
+    console.error('[Unhandled Error]:', err);
+  }
+
   return res.status(appError.statusCode).json({
     status: 'error',
     message: appError.message,
