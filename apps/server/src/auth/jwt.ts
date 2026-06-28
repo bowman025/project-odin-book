@@ -1,6 +1,7 @@
 import {
   type AccessTokenPayload,
   accessTokenPayloadSchema,
+  type BaseTokenPayload,
   type RefreshTokenPayload,
   refreshTokenPayloadSchema,
 } from '@project-odin-book/validation';
@@ -14,11 +15,7 @@ const JWT_REFRESH_SECRET = env.JWT_REFRESH_SECRET;
 export const ACCESS_TOKEN_EXPIRY = '15m';
 export const REFRESH_TOKEN_EXPIRY = '7d';
 
-export const signAccessToken = (payload: {
-  id: string;
-  username: string;
-  email: string;
-}): string => {
+export const signAccessToken = (payload: BaseTokenPayload): string => {
   const validated = accessTokenPayloadSchema.parse({
     ...payload,
     type: 'access',
@@ -30,11 +27,7 @@ export const signAccessToken = (payload: {
   });
 };
 
-export const signRefreshToken = (payload: {
-  id: string;
-  username: string;
-  email: string;
-}): string => {
+export const signRefreshToken = (payload: BaseTokenPayload): string => {
   const validated = refreshTokenPayloadSchema.parse({
     ...payload,
     type: 'refresh',

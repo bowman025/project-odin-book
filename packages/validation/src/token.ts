@@ -6,6 +6,8 @@ const baseTokenPayloadSchema = z.object({
   email: z.email(),
 });
 
+export type BaseTokenPayload = z.infer<typeof baseTokenPayloadSchema>;
+
 export const accessTokenPayloadSchema = baseTokenPayloadSchema.extend({
   type: z.literal('access'),
 });
