@@ -15,17 +15,14 @@ import {
 } from '../auth/jwt.js';
 import { isProduction } from '../config/env.js';
 import { AppError } from '../errors/AppError.js';
+import { updateRefreshToken } from '../services/tokenService.js';
+import { createUser, getUserSessionById } from '../services/userService.js';
 
 type PassportInfo = {
   message?: string;
 };
 
-type BaseUserIdentity = {
-  id: string;
-  username: string;
-  email: string;
-};
-
+type BaseUserIdentity = Pick<User, 'id' | 'username' | 'email'>;
 type AuthUser = BaseUserIdentity;
 type TokenPayloadInput = BaseUserIdentity;
 
@@ -63,18 +60,10 @@ export const register = async (
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const newUser = await db.user.create({
-      data: {
-        username,
-        email,
-        passwordHash,
-      },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        createdAt: true,
-      },
+    const newUser = await createUser({
+      username,
+      email,
+      passwordHash,
     });
 
     return res.status(201).json({
@@ -118,10 +107,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         const refreshToken = signRefreshToken(tokenPayload);
         const hashedRefreshToken = hashToken(refreshToken);
 
-        await db.user.update({
-          where: { id: user.id },
-          data: { refreshToken: hashedRefreshToken },
-        });
+        await updateRefreshToken(user.id, hashedRefreshToken);
 
         res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
@@ -159,10 +145,7 @@ export const refresh = async (
     const decoded = verifyRefreshToken(rawRefreshToken);
     const hashedTokenFromCookie = hashToken(rawRefreshToken);
 
-    const user = await db.user.findUnique({
-      where: { id: decoded.id },
-      select: { id: true, username: true, email: true, refreshToken: true },
-    });
+    const user = await getUserSessionById(decoded.id);
 
     if (!user) {
       res.clearCookie('refreshToken', clearCookieOptions);

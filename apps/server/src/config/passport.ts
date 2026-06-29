@@ -1,7 +1,7 @@
-import { db } from '@project-odin-book/db';
 import bcryptjs from 'bcryptjs';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
+import { findUserForAuth } from '../services/userService.js';
 
 const DUMMY_HASH = '8f4d92a1b7e6c5d3f2a1b8c9d0e1f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6';
 const INVALID_CREDENTIALS = 'Invalid credentials';
@@ -9,14 +9,6 @@ const INVALID_CREDENTIALS = 'Invalid credentials';
 const normalizeIdentifier = (input: string) => {
   const trimmed = input.trim();
   return trimmed.includes('@') ? trimmed.toLowerCase() : trimmed;
-};
-
-const findUserByIdentifier = async (identifier: string) => {
-  return db.user.findFirst({
-    where: {
-      OR: [{ email: identifier }, { username: identifier }],
-    },
-  });
 };
 
 const verifyPassword = async (
@@ -36,7 +28,7 @@ passport.use(
     async (usernameOrEmail, password, done) => {
       try {
         const identifier = normalizeIdentifier(usernameOrEmail);
-        const user = await findUserByIdentifier(identifier);
+        const user = await findUserForAuth(identifier);
 
         const passwordValid = await verifyPassword(
           password,
