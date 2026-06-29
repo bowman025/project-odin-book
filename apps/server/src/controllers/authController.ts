@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { db, type User } from '@project-odin-book/db';
+import type { User } from '@project-odin-book/db';
 import {
   type BaseTokenPayload,
   LoginSchema,
@@ -23,8 +23,6 @@ type PassportInfo = {
 };
 
 type BaseUserIdentity = Pick<User, 'id' | 'username' | 'email'>;
-type AuthUser = BaseUserIdentity;
-type TokenPayloadInput = BaseUserIdentity;
 
 const hashToken = (token: string): string =>
   crypto.createHash('sha256').update(token).digest('hex');
@@ -34,11 +32,11 @@ const refreshCookieOptions = {
   secure: isProduction,
   sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000,
-} as const;
+};
 
 const { maxAge, ...clearCookieOptions } = refreshCookieOptions;
 
-const buildTokenPayload = (user: TokenPayloadInput): BaseTokenPayload => ({
+const buildTokenPayload = (user: BaseUserIdentity): BaseTokenPayload => ({
   id: user.id,
   username: user.username,
   email: user.email,
@@ -111,7 +109,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
 
         res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
-        const userResponse: AuthUser = {
+        const userResponse: BaseUserIdentity = {
           id: user.id,
           username: user.username,
           email: user.email,
@@ -144,7 +142,6 @@ export const refresh = async (
 
     const decoded = verifyRefreshToken(rawRefreshToken);
     const hashedTokenFromCookie = hashToken(rawRefreshToken);
-
     const user = await getUserSessionById(decoded.id);
 
     if (!user) {
@@ -155,13 +152,18 @@ export const refresh = async (
       );
     }
 
-    const isValid =
-      user.refreshToken &&
-      user.refreshToken.length === hashedTokenFromCookie.length &&
-      crypto.timingSafeEqual(
-        Buffer.from(user.refreshToken),
-        Buffer.from(hashedTokenFromCookie),
-      );
+    let isValid = false;
+
+    if (user.refreshToken) {
+      try {
+        isValid = crypto.timingSafeEqual(
+          Buffer.from(user.refreshToken),
+          Buffer.from(hashedTokenFromCookie),
+        );
+      } catch {
+        isValid = false;
+      }
+    }
 
     if (!isValid) {
       res.clearCookie('refreshToken', clearCookieOptions);
@@ -176,10 +178,7 @@ export const refresh = async (
     const newRefreshToken = signRefreshToken(tokenPayload);
     const newHashedRefreshToken = hashToken(newRefreshToken);
 
-    await db.user.update({
-      where: { id: user.id },
-      data: { refreshToken: newHashedRefreshToken },
-    });
+    await updateRefreshToken(user.id, newHashedRefreshToken);
 
     res.cookie('refreshToken', newRefreshToken, refreshCookieOptions);
 
@@ -204,25 +203,23 @@ export const logout = async (
       try {
         const decoded = verifyRefreshToken(rawRefreshToken);
         const hashedTokenFromCookie = hashToken(rawRefreshToken);
+        const user = await getUserSessionById(decoded.id);
 
-        const user = await db.user.findUnique({
-          where: { id: decoded.id },
-          select: { id: true, refreshToken: true },
-        });
+        let isValid = false;
 
-        const isValid =
-          user?.refreshToken &&
-          user.refreshToken.length === hashedTokenFromCookie.length &&
-          crypto.timingSafeEqual(
-            Buffer.from(user.refreshToken),
-            Buffer.from(hashedTokenFromCookie),
-          );
+        if (user?.refreshToken) {
+          try {
+            isValid = crypto.timingSafeEqual(
+              Buffer.from(user.refreshToken),
+              Buffer.from(hashedTokenFromCookie),
+            );
+          } catch {
+            isValid = false;
+          }
+        }
 
-        if (isValid) {
-          await db.user.update({
-            where: { id: decoded.id },
-            data: { refreshToken: null },
-          });
+        if (isValid && user) {
+          await updateRefreshToken(user.id, null);
         }
       } catch (error) {
         console.warn('[Logout cleanup skipped]:', error);
