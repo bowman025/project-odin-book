@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+export const UsernameParamSchema = z.object({
+  username: z.string().min(1, { error: 'Username is required' }),
+});
+
+export type UsernameParamInput = z.infer<typeof UsernameParamSchema>;
+
 export const UpdateProfileSchema = z.object({
   bio: z
     .string()
