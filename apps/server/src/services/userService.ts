@@ -1,7 +1,7 @@
 import { db, type User } from '@project-odin-book/db';
+import type { UpdateProfileInput } from '@project-odin-book/validation';
 
 type CreateUserInput = Pick<User, 'username' | 'email' | 'passwordHash'>;
-type UpdateProfileInput = Partial<Pick<User, 'bio' | 'profilePicture'>>;
 
 type AuthUser = Pick<User, 'id' | 'username' | 'email'>;
 type AuthLookupUser = AuthUser & {
