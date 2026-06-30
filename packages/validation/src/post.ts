@@ -5,7 +5,7 @@ export const CreatePostSchema = z.object({
     .string()
     .trim()
     .min(1, { error: 'Post content cannot be empty' })
-    .max(280, { error: 'Post cannot exceed 280 characters' }),
+    .max(1000, { error: 'Post cannot exceed 1000 characters' }),
 
   imageUrl: z
     .url({
@@ -16,7 +16,16 @@ export const CreatePostSchema = z.object({
     .optional()
     .nullable(),
 
-  tags: z.array(z.string()).optional(),
+  tags: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, { error: 'Tag cannot be empty' })
+        .max(30, { error: 'Tag cannot exceed 30 characters' }),
+    )
+    .max(10, { error: 'Maximum of 10 tags allowed' })
+    .optional(),
 });
 
 export type CreatePostInput = z.infer<typeof CreatePostSchema>;
@@ -26,7 +35,7 @@ export const CreateCommentSchema = z.object({
     .string()
     .trim()
     .min(1, { error: 'Comment content cannot be empty' })
-    .max(280, { error: 'Comment cannot exceed 280 characters' }),
+    .max(1000, { error: 'Comment cannot exceed 1000 characters' }),
 });
 
 export type CreateCommentInput = z.infer<typeof CreateCommentSchema>;

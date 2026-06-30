@@ -9,6 +9,7 @@ import { Server } from 'socket.io';
 import { env, isProduction } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { authRouter } from './routes/authRoutes.js';
+import { postRouter } from './routes/postRoutes.js';
 import { userRouter } from './routes/userRoutes.js';
 
 const app = express();
@@ -39,6 +40,7 @@ app.use(cookieParser(env.COOKIE_SECRET));
 
 app.use('/auth', authRouter);
 app.use('/users', userRouter);
+app.use('/posts', postRouter);
 
 app.get('/status', (_, res: Response) => {
   res.json({ status: 'ok' });
