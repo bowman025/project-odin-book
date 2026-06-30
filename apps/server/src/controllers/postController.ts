@@ -1,20 +1,28 @@
 import {
   CreatePostSchema,
+  IdParamSchema,
   PaginationQuerySchema,
+  UpdatePostSchema,
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../errors/AppError.js';
-import { fetchTimeline, insertPost } from '../services/postService.js';
+import {
+  fetchPost,
+  fetchTimeline,
+  insertPost,
+  modifyPost,
+  removePost,
+} from '../services/postService.js';
 
 export const createPost = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const result = CreatePostSchema.safeParse(req.body);
+  const bodyResult = CreatePostSchema.safeParse(req.body);
 
-  if (!result.success) {
-    return next(result.error);
+  if (!bodyResult.success) {
+    return next(bodyResult.error);
   }
 
   try {
@@ -26,7 +34,7 @@ export const createPost = async (
 
     const newPost = await insertPost({
       authorId,
-      ...result.data,
+      ...bodyResult.data,
     });
 
     return res.status(201).json({
@@ -39,19 +47,123 @@ export const createPost = async (
   }
 };
 
+export const getPost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramResult = IdParamSchema.safeParse(req.params);
+
+  if (!paramResult.success) {
+    return next(paramResult.error);
+  }
+
+  try {
+    const { id } = paramResult.data;
+    const post = await fetchPost(id);
+
+    if (!post) {
+      return next(new AppError('Post not found', 404));
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: { post },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const updatePost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramResult = IdParamSchema.safeParse(req.params);
+
+  if (!paramResult.success) {
+    return next(paramResult.error);
+  }
+
+  const bodyResult = UpdatePostSchema.safeParse(req.body);
+
+  if (!bodyResult.success) {
+    return next(bodyResult.error);
+  }
+
+  if (Object.keys(bodyResult.data).length === 0) {
+    return next(new AppError('No fields provided for update', 400));
+  }
+
+  try {
+    const { id } = paramResult.data;
+    const authorId = req.user?.id;
+
+    if (!authorId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
+    const updatedPost = await modifyPost(id, authorId, bodyResult.data);
+
+    if (!updatedPost) {
+      return next(new AppError('Post not found', 404));
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Post updated successfully',
+      data: { post: updatedPost },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deletePost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramResult = IdParamSchema.safeParse(req.params);
+
+  if (!paramResult.success) {
+    return next(paramResult.error);
+  }
+
+  try {
+    const { id } = paramResult.data;
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
+    const wasDeleted = await removePost(id, currentUserId);
+
+    if (!wasDeleted) {
+      return next(new AppError('Post not found', 404));
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getTimeline = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const result = PaginationQuerySchema.safeParse(req.query);
+  const queryResult = PaginationQuerySchema.safeParse(req.query);
 
-  if (!result.success) {
-    return next(result.error);
+  if (!queryResult.success) {
+    return next(queryResult.error);
   }
 
   try {
-    const { page, limit } = result.data;
+    const { page, limit } = queryResult.data;
     const skip = (page - 1) * limit;
     const { posts, hasMore } = await fetchTimeline({ skip, take: limit });
 

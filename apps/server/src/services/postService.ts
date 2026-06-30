@@ -1,11 +1,8 @@
 import { db, type User } from '@project-odin-book/db';
-
-type CreatePostInput = {
-  authorId: string;
-  content: string;
-  imageUrl?: string | null;
-  tags?: string[];
-};
+import type {
+  CreatePostInput,
+  UpdatePostInput,
+} from '@project-odin-book/validation';
 
 type PostAuthor = Pick<User, 'id' | 'username' | 'profilePicture'>;
 
@@ -23,7 +20,7 @@ export type PostPayload = {
   stats: PostStats;
 };
 
-type TimelineFeedResult = {
+type TimelineResult = {
   posts: PostPayload[];
   hasMore: boolean;
 };
@@ -84,7 +81,7 @@ const normalizeTags = (tags?: string[]) => {
 };
 
 export const insertPost = async (
-  data: CreatePostInput,
+  data: CreatePostInput & { authorId: string },
 ): Promise<PostPayload> => {
   const { authorId, content, imageUrl, tags } = data;
 
@@ -101,10 +98,66 @@ export const insertPost = async (
   return mapToPostPayload(post);
 };
 
+export const fetchPost = async (id: string): Promise<PostPayload | null> => {
+  const post = await db.post.findUnique({
+    where: { id },
+    select: postSelect,
+  });
+
+  return post ? mapToPostPayload(post) : null;
+};
+
+export const modifyPost = async (
+  id: string,
+  authorId: string,
+  data: UpdatePostInput,
+): Promise<PostPayload | null> => {
+  const existing = await db.post.findUnique({
+    where: { id },
+    select: { authorId: true },
+  });
+
+  if (!existing || existing.authorId !== authorId) return null;
+
+  const { content, imageUrl, tags } = data;
+  const isVisualUpdate = content !== undefined || imageUrl !== undefined;
+  const result = await db.post.update({
+    where: { id },
+    data: {
+      ...(content !== undefined && { content }),
+      ...(imageUrl !== undefined && { imageUrl }),
+      ...(tags !== undefined && {
+        tags: {
+          set: [],
+          ...normalizeTags(tags),
+        },
+      }),
+      ...(isVisualUpdate && { edited: true }),
+    },
+    select: postSelect,
+  });
+
+  return mapToPostPayload(result);
+};
+
+export const removePost = async (
+  id: string,
+  requesterId: string,
+): Promise<boolean> => {
+  const result = await db.post.deleteMany({
+    where: {
+      id,
+      authorId: requesterId,
+    },
+  });
+
+  return result.count > 0;
+};
+
 export const fetchTimeline = async (options: {
   skip: number;
   take: number;
-}): Promise<TimelineFeedResult> => {
+}): Promise<TimelineResult> => {
   const posts = await db.post.findMany({
     skip: options.skip,
     take: options.take + 1,
