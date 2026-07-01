@@ -1,7 +1,7 @@
 import {
   CreatePostSchema,
-  IdParamSchema,
   PaginationQuerySchema,
+  PostIdParamSchema,
   UpdatePostSchema,
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
@@ -52,15 +52,15 @@ export const getPost = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const paramResult = IdParamSchema.safeParse(req.params);
+  const paramResult = PostIdParamSchema.safeParse(req.params);
 
   if (!paramResult.success) {
     return next(paramResult.error);
   }
 
   try {
-    const { id } = paramResult.data;
-    const post = await fetchPost(id);
+    const { postId } = paramResult.data;
+    const post = await fetchPost(postId);
 
     if (!post) {
       return next(new AppError('Post not found', 404));
@@ -80,7 +80,7 @@ export const updatePost = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const paramResult = IdParamSchema.safeParse(req.params);
+  const paramResult = PostIdParamSchema.safeParse(req.params);
 
   if (!paramResult.success) {
     return next(paramResult.error);
@@ -97,14 +97,14 @@ export const updatePost = async (
   }
 
   try {
-    const { id } = paramResult.data;
+    const { postId } = paramResult.data;
     const authorId = req.user?.id;
 
     if (!authorId) {
       return next(new AppError('Authentication context required', 401));
     }
 
-    const updatedPost = await modifyPost(id, authorId, bodyResult.data);
+    const updatedPost = await modifyPost(postId, authorId, bodyResult.data);
 
     if (!updatedPost) {
       return next(new AppError('Post not found', 404));
@@ -125,21 +125,21 @@ export const deletePost = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const paramResult = IdParamSchema.safeParse(req.params);
+  const paramResult = PostIdParamSchema.safeParse(req.params);
 
   if (!paramResult.success) {
     return next(paramResult.error);
   }
 
   try {
-    const { id } = paramResult.data;
+    const { postId } = paramResult.data;
     const currentUserId = req.user?.id;
 
     if (!currentUserId) {
       return next(new AppError('Authentication context required', 401));
     }
 
-    const wasDeleted = await removePost(id, currentUserId);
+    const wasDeleted = await removePost(postId, currentUserId);
 
     if (!wasDeleted) {
       return next(new AppError('Post not found', 404));

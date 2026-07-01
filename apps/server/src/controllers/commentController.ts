@@ -1,7 +1,8 @@
 import {
+  CommentIdParamSchema,
   CreateCommentSchema,
-  IdParamSchema,
   PaginationQuerySchema,
+  PostIdParamSchema,
   UpdateCommentSchema,
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
@@ -18,7 +19,7 @@ export const createComment = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const paramResult = IdParamSchema.safeParse({ id: req.params.postId });
+  const paramResult = PostIdParamSchema.safeParse(req.params);
 
   if (!paramResult.success) {
     return next(paramResult.error);
@@ -37,7 +38,7 @@ export const createComment = async (
       return next(new AppError('Authentication context required', 401));
     }
 
-    const { id: postId } = paramResult.data;
+    const { postId } = paramResult.data;
     const newComment = await insertComment({
       postId,
       authorId,
@@ -59,7 +60,7 @@ export const getComments = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const paramResult = IdParamSchema.safeParse({ id: req.params.postId });
+  const paramResult = PostIdParamSchema.safeParse(req.params);
 
   if (!paramResult.success) {
     return next(paramResult.error);
@@ -72,7 +73,7 @@ export const getComments = async (
   }
 
   try {
-    const { id: postId } = paramResult.data;
+    const { postId } = paramResult.data;
     const { page, limit } = queryResult.data;
     const skip = (page - 1) * limit;
     const { items, hasMore } = await fetchComments({
@@ -102,7 +103,7 @@ export const updateComment = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const paramResult = IdParamSchema.safeParse(req.params);
+  const paramResult = CommentIdParamSchema.safeParse(req.params);
 
   if (!paramResult.success) {
     return next(paramResult.error);
@@ -119,7 +120,7 @@ export const updateComment = async (
   }
 
   try {
-    const { id } = paramResult.data;
+    const { commentId } = paramResult.data;
     const requesterId = req.user?.id;
 
     if (!requesterId) {
@@ -127,7 +128,7 @@ export const updateComment = async (
     }
 
     const updatedComment = await modifyComment(
-      id,
+      commentId,
       requesterId,
       bodyResult.data,
     );
@@ -151,21 +152,21 @@ export const deleteComment = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const paramResult = IdParamSchema.safeParse(req.params);
+  const paramResult = CommentIdParamSchema.safeParse(req.params);
 
   if (!paramResult.success) {
     return next(paramResult.error);
   }
 
   try {
-    const { id } = paramResult.data;
+    const { commentId } = paramResult.data;
     const requesterId = req.user?.id;
 
     if (!requesterId) {
       return next(new AppError('Authentication context required', 401));
     }
 
-    const wasDeleted = await removeComment(id, requesterId);
+    const wasDeleted = await removeComment(commentId, requesterId);
 
     if (!wasDeleted) {
       return next(new AppError('Comment not found', 404));

@@ -14,7 +14,7 @@ router.use(apiLimiter);
 
 router.get('/', getComments);
 router.post('/', authenticate, createComment);
-router.patch('/:id', authenticate, updateComment);
-router.delete('/:id', authenticate, deleteComment);
+router.patch('/:commentId', authenticate, updateComment);
+router.delete('/:commentId', authenticate, deleteComment);
 
 export { router as commentRouter };
