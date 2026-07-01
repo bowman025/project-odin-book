@@ -19,6 +19,24 @@ export const toAppError = (err: unknown): AppError => {
       );
     }
 
+    if (err.code === 'P2003') {
+      const rawField = err.meta?.field_name as string | undefined;
+      let formattedField = 'Related resource';
+
+      if (rawField) {
+        const parts = rawField.split('_');
+        if (parts.length > 1) {
+          formattedField = parts[1] ?? 'resource';
+        }
+      }
+      return new AppError(
+        `${formattedField.charAt(0).toUpperCase() + formattedField.slice(1)} not found`,
+        404,
+        true,
+        { cause: err },
+      );
+    }
+
     if (err.code === 'P2025') {
       return new AppError('Resource not found', 404, true, { cause: err });
     }

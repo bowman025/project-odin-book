@@ -21,7 +21,7 @@ export type PostPayload = {
 };
 
 type TimelineResult = {
-  posts: PostPayload[];
+  items: PostPayload[];
   hasMore: boolean;
 };
 
@@ -171,7 +171,7 @@ export const fetchTimeline = async (options: {
   const pagePosts = hasMore ? posts.slice(0, take) : posts;
 
   return {
-    posts: pagePosts.map(mapToPostPayload),
+    items: pagePosts.map(mapToPostPayload),
     hasMore,
   };
 };

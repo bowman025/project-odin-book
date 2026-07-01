@@ -25,7 +25,7 @@ type FetchCommentOptions = {
 };
 
 export type CommentResult = {
-  comments: CommentPayload[];
+  items: CommentPayload[];
   hasMore: boolean;
 };
 
@@ -113,7 +113,7 @@ export const fetchComments = async (
   const pageComments = hasMore ? comments.slice(0, take) : comments;
 
   return {
-    comments: pageComments as CommentPayload[],
+    items: pageComments as CommentPayload[],
     hasMore,
   };
 };
