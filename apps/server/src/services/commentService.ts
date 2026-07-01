@@ -1,5 +1,8 @@
 import { type Comment, db, type User } from '@project-odin-book/db';
-import type { CreateCommentInput } from '@project-odin-book/validation';
+import type {
+  CreateCommentInput,
+  UpdateCommentInput,
+} from '@project-odin-book/validation';
 
 export type CommentAuthor = Pick<User, 'id' | 'username' | 'profilePicture'>;
 
@@ -10,9 +13,9 @@ export type CommentPayload = Pick<
   author: CommentAuthor;
 };
 
-export type CommentResult = {
-  comments: CommentPayload[];
-  hasMore: boolean;
+type CreateCommentData = CreateCommentInput & {
+  postId: string;
+  authorId: string;
 };
 
 type FetchCommentOptions = {
@@ -21,9 +24,9 @@ type FetchCommentOptions = {
   take: number;
 };
 
-type CreateCommentData = CreateCommentInput & {
-  postId: string;
-  authorId: string;
+export type CommentResult = {
+  comments: CommentPayload[];
+  hasMore: boolean;
 };
 
 const commentAuthorSelect = {
@@ -54,6 +57,43 @@ export const insertComment = async (
     },
     select: commentSelect,
   });
+};
+
+export const modifyComment = async (
+  id: string,
+  requesterId: string,
+  data: UpdateCommentInput,
+): Promise<CommentPayload | null> => {
+  const existing = await db.comment.findUnique({
+    where: { id },
+    select: { authorId: true },
+  });
+
+  if (!existing || existing.authorId !== requesterId) return null;
+
+  const { content } = data;
+
+  return db.comment.update({
+    where: { id },
+    data: {
+      ...(content !== undefined && { content }),
+    },
+    select: commentSelect,
+  });
+};
+
+export const removeComment = async (
+  id: string,
+  requesterId: string,
+): Promise<boolean> => {
+  const result = await db.comment.deleteMany({
+    where: {
+      id,
+      authorId: requesterId,
+    },
+  });
+
+  return result.count > 0;
 };
 
 export const fetchComments = async (

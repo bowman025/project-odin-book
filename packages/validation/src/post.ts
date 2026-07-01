@@ -33,13 +33,3 @@ export type CreatePostInput = z.infer<typeof CreatePostSchema>;
 export const UpdatePostSchema = CreatePostSchema.partial();
 
 export type UpdatePostInput = z.infer<typeof UpdatePostSchema>;
-
-export const CreateCommentSchema = z.object({
-  content: z
-    .string()
-    .trim()
-    .min(1, { error: 'Comment content cannot be empty' })
-    .max(1000, { error: 'Comment cannot exceed 1000 characters' }),
-});
-
-export type CreateCommentInput = z.infer<typeof CreateCommentSchema>;

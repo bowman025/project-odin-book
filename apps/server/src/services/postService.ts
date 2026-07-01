@@ -109,7 +109,7 @@ export const fetchPost = async (id: string): Promise<PostPayload | null> => {
 
 export const modifyPost = async (
   id: string,
-  authorId: string,
+  requesterId: string,
   data: UpdatePostInput,
 ): Promise<PostPayload | null> => {
   const existing = await db.post.findUnique({
@@ -117,7 +117,7 @@ export const modifyPost = async (
     select: { authorId: true },
   });
 
-  if (!existing || existing.authorId !== authorId) return null;
+  if (!existing || existing.authorId !== requesterId) return null;
 
   const { content, imageUrl, tags } = data;
   const isVisualUpdate = content !== undefined || imageUrl !== undefined;
@@ -158,15 +158,17 @@ export const fetchTimeline = async (options: {
   skip: number;
   take: number;
 }): Promise<TimelineResult> => {
+  const { skip, take } = options;
+
   const posts = await db.post.findMany({
-    skip: options.skip,
-    take: options.take + 1,
+    skip,
+    take: take + 1,
     orderBy: { createdAt: 'desc' },
     select: postSelect,
   });
 
-  const hasMore = posts.length > options.take;
-  const pagePosts = hasMore ? posts.slice(0, options.take) : posts;
+  const hasMore = posts.length > take;
+  const pagePosts = hasMore ? posts.slice(0, take) : posts;
 
   return {
     posts: pagePosts.map(mapToPostPayload),
