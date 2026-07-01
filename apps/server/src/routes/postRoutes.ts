@@ -8,12 +8,16 @@ import {
   updatePost,
 } from '../controllers/postController.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { commentRouter } from './commentRoutes.js';
 
 const router = Router();
 
 router.use(apiLimiter);
 
 router.get('/', getTimeline);
+
+router.use('/:postId/comments', commentRouter);
+
 router.post('/', authenticate, createPost);
 router.get('/:id', getPost);
 router.patch('/:id', authenticate, updatePost);
