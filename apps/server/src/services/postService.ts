@@ -154,13 +154,51 @@ export const removePost = async (
   return result.count > 0;
 };
 
-export const fetchTimeline = async (options: {
+export const fetchGeneralTimeline = async (options: {
   skip: number;
   take: number;
 }): Promise<TimelineResult> => {
   const { skip, take } = options;
 
   const posts = await db.post.findMany({
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: postSelect,
+  });
+
+  const hasMore = posts.length > take;
+  const pagePosts = hasMore ? posts.slice(0, take) : posts;
+
+  return {
+    items: pagePosts.map(mapToPostPayload),
+    hasMore,
+  };
+};
+
+export const fetchPersonalTimeline = async (options: {
+  currentUserId: string;
+  skip: number;
+  take: number;
+}): Promise<TimelineResult> => {
+  const { currentUserId, skip, take } = options;
+
+  const posts = await db.post.findMany({
+    where: {
+      OR: [
+        { authorId: currentUserId },
+        {
+          author: {
+            receivedFollows: {
+              some: {
+                senderId: currentUserId,
+                status: 'ACCEPTED',
+              },
+            },
+          },
+        },
+      ],
+    },
     skip,
     take: take + 1,
     orderBy: { createdAt: 'desc' },

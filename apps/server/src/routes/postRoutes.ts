@@ -3,8 +3,9 @@ import { apiLimiter } from '../config/rateLimiter.js';
 import {
   createPost,
   deletePost,
+  getGeneralTimeline,
+  getPersonalTimeline,
   getPost,
-  getTimeline,
   updatePost,
 } from '../controllers/postController.js';
 import { authenticate } from '../middleware/authenticate.js';
@@ -15,7 +16,8 @@ const router = Router();
 
 router.use(apiLimiter);
 
-router.get('/', getTimeline);
+router.get('/', getGeneralTimeline);
+router.get('/following', authenticate, getPersonalTimeline);
 
 router.use('/:postId/comments', commentRouter);
 router.use('/:postId/likes', likeRouter);
