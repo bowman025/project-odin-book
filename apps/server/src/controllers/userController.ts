@@ -5,7 +5,7 @@ import {
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../errors/AppError.js';
 import {
-  getUserProfileByUsername,
+  fetchUserProfileByUsername,
   updateUserProfile,
 } from '../services/userService.js';
 
@@ -22,7 +22,7 @@ export const getProfile = async (
 
   try {
     const { username } = paramResult.data;
-    const profile = await getUserProfileByUsername(username);
+    const profile = await fetchUserProfileByUsername(username);
 
     if (!profile) {
       return next(new AppError(`User '@${username}' not found`, 404));
@@ -46,6 +46,10 @@ export const updateProfile = async (
 
   if (!bodyResult.success) {
     return next(bodyResult.error);
+  }
+
+  if (Object.keys(bodyResult.data).length === 0) {
+    return next(new AppError('No fields to update', 400));
   }
 
   try {

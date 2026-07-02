@@ -16,7 +16,7 @@ import {
 import { isProduction } from '../config/env.js';
 import { AppError } from '../errors/AppError.js';
 import { updateRefreshToken } from '../services/tokenService.js';
-import { createUser, getUserSessionById } from '../services/userService.js';
+import { createUser, fetchUserSessionById } from '../services/userService.js';
 
 type PassportInfo = {
   message?: string;
@@ -142,7 +142,7 @@ export const refresh = async (
 
     const decoded = verifyRefreshToken(rawRefreshToken);
     const hashedTokenFromCookie = hashToken(rawRefreshToken);
-    const user = await getUserSessionById(decoded.id);
+    const user = await fetchUserSessionById(decoded.id);
 
     if (!user) {
       res.clearCookie('refreshToken', clearCookieOptions);
@@ -203,7 +203,7 @@ export const logout = async (
       try {
         const decoded = verifyRefreshToken(rawRefreshToken);
         const hashedTokenFromCookie = hashToken(rawRefreshToken);
-        const user = await getUserSessionById(decoded.id);
+        const user = await fetchUserSessionById(decoded.id);
 
         let isValid = false;
 

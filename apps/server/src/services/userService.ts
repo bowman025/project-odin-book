@@ -48,9 +48,7 @@ const authUserSelect = {
 } as const;
 
 const authLookupSelect = {
-  id: true,
-  username: true,
-  email: true,
+  ...authUserSelect,
   passwordHash: true,
 } as const;
 
@@ -93,7 +91,7 @@ export const createUser = async (
   });
 };
 
-export const getUserIdentityById = async (
+export const fetchUserIdentityById = async (
   id: string,
 ): Promise<AuthUser | null> => {
   return db.user.findUnique({
@@ -102,7 +100,7 @@ export const getUserIdentityById = async (
   });
 };
 
-export const getUserSessionById = async (
+export const fetchUserSessionById = async (
   id: string,
 ): Promise<(AuthUser & { refreshToken: string | null }) | null> => {
   return db.user.findUnique({
@@ -114,7 +112,7 @@ export const getUserSessionById = async (
   });
 };
 
-export const findUserForAuth = async (
+export const fetchUserForAuth = async (
   identifier: string,
 ): Promise<AuthLookupUser | null> => {
   return db.user.findFirst({
@@ -125,7 +123,7 @@ export const findUserForAuth = async (
   });
 };
 
-export const getUserProfileByUsername = async (
+export const fetchUserProfileByUsername = async (
   username: string,
 ): Promise<UserProfile | null> => {
   const user = await db.user.findUnique({
