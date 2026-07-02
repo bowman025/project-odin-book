@@ -17,6 +17,16 @@ export type PendingRequestsResult = {
   hasMore: boolean;
 };
 
+export type ProfileConnectionPayload = Pick<
+  User,
+  'id' | 'username' | 'profilePicture' | 'bio'
+>;
+
+export type ProfileConnectionsResult = {
+  items: ProfileConnectionPayload[];
+  hasMore: boolean;
+};
+
 export type FollowActionPayload = {
   status: FollowStatus | 'NONE';
 };
@@ -32,6 +42,75 @@ const pendingRequestSelect = {
     },
   },
 } as const;
+
+const connectionProfileSelect = {
+  id: true,
+  username: true,
+  profilePicture: true,
+  bio: true,
+} as const;
+
+export const fetchUserFollowers = async (options: {
+  targetUsername: string;
+  skip: number;
+  take: number;
+}): Promise<ProfileConnectionsResult> => {
+  const { targetUsername, skip, take } = options;
+
+  const connections = await db.follow.findMany({
+    where: {
+      receiver: { username: targetUsername },
+      status: 'ACCEPTED',
+    },
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: {
+      sender: {
+        select: connectionProfileSelect,
+      },
+    },
+  });
+
+  const hasMore = connections.length > take;
+  const pageConnections = hasMore ? connections.slice(0, take) : connections;
+
+  return {
+    items: pageConnections.map((row) => row.sender),
+    hasMore,
+  };
+};
+
+export const fetchUserFollowing = async (options: {
+  targetUsername: string;
+  skip: number;
+  take: number;
+}): Promise<ProfileConnectionsResult> => {
+  const { targetUsername, skip, take } = options;
+
+  const connections = await db.follow.findMany({
+    where: {
+      sender: { username: targetUsername },
+      status: 'ACCEPTED',
+    },
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: {
+      receiver: {
+        select: connectionProfileSelect,
+      },
+    },
+  });
+
+  const hasMore = connections.length > take;
+  const pageConnections = hasMore ? connections.slice(0, take) : connections;
+
+  return {
+    items: pageConnections.map((row) => row.receiver),
+    hasMore,
+  };
+};
 
 export const fetchPendingRequests = async (options: {
   receiverId: string;

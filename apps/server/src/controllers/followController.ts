@@ -9,6 +9,9 @@ import {
   acceptFollowRequest,
   type FollowActionPayload,
   fetchPendingRequests,
+  fetchUserFollowers,
+  fetchUserFollowing,
+  type ProfileConnectionsResult,
   rejectFollowRequest,
   toggleFollowRequest,
 } from '../services/followService.js';
@@ -19,6 +22,61 @@ const messageMap: Record<FollowActionPayload['status'], string> = {
   REJECTED: 'Follow request rejected',
   NONE: 'Unfollowed successfully',
 };
+
+export const getConnections = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  fetchFn: (args: {
+    targetUsername: string;
+    skip: number;
+    take: number;
+  }) => Promise<ProfileConnectionsResult>,
+) => {
+  const paramResult = UsernameParamSchema.safeParse(req.params);
+
+  if (!paramResult.success) {
+    return next(paramResult.error);
+  }
+
+  const queryResult = PaginationQuerySchema.safeParse(req.query);
+
+  if (!queryResult.success) {
+    return next(queryResult.error);
+  }
+
+  try {
+    const { username } = paramResult.data;
+    const { page, limit } = queryResult.data;
+    const skip = (page - 1) * limit;
+
+    const { items, hasMore } = await fetchFn({
+      targetUsername: username,
+      skip,
+      take: limit,
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        items,
+        pagination: {
+          page,
+          limit,
+          hasMore,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getFollowers = (req: Request, res: Response, next: NextFunction) =>
+  getConnections(req, res, next, fetchUserFollowers);
+
+export const getFollowing = (req: Request, res: Response, next: NextFunction) =>
+  getConnections(req, res, next, fetchUserFollowing);
 
 export const getPendingRequests = async (
   req: Request,
