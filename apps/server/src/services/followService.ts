@@ -5,7 +5,7 @@ export type FollowActionPayload = {
   status: FollowStatus | 'NONE';
 };
 
-export const toggleFollow = async (
+export const toggleFollowRequest = async (
   receiverUsername: string,
   senderId: string,
 ): Promise<FollowActionPayload> => {
@@ -54,15 +54,18 @@ export const toggleFollow = async (
       return { status: updated.status };
     }
 
-    await tx.follow.delete({
-      where: { id: existing.id },
-    });
+    if (existing.status === 'ACCEPTED' || existing.status === 'PENDING') {
+      await tx.follow.delete({
+        where: { id: existing.id },
+      });
+      return { status: 'NONE' };
+    }
 
-    return { status: 'NONE' };
+    throw new AppError(`Unexpected follow status: ${existing.status}`, 500);
   });
 };
 
-const respondToFollow = async (
+const respondToFollowRequest = async (
   requestId: string,
   receiverId: string,
   status: 'ACCEPTED' | 'REJECTED',
@@ -79,8 +82,8 @@ const respondToFollow = async (
   return { status };
 };
 
-export const acceptFollow = (requestId: string, receiverId: string) =>
-  respondToFollow(requestId, receiverId, 'ACCEPTED');
+export const acceptFollowRequest = (requestId: string, receiverId: string) =>
+  respondToFollowRequest(requestId, receiverId, 'ACCEPTED');
 
-export const rejectFollow = (requestId: string, receiverId: string) =>
-  respondToFollow(requestId, receiverId, 'REJECTED');
+export const rejectFollowRequest = (requestId: string, receiverId: string) =>
+  respondToFollowRequest(requestId, receiverId, 'REJECTED');

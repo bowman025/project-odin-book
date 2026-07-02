@@ -12,6 +12,12 @@ export const CommentIdParamSchema = z.object({
 
 export type CommentIdParamInput = z.infer<typeof CommentIdParamSchema>;
 
+export const RequestIdParamSchema = z.object({
+  requestId: z.cuid2({ error: 'Invalid request identifier format' }),
+});
+
+export type RequestIdParamInput = z.infer<typeof RequestIdParamSchema>;
+
 const positiveIntFromString = (defaultValue: number, max?: number) => {
   let numberSchema = z.number().int().positive();
 
