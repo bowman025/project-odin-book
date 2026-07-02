@@ -1,15 +1,16 @@
-import { db, type User } from '@project-odin-book/db';
+import { db, type FollowStatus, type User } from '@project-odin-book/db';
 import type { UpdateProfileInput } from '@project-odin-book/validation';
 
 type CreateUserInput = Pick<User, 'username' | 'email' | 'passwordHash'>;
 
-type AuthUser = Pick<User, 'id' | 'username' | 'email'>;
-type AuthLookupUser = AuthUser & {
-  passwordHash: string | null;
-};
+export type AuthUser = Pick<User, 'id' | 'username' | 'email'>;
+export type AuthLookupUser = Pick<
+  User,
+  'id' | 'username' | 'email' | 'passwordHash'
+>;
 
-type PublicUser = Pick<User, 'id' | 'username' | 'email' | 'createdAt'>;
-type UserProfile = {
+export type PublicUser = Pick<User, 'id' | 'username' | 'email' | 'createdAt'>;
+export type UserProfile = {
   id: string;
   username: string;
   profilePicture: string | null;
@@ -32,6 +33,18 @@ type UserWithCounts = {
     sentFollows: number;
     receivedFollows: number;
   };
+};
+
+export type DirectoryUserPayload = Pick<
+  User,
+  'id' | 'username' | 'profilePicture' | 'bio'
+> & {
+  relationshipStatus: FollowStatus | 'NONE';
+};
+
+export type UsersDirectoryResult = {
+  items: DirectoryUserPayload[];
+  hasMore: boolean;
 };
 
 const publicUserSelect = {
@@ -61,8 +74,8 @@ const userProfileSelect = {
   _count: {
     select: {
       posts: true,
-      sentFollows: true,
-      receivedFollows: true,
+      sentFollows: { where: { status: 'ACCEPTED' } },
+      receivedFollows: { where: { status: 'ACCEPTED' } },
     },
   },
 } as const;
@@ -145,4 +158,54 @@ export const updateUserProfile = async (
   });
 
   return mapToUserProfile(user);
+};
+
+export const fetchUserDirectory = async (options: {
+  currentUserId: string;
+  skip: number;
+  take: number;
+}): Promise<UsersDirectoryResult> => {
+  const { currentUserId, skip, take } = options;
+
+  const users = await db.user.findMany({
+    where: { id: { not: currentUserId } },
+    skip,
+    take: take + 1,
+    orderBy: { username: 'asc' },
+    select: {
+      id: true,
+      username: true,
+      profilePicture: true,
+      bio: true,
+      receivedFollows: {
+        where: {
+          senderId: currentUserId,
+        },
+        take: 1,
+        select: {
+          status: true,
+        },
+      },
+    },
+  });
+
+  const hasMore = users.length > take;
+  const pageUsers = hasMore ? users.slice(0, take) : users;
+
+  const items: DirectoryUserPayload[] = pageUsers.map((user) => {
+    const relationshipStatus = user.receivedFollows[0]?.status ?? 'NONE';
+
+    return {
+      id: user.id,
+      username: user.username,
+      profilePicture: user.profilePicture,
+      bio: user.bio,
+      relationshipStatus,
+    };
+  });
+
+  return {
+    items,
+    hasMore,
+  };
 };
