@@ -9,6 +9,7 @@ import { Server } from 'socket.io';
 import { env, isProduction } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { authRouter } from './routes/authRoutes.js';
+import { followRouter } from './routes/followRoutes.js';
 import { postRouter } from './routes/postRoutes.js';
 import { userRouter } from './routes/userRoutes.js';
 
@@ -41,6 +42,7 @@ app.use(cookieParser(env.COOKIE_SECRET));
 app.use('/auth', authRouter);
 app.use('/users', userRouter);
 app.use('/posts', postRouter);
+app.use('/follows', followRouter);
 
 app.get('/status', (_, res: Response) => {
   res.json({ status: 'ok' });
