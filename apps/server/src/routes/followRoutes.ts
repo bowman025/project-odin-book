@@ -20,8 +20,9 @@ router.get('/:username/following', getFollowing);
 router.use(authenticate);
 
 router.get('/requests', getPendingRequests);
-router.post('/:username', toggleFollow);
 router.patch('/requests/:requestId/accept', acceptFollow);
 router.patch('/requests/:requestId/reject', rejectFollow);
+
+router.post('/:username', toggleFollow);
 
 export { router as followRouter };
