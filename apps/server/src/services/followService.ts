@@ -1,8 +1,63 @@
-import { db, type FollowStatus } from '@project-odin-book/db';
+import { db, type FollowStatus, type User } from '@project-odin-book/db';
 import { AppError } from '../errors/AppError.js';
+
+export type PendingRequestSender = Pick<
+  User,
+  'id' | 'username' | 'profilePicture'
+>;
+
+export type PendingRequestPayload = {
+  id: string;
+  createdAt: Date;
+  sender: PendingRequestSender;
+};
+
+export type PendingRequestsResult = {
+  items: PendingRequestPayload[];
+  hasMore: boolean;
+};
 
 export type FollowActionPayload = {
   status: FollowStatus | 'NONE';
+};
+
+const pendingRequestSelect = {
+  id: true,
+  createdAt: true,
+  sender: {
+    select: {
+      id: true,
+      username: true,
+      profilePicture: true,
+    },
+  },
+} as const;
+
+export const fetchPendingRequests = async (options: {
+  receiverId: string;
+  skip: number;
+  take: number;
+}): Promise<PendingRequestsResult> => {
+  const { receiverId, skip, take } = options;
+
+  const requests = await db.follow.findMany({
+    where: {
+      receiverId,
+      status: 'PENDING',
+    },
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: pendingRequestSelect,
+  });
+
+  const hasMore = requests.length > take;
+  const pageRequests = hasMore ? requests.slice(0, take) : requests;
+
+  return {
+    items: pageRequests,
+    hasMore,
+  };
 };
 
 export const toggleFollowRequest = async (

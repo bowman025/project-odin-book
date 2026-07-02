@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { apiLimiter } from '../config/rateLimiter.js';
 import {
   acceptFollow,
+  getPendingRequests,
   rejectFollow,
   toggleFollow,
 } from '../controllers/followController.js';
@@ -12,6 +13,7 @@ const router = Router();
 router.use(apiLimiter);
 router.use(authenticate);
 
+router.get('/requests', getPendingRequests);
 router.post('/:username', toggleFollow);
 router.patch('/requests/:requestId/accept', acceptFollow);
 router.patch('/requests/:requestId/reject', rejectFollow);

@@ -113,7 +113,7 @@ export const fetchComments = async (
   const pageComments = hasMore ? comments.slice(0, take) : comments;
 
   return {
-    items: pageComments as CommentPayload[],
+    items: pageComments,
     hasMore,
   };
 };

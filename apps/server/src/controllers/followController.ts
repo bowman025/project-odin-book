@@ -1,4 +1,5 @@
 import {
+  PaginationQuerySchema,
   RequestIdParamSchema,
   UsernameParamSchema,
 } from '@project-odin-book/validation';
@@ -7,6 +8,7 @@ import { AppError } from '../errors/AppError.js';
 import {
   acceptFollowRequest,
   type FollowActionPayload,
+  fetchPendingRequests,
   rejectFollowRequest,
   toggleFollowRequest,
 } from '../services/followService.js';
@@ -16,6 +18,49 @@ const messageMap: Record<FollowActionPayload['status'], string> = {
   ACCEPTED: 'Followed successfully',
   REJECTED: 'Follow request rejected',
   NONE: 'Unfollowed successfully',
+};
+
+export const getPendingRequests = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const queryResult = PaginationQuerySchema.safeParse(req.query);
+
+  if (!queryResult.success) {
+    return next(queryResult.error);
+  }
+
+  try {
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
+    const { page, limit } = queryResult.data;
+    const skip = (page - 1) * limit;
+
+    const { items, hasMore } = await fetchPendingRequests({
+      receiverId: currentUserId,
+      skip,
+      take: limit,
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        items,
+        pagination: {
+          page,
+          limit,
+          hasMore,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 export const toggleFollow = async (
