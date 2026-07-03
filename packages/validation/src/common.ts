@@ -18,6 +18,20 @@ export const RequestIdParamSchema = z.object({
 
 export type RequestIdParamInput = z.infer<typeof RequestIdParamSchema>;
 
+export const ConversationIdParamSchema = z.object({
+  conversationId: z.cuid2({ error: 'Invalid conversation identifier format' }),
+});
+
+export type ConversationIdParamInput = z.infer<
+  typeof ConversationIdParamSchema
+>;
+
+export const MessageIdParamSchema = z.object({
+  messageId: z.cuid2({ error: 'Invalid message identifier format' }),
+});
+
+export type MessageIdParamInput = z.infer<typeof MessageIdParamSchema>;
+
 const positiveIntFromString = (defaultValue: number, max?: number) => {
   let numberSchema = z.number().int().positive();
 
