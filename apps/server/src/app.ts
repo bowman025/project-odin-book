@@ -2,12 +2,13 @@ import 'dotenv/config';
 import { createServer } from 'node:http';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express, { type Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { Server } from 'socket.io';
 import { env, isProduction } from './config/env.js';
+import { initSocket } from './config/socket.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { notFound } from './middleware/notFound.js';
 import { authRouter } from './routes/authRoutes.js';
 import { conversationRouter } from './routes/conversationRoutes.js';
 import { followRouter } from './routes/followRoutes.js';
@@ -16,14 +17,10 @@ import { userRouter } from './routes/userRoutes.js';
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true,
-  },
-});
 
-const PORT = env.PORT || 3000;
+initSocket(httpServer);
+
+const PORT = env.PORT;
 
 app.use(helmet({ crossOriginEmbedderPolicy: false }));
 app.use(
@@ -46,14 +43,14 @@ app.use('/posts', postRouter);
 app.use('/follows', followRouter);
 app.use('/conversations', conversationRouter);
 
-app.get('/status', (_, res: Response) => {
+app.get('/status', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
+app.use(notFound);
 app.use(errorHandler);
 
 httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Odin-Book Server running on port ${PORT}`);
+  console.log('Real-time Socket.io engine engaged over Websockets');
 });
-
-export { app, httpServer, io };
