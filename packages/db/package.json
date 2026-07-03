@@ -5,8 +5,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate --config src/prisma.config.ts",
+    "db:migrate": "prisma migrate dev --config src/prisma.config.ts",
     "build": "pnpm run db:generate && tsc"
   },
   "keywords": [],
