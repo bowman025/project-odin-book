@@ -12,9 +12,11 @@ const router = Router({ mergeParams: true });
 
 router.use(apiLimiter);
 
-router.get('/', getComments);
-router.post('/', authenticate, createComment);
-router.patch('/:commentId', authenticate, updateComment);
-router.delete('/:commentId', authenticate, deleteComment);
+router.route('/').get(getComments).post(authenticate, createComment);
+
+router
+  .route('/:commentId')
+  .patch(authenticate, updateComment)
+  .delete(authenticate, deleteComment);
 
 export { router as commentRouter };

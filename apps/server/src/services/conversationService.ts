@@ -193,7 +193,7 @@ export const removeMessage = async (options: {
   return result.count > 0;
 };
 
-export const fetchInbox = async (options: {
+export const fetchConversations = async (options: {
   currentUserId: string;
   skip: number;
   take: number;

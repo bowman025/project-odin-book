@@ -8,15 +8,15 @@ import {
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../errors/AppError.js';
 import {
-  fetchInbox,
+  fetchConversations,
   fetchMessageHistory,
   fetchOrCreateConversation,
   insertMessage,
   modifyMessage,
   removeMessage,
-} from '../services/messageService.js';
+} from '../services/conversationService.js';
 
-export const getInbox = async (
+export const getConversations = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -36,7 +36,7 @@ export const getInbox = async (
 
     const { page, limit } = queryResult.data;
     const skip = (page - 1) * limit;
-    const { items, hasMore } = await fetchInbox({
+    const { items, hasMore } = await fetchConversations({
       currentUserId,
       skip,
       take: limit,

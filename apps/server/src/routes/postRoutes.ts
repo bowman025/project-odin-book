@@ -23,8 +23,11 @@ router.use('/:postId/comments', commentRouter);
 router.use('/:postId/likes', likeRouter);
 
 router.post('/', authenticate, createPost);
-router.get('/:postId', getPost);
-router.patch('/:postId', authenticate, updatePost);
-router.delete('/:postId', authenticate, deletePost);
+
+router
+  .route('/:postId')
+  .get(getPost)
+  .patch(authenticate, updatePost)
+  .delete(authenticate, deletePost);
 
 export { router as postRouter };
