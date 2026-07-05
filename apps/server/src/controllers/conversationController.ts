@@ -6,6 +6,7 @@ import {
   UsernameParamSchema,
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
+import { getIO } from '../config/socket.js';
 import { AppError } from '../errors/AppError.js';
 import {
   fetchConversations,
@@ -165,6 +166,8 @@ export const createMessage = async (
       input: bodyResult.data,
     });
 
+    getIO().to(conversationId).emit('message_created', newMessage);
+
     return res.status(201).json({
       status: 'success',
       message: 'Message sent successfully',
@@ -210,6 +213,10 @@ export const updateMessage = async (
       return next(new AppError('Message not found or access denied', 404));
     }
 
+    getIO()
+      .to(updatedMessage.conversationId)
+      .emit('message_updated', updatedMessage);
+
     return res.status(200).json({
       status: 'success',
       message: 'Message updated successfully',
@@ -239,14 +246,21 @@ export const deleteMessage = async (
     }
 
     const { messageId } = paramResult.data;
-    const wasDeleted = await removeMessage({
+    const deleted = await removeMessage({
       messageId,
       requesterId: currentUserId,
     });
 
-    if (!wasDeleted) {
+    if (!deleted) {
       return next(new AppError('Message not found or access denied', 404));
     }
+
+    getIO()
+      .to(deleted.conversationId)
+      .emit('message_deleted', {
+        messageId,
+        conversationId: deleted.conversationId,
+      });
 
     return res.status(204).end();
   } catch (error) {

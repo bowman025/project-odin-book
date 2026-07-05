@@ -1,5 +1,5 @@
-import type { Message, Prisma, PrismaClient } from '@project-odin-book/db';
-import { db } from '@project-odin-book/db';
+import type { Message, PrismaClient } from '@project-odin-book/db';
+import { db, Prisma } from '@project-odin-book/db';
 import type { SendMessageInput } from '@project-odin-book/validation';
 import { AppError } from '../errors/AppError.js';
 
@@ -199,14 +199,30 @@ export const modifyMessage = async (options: {
 export const removeMessage = async (options: {
   messageId: string;
   requesterId: string;
-}): Promise<boolean> => {
+}): Promise<{ conversationId: string } | null> => {
   const { messageId, requesterId } = options;
 
-  const result = await db.message.deleteMany({
-    where: { id: messageId, senderId: requesterId },
-  });
+  try {
+    const deletedMessage = await db.message.delete({
+      where: {
+        id: messageId,
+        senderId: requesterId,
+      },
+      select: {
+        conversationId: true,
+      },
+    });
 
-  return result.count > 0;
+    return { conversationId: deletedMessage.conversationId };
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2025'
+    ) {
+      return null;
+    }
+    throw error;
+  }
 };
 
 export const fetchConversations = async (options: {
