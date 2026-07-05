@@ -2,6 +2,7 @@ import type { Server as HTTPServer } from 'node:http';
 import { Server } from 'socket.io';
 import { verifyAccessToken } from '../auth/jwt.js';
 import { AppError } from '../errors/AppError.js';
+import { registerConversationHandlers } from '../handlers/conversationHandler.js';
 import { env } from './env.js';
 
 let io: Server | null = null;
@@ -53,6 +54,8 @@ export const initSocket = (server: HTTPServer): Server => {
     console.log(
       `Socket connected: ${socket.data.username} (${socket.data.userId}) [${socket.id}]`,
     );
+
+    registerConversationHandlers(socket);
 
     socket.on('disconnect', (reason) => {
       console.log(`Socket disconnected: ${socket.id} (${reason})`);

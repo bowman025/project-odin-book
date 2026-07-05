@@ -1,6 +1,9 @@
-import { db, type Message } from '@project-odin-book/db';
+import type { Message, Prisma, PrismaClient } from '@project-odin-book/db';
+import { db } from '@project-odin-book/db';
 import type { SendMessageInput } from '@project-odin-book/validation';
 import { AppError } from '../errors/AppError.js';
+
+type DBClient = PrismaClient | Prisma.TransactionClient;
 
 export type ChatParticipant = {
   id: string;
@@ -62,6 +65,25 @@ export const generateConversationHash = (id1: string, id2: string): string => {
   return [id1, id2].sort().join('_');
 };
 
+export const isParticipantInConversation = async (
+  db: DBClient,
+  conversationId: string,
+  userId: string,
+): Promise<boolean> => {
+  const conversation = await db.conversation.findUnique({
+    where: { id: conversationId },
+    select: {
+      id: true,
+      participants: {
+        where: { userId },
+        select: { id: true },
+      },
+    },
+  });
+
+  return !!conversation?.participants.length;
+};
+
 export const fetchOrCreateConversation = async (options: {
   requesterId: string;
   targetUsername: string;
@@ -118,19 +140,13 @@ export const insertMessage = async (options: {
   const { conversationId, senderId, input } = options;
 
   return db.$transaction(async (tx) => {
-    const conversation = await tx.conversation.findFirst({
-      where: {
-        id: conversationId,
-        participants: {
-          some: {
-            userId: senderId,
-          },
-        },
-      },
-      select: { id: true },
-    });
+    const isParticipant = await isParticipantInConversation(
+      tx,
+      conversationId,
+      senderId,
+    );
 
-    if (!conversation) {
+    if (!isParticipant) {
       throw new AppError('Conversation not found or access denied', 404);
     }
 
@@ -251,19 +267,13 @@ export const fetchMessageHistory = async (options: {
 }): Promise<MessageHistoryResult> => {
   const { conversationId, requesterId, skip, take } = options;
 
-  const conversation = await db.conversation.findFirst({
-    where: {
-      id: conversationId,
-      participants: {
-        some: {
-          userId: requesterId,
-        },
-      },
-    },
-    select: { id: true },
-  });
+  const isParticipant = await isParticipantInConversation(
+    db,
+    conversationId,
+    requesterId,
+  );
 
-  if (!conversation) {
+  if (!isParticipant) {
     throw new AppError('Conversation not found or access denied', 404);
   }
 
