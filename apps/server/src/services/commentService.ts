@@ -59,11 +59,12 @@ export const insertComment = async (
   });
 };
 
-export const modifyComment = async (
-  id: string,
-  requesterId: string,
-  data: UpdateCommentInput,
-): Promise<CommentPayload | null> => {
+export const modifyComment = async (options: {
+  id: string;
+  requesterId: string;
+  data: UpdateCommentInput;
+}): Promise<CommentPayload | null> => {
+  const { id, requesterId, data } = options;
   const existing = await db.comment.findUnique({
     where: { id },
     select: { authorId: true },
@@ -82,10 +83,11 @@ export const modifyComment = async (
   });
 };
 
-export const removeComment = async (
-  id: string,
-  requesterId: string,
-): Promise<boolean> => {
+export const removeComment = async (options: {
+  id: string;
+  requesterId: string;
+}): Promise<boolean> => {
+  const { id, requesterId } = options;
   const result = await db.comment.deleteMany({
     where: {
       id,

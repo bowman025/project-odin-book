@@ -127,11 +127,11 @@ export const updateComment = async (
       return next(new AppError('Authentication context required', 401));
     }
 
-    const updatedComment = await modifyComment(
-      commentId,
+    const updatedComment = await modifyComment({
+      id: commentId,
       requesterId,
-      bodyResult.data,
-    );
+      data: bodyResult.data,
+    });
 
     if (!updatedComment) {
       return next(new AppError('Comment not found', 404));
@@ -166,7 +166,7 @@ export const deleteComment = async (
       return next(new AppError('Authentication context required', 401));
     }
 
-    const wasDeleted = await removeComment(commentId, requesterId);
+    const wasDeleted = await removeComment({ id: commentId, requesterId });
 
     if (!wasDeleted) {
       return next(new AppError('Comment not found', 404));

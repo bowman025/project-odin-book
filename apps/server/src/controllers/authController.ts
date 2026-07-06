@@ -105,7 +105,10 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         const refreshToken = signRefreshToken(tokenPayload);
         const hashedRefreshToken = hashToken(refreshToken);
 
-        await updateRefreshToken(user.id, hashedRefreshToken);
+        await updateRefreshToken({
+          id: user.id,
+          hashedToken: hashedRefreshToken,
+        });
 
         res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
@@ -178,7 +181,10 @@ export const refresh = async (
     const newRefreshToken = signRefreshToken(tokenPayload);
     const newHashedRefreshToken = hashToken(newRefreshToken);
 
-    await updateRefreshToken(user.id, newHashedRefreshToken);
+    await updateRefreshToken({
+      id: user.id,
+      hashedToken: newHashedRefreshToken,
+    });
 
     res.cookie('refreshToken', newRefreshToken, refreshCookieOptions);
 
@@ -219,7 +225,7 @@ export const logout = async (
         }
 
         if (isValid && user) {
-          await updateRefreshToken(user.id, null);
+          await updateRefreshToken({ id: user.id, hashedToken: null });
         }
       } catch (error) {
         console.warn('[Logout cleanup skipped]:', error);

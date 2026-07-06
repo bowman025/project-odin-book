@@ -19,11 +19,11 @@ export const registerConversationHandlers = (socket: Socket) => {
     const currentUserId = socket.data.userId;
 
     try {
-      const isParticipant = await isParticipantInConversation(
+      const isParticipant = await isParticipantInConversation({
         db,
         conversationId,
-        currentUserId,
-      );
+        userId: currentUserId,
+      });
 
       if (!isParticipant) {
         console.warn(

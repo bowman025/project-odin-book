@@ -107,11 +107,12 @@ export const fetchPost = async (id: string): Promise<PostPayload | null> => {
   return post ? mapToPostPayload(post) : null;
 };
 
-export const modifyPost = async (
-  id: string,
-  requesterId: string,
-  data: UpdatePostInput,
-): Promise<PostPayload | null> => {
+export const modifyPost = async (options: {
+  id: string;
+  requesterId: string;
+  data: UpdatePostInput;
+}): Promise<PostPayload | null> => {
+  const { id, requesterId, data } = options;
   const existing = await db.post.findUnique({
     where: { id },
     select: { authorId: true },
@@ -140,10 +141,11 @@ export const modifyPost = async (
   return mapToPostPayload(result);
 };
 
-export const removePost = async (
-  id: string,
-  requesterId: string,
-): Promise<boolean> => {
+export const removePost = async (options: {
+  id: string;
+  requesterId: string;
+}): Promise<boolean> => {
+  const { id, requesterId } = options;
   const result = await db.post.deleteMany({
     where: {
       id,

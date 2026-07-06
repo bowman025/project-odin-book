@@ -23,7 +23,7 @@ export const toggleLike = async (
 
     const { postId } = paramResult.data;
 
-    const result = await togglePostLike(postId, currentUserId);
+    const result = await togglePostLike({ postId, userId: currentUserId });
 
     return res.status(200).json({
       status: 'success',

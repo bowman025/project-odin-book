@@ -61,10 +61,10 @@ export const updateProfile = async (
       return next(new AppError('Authentication context required', 401));
     }
 
-    const updatedProfile = await updateUserProfile(
-      currentUserId,
-      bodyResult.data,
-    );
+    const updatedProfile = await updateUserProfile({
+      id: currentUserId,
+      data: bodyResult.data,
+    });
 
     return res.status(200).json({
       status: 'success',

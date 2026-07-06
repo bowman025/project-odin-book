@@ -147,10 +147,11 @@ export const fetchUserProfileByUsername = async (
   return user ? mapToUserProfile(user) : null;
 };
 
-export const updateUserProfile = async (
-  id: string,
-  data: UpdateProfileInput,
-): Promise<UserProfile> => {
+export const updateUserProfile = async (options: {
+  id: string;
+  data: UpdateProfileInput;
+}): Promise<UserProfile> => {
+  const { id, data } = options;
   const user = await db.user.update({
     where: { id },
     data,

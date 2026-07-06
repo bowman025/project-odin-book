@@ -105,7 +105,11 @@ export const updatePost = async (
       return next(new AppError('Authentication context required', 401));
     }
 
-    const updatedPost = await modifyPost(postId, authorId, bodyResult.data);
+    const updatedPost = await modifyPost({
+      id: postId,
+      requesterId: authorId,
+      data: bodyResult.data,
+    });
 
     if (!updatedPost) {
       return next(new AppError('Post not found', 404));
@@ -140,7 +144,10 @@ export const deletePost = async (
       return next(new AppError('Authentication context required', 401));
     }
 
-    const wasDeleted = await removePost(postId, currentUserId);
+    const wasDeleted = await removePost({
+      id: postId,
+      requesterId: currentUserId,
+    });
 
     if (!wasDeleted) {
       return next(new AppError('Post not found', 404));

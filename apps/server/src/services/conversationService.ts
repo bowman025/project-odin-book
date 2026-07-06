@@ -65,11 +65,12 @@ export const generateConversationHash = (id1: string, id2: string): string => {
   return [id1, id2].sort().join('_');
 };
 
-export const isParticipantInConversation = async (
-  db: DBClient,
-  conversationId: string,
-  userId: string,
-): Promise<boolean> => {
+export const isParticipantInConversation = async (options: {
+  db: DBClient;
+  conversationId: string;
+  userId: string;
+}): Promise<boolean> => {
+  const { db, conversationId, userId } = options;
   const conversation = await db.conversation.findUnique({
     where: { id: conversationId },
     select: {
@@ -132,6 +133,26 @@ export const fetchOrCreateConversation = async (options: {
   };
 };
 
+const canMessage = async (options: {
+  db: DBClient;
+  userAId: string;
+  userBId: string;
+}): Promise<boolean> => {
+  const { db, userAId, userBId } = options;
+  const connection = await db.follow.findFirst({
+    where: {
+      status: 'ACCEPTED',
+      OR: [
+        { senderId: userAId, receiverId: userBId },
+        { senderId: userBId, receiverId: userAId },
+      ],
+    },
+    select: { id: true },
+  });
+
+  return !!connection;
+};
+
 export const insertMessage = async (options: {
   conversationId: string;
   senderId: string;
@@ -140,14 +161,38 @@ export const insertMessage = async (options: {
   const { conversationId, senderId, input } = options;
 
   return db.$transaction(async (tx) => {
-    const isParticipant = await isParticipantInConversation(
-      tx,
-      conversationId,
-      senderId,
-    );
+    const conversation = await tx.conversation.findUnique({
+      where: { id: conversationId },
+      select: {
+        id: true,
+        hash: true,
+      },
+    });
 
-    if (!isParticipant) {
+    if (!conversation?.hash) {
       throw new AppError('Conversation not found or access denied', 404);
+    }
+
+    const [userAId, userBId] = conversation.hash.split('_');
+
+    if (!userAId || !userBId) {
+      throw new AppError('Conversation not found or access denied', 404);
+    }
+
+    if (senderId !== userAId && senderId !== userBId) {
+      throw new AppError('Conversation not found or access denied', 404);
+    }
+
+    const otherParticipantId = senderId === userAId ? userBId : userAId;
+
+    const stillConnected = await canMessage({
+      db: tx,
+      userAId: senderId,
+      userBId: otherParticipantId,
+    });
+
+    if (!stillConnected) {
+      throw new AppError('You can no longer message this user', 403);
     }
 
     const message = await tx.message.create({
@@ -283,11 +328,11 @@ export const fetchMessageHistory = async (options: {
 }): Promise<MessageHistoryResult> => {
   const { conversationId, requesterId, skip, take } = options;
 
-  const isParticipant = await isParticipantInConversation(
+  const isParticipant = await isParticipantInConversation({
     db,
     conversationId,
-    requesterId,
-  );
+    userId: requesterId,
+  });
 
   if (!isParticipant) {
     throw new AppError('Conversation not found or access denied', 404);

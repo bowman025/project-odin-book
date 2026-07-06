@@ -139,10 +139,12 @@ export const fetchPendingRequests = async (options: {
   };
 };
 
-export const toggleFollowRequest = async (
-  receiverUsername: string,
-  senderId: string,
-): Promise<FollowActionPayload> => {
+export const toggleFollowRequest = async (options: {
+  receiverUsername: string;
+  senderId: string;
+}): Promise<FollowActionPayload> => {
+  const { receiverUsername, senderId } = options;
+
   return db.$transaction(async (tx) => {
     const receiver = await tx.user.findUnique({
       where: { username: receiverUsername },
@@ -216,16 +218,29 @@ const respondToFollowRequest = async (
   return { status };
 };
 
-export const acceptFollowRequest = (requestId: string, receiverId: string) =>
-  respondToFollowRequest(requestId, receiverId, 'ACCEPTED');
+export const acceptFollowRequest = (options: {
+  requestId: string;
+  receiverId: string;
+}) => {
+  const { requestId, receiverId } = options;
 
-export const rejectFollowRequest = (requestId: string, receiverId: string) =>
-  respondToFollowRequest(requestId, receiverId, 'REJECTED');
+  return respondToFollowRequest(requestId, receiverId, 'ACCEPTED');
+};
 
-export const revokeFollowApproval = async (
-  requestId: string,
-  receiverId: string,
-): Promise<FollowActionPayload> => {
+export const rejectFollowRequest = (options: {
+  requestId: string;
+  receiverId: string;
+}) => {
+  const { requestId, receiverId } = options;
+
+  return respondToFollowRequest(requestId, receiverId, 'REJECTED');
+};
+
+export const revokeFollowApproval = async (options: {
+  requestId: string;
+  receiverId: string;
+}): Promise<FollowActionPayload> => {
+  const { requestId, receiverId } = options;
   const result = await db.follow.updateMany({
     where: { id: requestId, receiverId, status: 'ACCEPTED' },
     data: { status: 'REJECTED' },

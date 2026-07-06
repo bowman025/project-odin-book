@@ -141,7 +141,10 @@ export const toggleFollow = async (
     }
 
     const { username } = paramResult.data;
-    const result = await toggleFollowRequest(username, currentUserId);
+    const result = await toggleFollowRequest({
+      receiverUsername: username,
+      senderId: currentUserId,
+    });
     const message = messageMap[result.status];
 
     return res.status(200).json({
@@ -173,7 +176,10 @@ export const acceptFollow = async (
     }
 
     const { requestId } = paramResult.data;
-    const result = await acceptFollowRequest(requestId, currentUserId);
+    const result = await acceptFollowRequest({
+      requestId,
+      receiverId: currentUserId,
+    });
     const message = messageMap[result.status];
 
     return res.status(200).json({
@@ -205,7 +211,10 @@ export const rejectFollow = async (
     }
 
     const { requestId } = paramResult.data;
-    const result = await rejectFollowRequest(requestId, currentUserId);
+    const result = await rejectFollowRequest({
+      requestId,
+      receiverId: currentUserId,
+    });
     const message = messageMap[result.status];
 
     return res.status(200).json({
@@ -237,7 +246,10 @@ export const revokeFollow = async (
     }
 
     const { requestId } = paramResult.data;
-    const result = await revokeFollowApproval(requestId, currentUserId);
+    const result = await revokeFollowApproval({
+      requestId,
+      receiverId: currentUserId,
+    });
     const message = messageMap[result.status];
 
     return res.status(200).json({

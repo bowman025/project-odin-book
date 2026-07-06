@@ -5,10 +5,12 @@ type ToggleLikeResult = {
   likeCount: number;
 };
 
-export const togglePostLike = async (
-  postId: string,
-  userId: string,
-): Promise<ToggleLikeResult> => {
+export const togglePostLike = async (options: {
+  postId: string;
+  userId: string;
+}): Promise<ToggleLikeResult> => {
+  const { postId, userId } = options;
+
   return db.$transaction(async (tx) => {
     const existingLike = await tx.like.findUnique({
       where: {
