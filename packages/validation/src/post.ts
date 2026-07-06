@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+export const PostIdParamSchema = z.object({
+  postId: z.cuid2({ error: 'Invalid post identifier format' }),
+});
+
+export type PostIdParamInput = z.infer<typeof PostIdParamSchema>;
+
 export const CreatePostSchema = z.object({
   content: z
     .string()

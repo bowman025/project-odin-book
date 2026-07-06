@@ -4,11 +4,11 @@ import type { Socket } from 'socket.io';
 import { isParticipantInConversation } from '../services/conversationService.js';
 
 export const registerConversationHandlers = (socket: Socket) => {
-  socket.on('join_conversation', async (rawData) => {
+  socket.on('join_conversation', async (rawData: unknown) => {
     const result = ConversationIdParamSchema.safeParse(rawData);
 
     if (!result.success) {
-      return socket.emit('error', {
+      return socket.emit('conversation_error', {
         message: 'Invalid conversation identifier format',
       });
     }
@@ -26,7 +26,7 @@ export const registerConversationHandlers = (socket: Socket) => {
         console.warn(
           `Blocked room access: ${socket.data.username} targeted room ${conversationId}`,
         );
-        return socket.emit('error', {
+        return socket.emit('conversation_error', {
           message: 'Access denied: Conversation not found or invalid',
         });
       }
@@ -37,17 +37,17 @@ export const registerConversationHandlers = (socket: Socket) => {
       );
     } catch (error) {
       console.error('Join conversation error:', error);
-      socket.emit('error', {
+      socket.emit('conversation_error', {
         message: 'An error occurred while entering the conversation channel',
       });
     }
   });
 
-  socket.on('leave_conversation', async (rawData) => {
+  socket.on('leave_conversation', async (rawData: unknown) => {
     const result = ConversationIdParamSchema.safeParse(rawData);
 
     if (!result.success) {
-      return socket.emit('error', {
+      return socket.emit('conversation_error', {
         message: 'Invalid conversation identifier format',
       });
     }

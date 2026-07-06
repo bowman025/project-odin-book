@@ -1,36 +1,10 @@
 import { z } from 'zod';
 
-export const PostIdParamSchema = z.object({
-  postId: z.cuid2({ error: 'Invalid post identifier format' }),
-});
-
-export type PostIdParamInput = z.infer<typeof PostIdParamSchema>;
-
-export const CommentIdParamSchema = z.object({
-  commentId: z.cuid2({ error: 'Invalid comment identifier format' }),
-});
-
-export type CommentIdParamInput = z.infer<typeof CommentIdParamSchema>;
-
 export const RequestIdParamSchema = z.object({
   requestId: z.cuid2({ error: 'Invalid request identifier format' }),
 });
 
 export type RequestIdParamInput = z.infer<typeof RequestIdParamSchema>;
-
-export const ConversationIdParamSchema = z.object({
-  conversationId: z.cuid2({ error: 'Invalid conversation identifier format' }),
-});
-
-export type ConversationIdParamInput = z.infer<
-  typeof ConversationIdParamSchema
->;
-
-export const MessageIdParamSchema = z.object({
-  messageId: z.cuid2({ error: 'Invalid message identifier format' }),
-});
-
-export type MessageIdParamInput = z.infer<typeof MessageIdParamSchema>;
 
 const positiveIntFromString = (defaultValue: number, max?: number) => {
   let numberSchema = z.number().int().positive();

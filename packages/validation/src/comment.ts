@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+export const CommentIdParamSchema = z.object({
+  commentId: z.cuid2({ error: 'Invalid comment identifier format' }),
+});
+
+export type CommentIdParamInput = z.infer<typeof CommentIdParamSchema>;
+
 export const CreateCommentSchema = z.object({
   content: z
     .string()
