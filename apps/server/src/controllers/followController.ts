@@ -13,6 +13,7 @@ import {
   fetchUserFollowing,
   type ProfileConnectionsResult,
   rejectFollowRequest,
+  revokeFollowApproval,
   toggleFollowRequest,
 } from '../services/followService.js';
 
@@ -205,6 +206,38 @@ export const rejectFollow = async (
 
     const { requestId } = paramResult.data;
     const result = await rejectFollowRequest(requestId, currentUserId);
+    const message = messageMap[result.status];
+
+    return res.status(200).json({
+      status: 'success',
+      message,
+      data: result,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const revokeFollow = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramResult = RequestIdParamSchema.safeParse(req.params);
+
+  if (!paramResult.success) {
+    return next(paramResult.error);
+  }
+
+  try {
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
+    const { requestId } = paramResult.data;
+    const result = await revokeFollowApproval(requestId, currentUserId);
     const message = messageMap[result.status];
 
     return res.status(200).json({

@@ -1,5 +1,8 @@
 import { db } from '@project-odin-book/db';
-import { ConversationIdParamSchema } from '@project-odin-book/validation';
+import {
+  ConversationIdParamSchema,
+  TypingStatusSchema,
+} from '@project-odin-book/validation';
 import type { Socket } from 'socket.io';
 import { isParticipantInConversation } from '../services/conversationService.js';
 
@@ -55,5 +58,22 @@ export const registerConversationHandlers = (socket: Socket) => {
     const { conversationId } = result.data;
     await socket.leave(conversationId);
     console.log(`Exit: ${socket.data.username} left room ${conversationId}`);
+  });
+
+  socket.on('typing_status', async (rawData: unknown) => {
+    const result = TypingStatusSchema.safeParse(rawData);
+
+    if (!result.success) return;
+
+    const { conversationId, isTyping } = result.data;
+
+    if (!socket.rooms.has(conversationId)) return;
+
+    socket.to(conversationId).emit('user_typing', {
+      conversationId,
+      userId: socket.data.userId,
+      username: socket.data.username,
+      isTyping,
+    });
   });
 };

@@ -221,3 +221,19 @@ export const acceptFollowRequest = (requestId: string, receiverId: string) =>
 
 export const rejectFollowRequest = (requestId: string, receiverId: string) =>
   respondToFollowRequest(requestId, receiverId, 'REJECTED');
+
+export const revokeFollowApproval = async (
+  requestId: string,
+  receiverId: string,
+): Promise<FollowActionPayload> => {
+  const result = await db.follow.updateMany({
+    where: { id: requestId, receiverId, status: 'ACCEPTED' },
+    data: { status: 'REJECTED' },
+  });
+
+  if (result.count === 0) {
+    throw new AppError('Follow relationship not found or invalid', 404);
+  }
+
+  return { status: 'REJECTED' };
+};

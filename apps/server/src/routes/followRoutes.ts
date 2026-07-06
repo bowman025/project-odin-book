@@ -6,6 +6,7 @@ import {
   getFollowing,
   getPendingRequests,
   rejectFollow,
+  revokeFollow,
   toggleFollow,
 } from '../controllers/followController.js';
 import { authenticate } from '../middleware/authenticate.js';
@@ -22,6 +23,7 @@ router.use(authenticate);
 router.get('/requests', getPendingRequests);
 router.patch('/requests/:requestId/accept', acceptFollow);
 router.patch('/requests/:requestId/reject', rejectFollow);
+router.patch('/requests/:requestId/revoke', revokeFollow);
 
 router.post('/:username', toggleFollow);
 
