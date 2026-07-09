@@ -13,3 +13,9 @@ export const TypingStatusSchema = ConversationIdParamSchema.extend({
 });
 
 export type TypingStatusInput = z.infer<typeof TypingStatusSchema>;
+
+export const JoinConversationsSchema = z.object({
+  conversationIds: z.array(z.cuid2()).max(100),
+});
+
+export type JoinConversationsInput = z.infer<typeof JoinConversationsSchema>;

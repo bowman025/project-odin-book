@@ -7,6 +7,14 @@ import { env } from './env.js';
 
 let io: Server | null = null;
 
+const connectedUserRegistry = new Map<string, Set<string>>();
+
+export const isUserOnline = (userId: string): boolean =>
+  connectedUserRegistry.has(userId);
+
+export const getOnlineUserIds = (): string[] =>
+  Array.from(connectedUserRegistry.keys());
+
 export const initSocket = (server: HTTPServer): Server => {
   io = new Server(server, {
     transports: ['websocket'],
@@ -51,11 +59,34 @@ export const initSocket = (server: HTTPServer): Server => {
   });
 
   io.on('connection', (socket) => {
-    console.log(
-      `Socket connected: ${socket.data.username} (${socket.data.userId}) [${socket.id}]`,
-    );
+    const { userId, username } = socket.data;
+    console.log(`Socket connected: ${username} (${userId}) [${socket.id}]`);
+
+    if (!connectedUserRegistry.has(userId)) {
+      connectedUserRegistry.set(userId, new Set());
+    }
+
+    const userSockets = connectedUserRegistry.get(userId) ?? new Set<string>();
+    userSockets.add(socket.id);
+    connectedUserRegistry.set(userId, userSockets);
 
     registerConversationHandlers(socket);
+
+    socket.on('disconnecting', () => {
+      const userSockets = connectedUserRegistry.get(userId);
+      if (!userSockets) return;
+
+      userSockets.delete(socket.id);
+
+      if (userSockets.size === 0) {
+        connectedUserRegistry.delete(userId);
+
+        for (const room of socket.rooms) {
+          if (room === socket.id) continue;
+          socket.to(room).emit('user_offline', { userId });
+        }
+      }
+    });
 
     socket.on('disconnect', (reason) => {
       console.log(`Socket disconnected: ${socket.id} (${reason})`);

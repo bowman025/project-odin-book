@@ -1,12 +1,59 @@
 import { db } from '@project-odin-book/db';
 import {
   ConversationIdParamSchema,
+  JoinConversationsSchema,
   TypingStatusSchema,
 } from '@project-odin-book/validation';
 import type { Socket } from 'socket.io';
 import { isParticipantInConversation } from '../services/conversationService.js';
 
 export const registerConversationHandlers = (socket: Socket) => {
+  const currentUserId = socket.data.userId;
+
+  socket.on('join_conversations', async (rawData: unknown) => {
+    const result = JoinConversationsSchema.safeParse(rawData);
+    if (!result.success) return;
+
+    const { conversationIds } = result.data;
+
+    const allowedConversations = await db.conversation.findMany({
+      where: {
+        id: { in: conversationIds },
+        participants: {
+          some: { userId: currentUserId },
+        },
+      },
+      select: { id: true },
+    });
+
+    const allowedIds = allowedConversations.map((c) => c.id);
+
+    await Promise.all(allowedIds.map((id) => socket.join(id)));
+
+    const presenceItems = await Promise.all(
+      allowedIds.map(async (conversationId) => {
+        const socketsInRoom = await socket.nsp
+          .in(conversationId)
+          .fetchSockets();
+        const onlineUserIds = [
+          ...new Set(
+            socketsInRoom
+              .map((s) => s.data.userId as string)
+              .filter((id) => id !== currentUserId),
+          ),
+        ];
+
+        socket
+          .to(conversationId)
+          .emit('user_online', { userId: currentUserId });
+
+        return { conversationId, onlineUserIds };
+      }),
+    );
+
+    socket.emit('batch_room_presence', presenceItems);
+  });
+
   socket.on('join_conversation', async (rawData: unknown) => {
     const result = ConversationIdParamSchema.safeParse(rawData);
 
@@ -16,7 +63,6 @@ export const registerConversationHandlers = (socket: Socket) => {
       });
     }
     const { conversationId } = result.data;
-    const currentUserId = socket.data.userId;
 
     try {
       const isParticipant = await isParticipantInConversation({
@@ -38,6 +84,8 @@ export const registerConversationHandlers = (socket: Socket) => {
       console.log(
         `Entry: ${socket.data.username} joined room ${conversationId}`,
       );
+
+      await broadcastRoomPresence({ socket, conversationId, currentUserId });
     } catch (error) {
       console.error('Join conversation error:', error);
       socket.emit('conversation_error', {
@@ -48,12 +96,7 @@ export const registerConversationHandlers = (socket: Socket) => {
 
   socket.on('leave_conversation', async (rawData: unknown) => {
     const result = ConversationIdParamSchema.safeParse(rawData);
-
-    if (!result.success) {
-      return socket.emit('conversation_error', {
-        message: 'Invalid conversation identifier format',
-      });
-    }
+    if (!result.success) return;
 
     const { conversationId } = result.data;
     await socket.leave(conversationId);
@@ -71,9 +114,29 @@ export const registerConversationHandlers = (socket: Socket) => {
 
     socket.to(conversationId).emit('user_typing', {
       conversationId,
-      userId: socket.data.userId,
+      userId: currentUserId,
       username: socket.data.username,
       isTyping,
     });
   });
+};
+
+const broadcastRoomPresence = async (options: {
+  socket: Socket;
+  conversationId: string;
+  currentUserId: string;
+}): Promise<void> => {
+  const { socket, conversationId, currentUserId } = options;
+
+  const socketsInRoom = await socket.nsp.in(conversationId).fetchSockets();
+
+  const onlineUserIds = [
+    ...new Set(
+      socketsInRoom
+        .map((s) => s.data.userId as string)
+        .filter((id) => id !== currentUserId),
+    ),
+  ];
+
+  socket.emit('room_presence', { conversationId, onlineUserIds });
 };
