@@ -10,6 +10,7 @@ import { initSocket } from './config/socket.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import { authRouter } from './routes/authRoutes.js';
+import { cloudinaryRouter } from './routes/cloudinaryRoutes.js';
 import { conversationRouter } from './routes/conversationRoutes.js';
 import { followRouter } from './routes/followRoutes.js';
 import { postRouter } from './routes/postRoutes.js';
@@ -42,6 +43,7 @@ app.use('/users', userRouter);
 app.use('/posts', postRouter);
 app.use('/follows', followRouter);
 app.use('/conversations', conversationRouter);
+app.use('/uploads', cloudinaryRouter);
 
 app.get('/status', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
