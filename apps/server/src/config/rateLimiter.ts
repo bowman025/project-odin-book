@@ -3,13 +3,11 @@ import rateLimit, { type Options } from 'express-rate-limit';
 const FIFTEEN_MIN = 15 * 60 * 1000;
 
 const createHandler: Options['handler'] = (_req, res, _next, options) => {
-  const retryAfterSeconds = Math.ceil(options.windowMs / 1000);
+  const retryAfterMinutes = Math.ceil(options.windowMs / 1000 / 60);
 
   res.status(options.statusCode).json({
     status: 'error',
-    message: `Too many requests, try again in ${Math.ceil(
-      retryAfterSeconds / 60,
-    )} minutes`,
+    message: `Too many requests, try again in ${retryAfterMinutes} minutes`,
   });
 };
 

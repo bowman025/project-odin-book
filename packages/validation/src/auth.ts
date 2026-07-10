@@ -1,8 +1,21 @@
 import { z } from 'zod';
 
-const getEmailPrefix = (email: string): string => {
-  return email.split('@')[0]?.toLowerCase() ?? '';
+const getEmailPrefix = (email: string): string | null => {
+  const [prefix] = email.split('@');
+  return prefix ? prefix.toLowerCase() : null;
 };
+
+const basePasswordSchema = z
+  .string()
+  .min(8, { error: 'Password must be at least 8 characters long' })
+  .max(100, { error: 'Password cannot exceed 100 characters' })
+  .regex(/[A-Z]/, {
+    error: 'Password must contain at least one uppercase letter',
+  })
+  .regex(/[0-9]/, { error: 'Password must contain at least one number' })
+  .regex(/[^a-zA-Z0-9]/, {
+    error: 'Password must contain at least one special character',
+  });
 
 export const RegisterSchema = z
   .object({
@@ -19,17 +32,7 @@ export const RegisterSchema = z
       .email({ error: 'Please enter a valid email address' })
       .toLowerCase(),
 
-    password: z
-      .string()
-      .min(8, { error: 'Password must be at least 8 characters long' })
-      .regex(/[A-Z]/, {
-        error: 'Password must contain at least one uppercase letter',
-      })
-      .regex(/[0-9]/, { error: 'Password must contain at least one number' })
-      .regex(/[^a-zA-Z0-9]/, {
-        error: 'Password must contain at least one special character',
-      }),
-
+    password: basePasswordSchema,
     confirmPassword: z
       .string()
       .min(1, { error: 'Please confirm your password' }),
@@ -41,7 +44,11 @@ export const RegisterSchema = z
       const username = data.username.toLowerCase();
 
       if (password.includes(username)) return false;
-      if (emailPrefix?.length >= 4 && password.includes(emailPrefix))
+      if (
+        emailPrefix &&
+        emailPrefix.length >= 4 &&
+        password.includes(emailPrefix)
+      )
         return false;
 
       return true;
@@ -71,3 +78,17 @@ export const LoginSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
+
+export const ChangePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(1, { error: 'Current password is required' }),
+    newPassword: basePasswordSchema,
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    error: 'New password must be different from your current password',
+    path: ['newPassword'],
+  });
+
+export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
