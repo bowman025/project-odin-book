@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const getEmailPrefix = (email: string): string | null => {
+export const getEmailPrefix = (email: string): string | null => {
   const [prefix] = email.split('@');
   return prefix ? prefix.toLowerCase() : null;
 };
@@ -85,10 +85,19 @@ export const ChangePasswordSchema = z
       .string()
       .min(1, { error: 'Current password is required' }),
     newPassword: basePasswordSchema,
+    confirmNewPassword: z
+      .string()
+      .min(1, { error: 'Please confirm your password' }),
   })
   .refine((data) => data.currentPassword !== data.newPassword, {
     error: 'New password must be different from your current password',
     path: ['newPassword'],
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    error: 'Passwords do not match',
+    path: ['confirmNewPassword'],
   });
 
-export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+export type ChangePasswordDTO = z.infer<typeof ChangePasswordSchema>;
+
+export type ChangePasswordInput = Omit<ChangePasswordDTO, 'confirmNewPassword'>;

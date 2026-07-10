@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import type { User } from '@project-odin-book/db';
 import {
   type BaseTokenPayload,
+  ChangePasswordSchema,
   LoginSchema,
   RegisterSchema,
 } from '@project-odin-book/validation';
@@ -16,7 +17,11 @@ import {
 import { isProduction } from '../config/env.js';
 import { AppError } from '../errors/AppError.js';
 import { updateRefreshToken } from '../services/tokenService.js';
-import { createUser, fetchUserSessionById } from '../services/userService.js';
+import {
+  createUser,
+  fetchUserSessionById,
+  updateUserPassword,
+} from '../services/userService.js';
 
 type PassportInfo = {
   message?: string;
@@ -237,6 +242,45 @@ export const logout = async (
     return res.status(200).json({
       status: 'success',
       message: 'Logged out successfully',
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const changePassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const bodyResult = ChangePasswordSchema.safeParse(req.body);
+
+  if (!bodyResult.success) {
+    return next(bodyResult.error);
+  }
+
+  try {
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
+    const { currentPassword, newPassword } = bodyResult.data;
+
+    await updateUserPassword({
+      userId: currentUserId,
+      input: {
+        currentPassword,
+        newPassword,
+      },
+    });
+
+    res.clearCookie('refreshToken', clearCookieOptions);
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Your password has been changed successfully.',
     });
   } catch (error) {
     return next(error);

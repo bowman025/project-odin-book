@@ -1,5 +1,11 @@
 import { db, type FollowStatus, type User } from '@project-odin-book/db';
-import type { UpdateProfileInput } from '@project-odin-book/validation';
+import {
+  type ChangePasswordInput,
+  getEmailPrefix,
+  type UpdateProfileInput,
+} from '@project-odin-book/validation';
+import bcrypt from 'bcryptjs';
+import { AppError } from '../errors/AppError.js';
 
 type CreateUserInput = Pick<User, 'username' | 'email' | 'passwordHash'>;
 
@@ -209,4 +215,69 @@ export const fetchUserDirectory = async (options: {
     items,
     hasMore,
   };
+};
+
+export const updateUserPassword = async (options: {
+  userId: string;
+  input: ChangePasswordInput;
+}): Promise<void> => {
+  const { userId, input } = options;
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      username: true,
+      email: true,
+      passwordHash: true,
+    },
+  });
+
+  if (!user) {
+    throw new AppError('User account not found', 404);
+  }
+
+  if (!user.passwordHash) {
+    throw new AppError(
+      'Accounts authenticated via social platforms cannot change local passwords directly',
+      400,
+    );
+  }
+
+  const isMatch = await bcrypt.compare(
+    input.currentPassword,
+    user.passwordHash,
+  );
+
+  if (!isMatch) {
+    throw new AppError('The current password you entered is incorrect', 401);
+  }
+
+  const newPasswordLower = input.newPassword.toLowerCase();
+  const usernameLower = user.username.toLowerCase();
+  const emailPrefix = getEmailPrefix(user.email);
+
+  if (newPasswordLower.includes(usernameLower)) {
+    throw new AppError('Password cannot contain your username', 400);
+  }
+
+  if (
+    emailPrefix &&
+    emailPrefix.length >= 4 &&
+    newPasswordLower.includes(emailPrefix)
+  ) {
+    throw new AppError(
+      'Password cannot contain identifying components of your email',
+      400,
+    );
+  }
+
+  const newPasswordHash = await bcrypt.hash(input.newPassword, 10);
+
+  await db.user.update({
+    where: { id: userId },
+    data: {
+      passwordHash: newPasswordHash,
+      refreshToken: null,
+    },
+  });
 };
