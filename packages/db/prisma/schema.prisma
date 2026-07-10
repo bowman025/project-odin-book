@@ -34,12 +34,12 @@ model Follow {
   status     FollowStatus @default(PENDING)
   createdAt  DateTime     @default(now())
 
-  sender   User @relation("FollowSender", fields: [senderId], references: [id])
-  receiver User @relation("FollowReceiver", fields: [receiverId], references: [id])
+  sender   User @relation("FollowSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("FollowReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
-  @@index([receiverId, status])
-  @@index([senderId, createdAt(sort: Desc)])
+  @@index([senderId, status, createdAt(sort: Desc)])
+  @@index([receiverId, status, createdAt(sort: Desc)])
 }
 
 model Post {
