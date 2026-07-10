@@ -8,7 +8,12 @@ export type UploadSignaturePayload = {
   cloudName: string;
   folder: string;
   publicId: string;
+  allowedFormats: string[];
+  maxFileSize: number;
 };
+
+const allowedFormatsList = ['gif', 'jpeg', 'jpg', 'png', 'webp'];
+const allowedFormats = allowedFormatsList.join(',');
 
 export const generateUploadSignature = (options: {
   userId: string;
@@ -20,8 +25,10 @@ export const generateUploadSignature = (options: {
   const publicId = `user_${userId}_${timestamp}`;
 
   const paramsToSign: Record<string, string | number> = {
+    allowed_formats: allowedFormats,
     folder,
     public_id: publicId,
+    resource_type: 'image',
     timestamp,
   };
 
@@ -42,5 +49,7 @@ export const generateUploadSignature = (options: {
     cloudName: env.CLOUDINARY_CLOUD_NAME,
     folder,
     publicId,
+    allowedFormats: allowedFormatsList,
+    maxFileSize: 5_000_000,
   };
 };
