@@ -61,6 +61,12 @@ const messageSelect = {
   edited: true,
 } as const;
 
+const GHOST_PARTICIPANT: ChatParticipant = {
+  id: 'deleted_user',
+  username: 'Deleted User',
+  profilePicture: null,
+};
+
 export const generateConversationHash = (id1: string, id2: string): string => {
   return [id1, id2].sort().join('_');
 };
@@ -139,6 +145,14 @@ const canMessage = async (options: {
   userBId: string;
 }): Promise<boolean> => {
   const { db, userAId, userBId } = options;
+
+  const targetStillExists = await db.user.findUnique({
+    where: { id: userBId },
+    select: { id: true },
+  });
+
+  if (!targetStillExists) return false;
+
   const connection = await db.follow.findFirst({
     where: {
       status: 'ACCEPTED',
@@ -161,34 +175,34 @@ export const insertMessage = async (options: {
   const { conversationId, senderId, input } = options;
 
   return db.$transaction(async (tx) => {
-    const conversation = await tx.conversation.findUnique({
-      where: { id: conversationId },
-      select: {
-        id: true,
-        hash: true,
-      },
+    const participants = await tx.participant.findMany({
+      where: { conversationId },
+      select: { userId: true },
     });
 
-    if (!conversation?.hash) {
+    if (participants.length === 0) {
       throw new AppError('Conversation not found or access denied', 404);
     }
 
-    const [userAId, userBId] = conversation.hash.split('_');
+    const isParticipant = participants.some((p) => (p.userId = senderId));
 
-    if (!userAId || !userBId) {
+    if (!isParticipant) {
       throw new AppError('Conversation not found or access denied', 404);
     }
 
-    if (senderId !== userAId && senderId !== userBId) {
-      throw new AppError('Conversation not found or access denied', 404);
-    }
+    const otherParticipantId = participants.find((p) => p.userId === senderId);
 
-    const otherParticipantId = senderId === userAId ? userBId : userAId;
+    if (!otherParticipantId) {
+      throw new AppError(
+        'The other participant has left this conversation',
+        400,
+      );
+    }
 
     const stillConnected = await canMessage({
       db: tx,
       userAId: senderId,
-      userBId: otherParticipantId,
+      userBId: otherParticipantId.userId,
     });
 
     if (!stillConnected) {
@@ -308,14 +322,21 @@ export const fetchConversations = async (options: {
     : conversations;
 
   return {
-    items: pageConversations.map((chat) => ({
-      id: chat.id,
-      updatedAt: chat.updatedAt,
-      participants: chat.participants
+    items: pageConversations.map((chat) => {
+      const remainingParticipants = chat.participants
         .filter((p) => p.user.id !== currentUserId)
-        .map((p) => p.user),
-      lastMessage: chat.messages.at(0) ?? null,
-    })),
+        .map((p) => p.user);
+
+      return {
+        id: chat.id,
+        updatedAt: chat.updatedAt,
+        participants:
+          remainingParticipants.length > 0
+            ? remainingParticipants
+            : [GHOST_PARTICIPANT],
+        lastMessage: chat.messages.at(0) ?? null,
+      };
+    }),
     hasMore,
   };
 };
