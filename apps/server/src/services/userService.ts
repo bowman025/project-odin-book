@@ -1,6 +1,7 @@
 import { db, type FollowStatus, type User } from '@project-odin-book/db';
 import {
   type ChangePasswordInput,
+  type DeleteAccountInput,
   getEmailPrefix,
   type UpdateProfileInput,
 } from '@project-odin-book/validation';
@@ -279,5 +280,48 @@ export const updateUserPassword = async (options: {
       passwordHash: newPasswordHash,
       refreshToken: null,
     },
+  });
+};
+
+export const destroyUserAccount = async (options: {
+  userId: string;
+  input: DeleteAccountInput;
+}): Promise<void> => {
+  const { userId, input } = options;
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { passwordHash: true },
+  });
+
+  if (!user) {
+    throw new AppError('Invalid credentials', 400);
+  }
+
+  if (user.passwordHash) {
+    const isMatch = await bcrypt.compare(
+      input.password ?? '',
+      user.passwordHash,
+    );
+
+    if (!isMatch) {
+      throw new AppError('Invalid credentials', 400);
+    }
+  } else {
+    if (input.confirmation !== 'DELETE') {
+      throw new AppError('Invalid credentials', 400);
+    }
+  }
+
+  await db.$transaction(async (tx) => {
+    await tx.user.delete({
+      where: { id: userId },
+    });
+
+    await tx.conversation.deleteMany({
+      where: {
+        participants: { none: {} },
+      },
+    });
   });
 };

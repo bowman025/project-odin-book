@@ -3,6 +3,7 @@ import type { User } from '@project-odin-book/db';
 import {
   type BaseTokenPayload,
   ChangePasswordSchema,
+  DeleteAccountSchema,
   LoginSchema,
   RegisterSchema,
 } from '@project-odin-book/validation';
@@ -19,6 +20,7 @@ import { AppError } from '../errors/AppError.js';
 import { updateRefreshToken } from '../services/tokenService.js';
 import {
   createUser,
+  destroyUserAccount,
   fetchUserSessionById,
   updateUserPassword,
 } from '../services/userService.js';
@@ -282,6 +284,34 @@ export const changePassword = async (
       status: 'success',
       message: 'Your password has been changed successfully.',
     });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deleteAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const bodyResult = DeleteAccountSchema.safeParse(req.body);
+
+  if (!bodyResult.success) {
+    return next(bodyResult.error);
+  }
+
+  try {
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
+    await destroyUserAccount({ userId: currentUserId, input: bodyResult.data });
+
+    res.clearCookie('refreshToken', clearCookieOptions);
+
+    return res.status(204).end();
   } catch (error) {
     return next(error);
   }

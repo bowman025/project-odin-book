@@ -63,10 +63,8 @@ export const RegisterSchema = z
     path: ['confirmPassword'],
   });
 
-export type RegisterInput = Omit<
-  z.infer<typeof RegisterSchema>,
-  'confirmPassword'
->;
+export type RegisterDTO = z.infer<typeof RegisterSchema>;
+export type RegisterInput = Omit<RegisterDTO, 'confirmPassword'>;
 
 export const LoginSchema = z.object({
   username: z
@@ -99,5 +97,16 @@ export const ChangePasswordSchema = z
   });
 
 export type ChangePasswordDTO = z.infer<typeof ChangePasswordSchema>;
-
 export type ChangePasswordInput = Omit<ChangePasswordDTO, 'confirmNewPassword'>;
+
+export const DeleteAccountSchema = z
+  .object({
+    password: z.string().min(1, { error: 'Password is required' }).optional(),
+    confirmation: z.literal('DELETE').optional(),
+  })
+  .refine((data) => data.password || data.confirmation, {
+    error: 'Verification required',
+    path: [],
+  });
+
+export type DeleteAccountInput = z.infer<typeof DeleteAccountSchema>;
