@@ -221,7 +221,7 @@ const respondToFollowRequest = async (
 export const acceptFollowRequest = (options: {
   requestId: string;
   receiverId: string;
-}) => {
+}): Promise<FollowActionPayload> => {
   const { requestId, receiverId } = options;
 
   return respondToFollowRequest(requestId, receiverId, 'ACCEPTED');
@@ -230,7 +230,7 @@ export const acceptFollowRequest = (options: {
 export const rejectFollowRequest = (options: {
   requestId: string;
   receiverId: string;
-}) => {
+}): Promise<FollowActionPayload> => {
   const { requestId, receiverId } = options;
 
   return respondToFollowRequest(requestId, receiverId, 'REJECTED');

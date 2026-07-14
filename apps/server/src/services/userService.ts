@@ -234,7 +234,7 @@ export const updateUserPassword = async (options: {
   });
 
   if (!user) {
-    throw new AppError('User account not found', 404);
+    throw new AppError('Invalid credentials', 400);
   }
 
   if (!user.passwordHash) {
@@ -250,7 +250,7 @@ export const updateUserPassword = async (options: {
   );
 
   if (!isMatch) {
-    throw new AppError('The current password you entered is incorrect', 401);
+    throw new AppError('The current password you entered is incorrect', 400);
   }
 
   const newPasswordLower = input.newPassword.toLowerCase();
