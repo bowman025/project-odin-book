@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/app.ts",
     "build": "pnpm --filter @project-odin-book/validation run build && pnpm --filter @project-odin-book/db run build && tsc",
-    "start": "node dist/app.js",
+    "dev": "tsx watch src/app.ts",
     "db:generate": "pnpm --filter @project-odin-book/db run db:generate",
-    "db:migrate": "pnpm --filter @project-odin-book/db run db:migrate"
+    "db:migrate": "pnpm --filter @project-odin-book/db run db:migrate",
+    "start": "node dist/app.js",
+    "test": "vitest run"
   },
   "type": "module",
   "dependencies": {
