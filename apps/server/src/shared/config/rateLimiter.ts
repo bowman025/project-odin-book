@@ -1,8 +1,13 @@
-import rateLimit, { type Options } from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator, type Options } from 'express-rate-limit';
 
 const FIFTEEN_MIN = 15 * 60 * 1000;
 
-const createHandler: Options['handler'] = (_req, res, _next, options) => {
+export const createHandler: Options['handler'] = (
+  _req,
+  res,
+  _next,
+  options,
+) => {
   const retryAfterMinutes = Math.ceil(options.windowMs / 1000 / 60);
 
   res.status(options.statusCode).json({
@@ -11,9 +16,9 @@ const createHandler: Options['handler'] = (_req, res, _next, options) => {
   });
 };
 
-const keyGenerator: Options['keyGenerator'] = (req) => {
+export const keyGenerator: Options['keyGenerator'] = (req) => {
   if (req.user?.id) return req.user.id;
-  if (req.ip) return req.ip;
+  if (req.ip) return ipKeyGenerator(req.ip);
   return 'anonymous';
 };
 
