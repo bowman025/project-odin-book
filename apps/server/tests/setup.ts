@@ -7,7 +7,7 @@ beforeAll(async () => {
   }
 
   if (process.env.DATABASE_URL !== process.env.TEST_DATABASE_URL) {
-    throw new Error('Test must run on against TEST_DATABASE_URL');
+    throw new Error('Tests must run on against TEST_DATABASE_URL');
   }
 
   await db.$connect();

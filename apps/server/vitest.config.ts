@@ -13,5 +13,6 @@ export default defineConfig({
       NODE_ENV: 'test',
     },
     setupFiles: ['./tests/setup.ts'],
+    reporters: ['verbose'],
   },
 });
