@@ -15,6 +15,7 @@ import { env, isProduction } from './shared/config/env.js';
 import { initSocket } from './shared/config/socket.js';
 import { errorHandler } from './shared/middleware/errorHandler.js';
 import { notFound } from './shared/middleware/notFound.js';
+import './shared/config/passport.js';
 
 const app = express();
 export const httpServer = createServer(app);

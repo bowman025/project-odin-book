@@ -30,6 +30,7 @@ const createLimiter = (max: number, windowMs = FIFTEEN_MIN) => {
     legacyHeaders: false,
     keyGenerator,
     handler: createHandler,
+    skip: () => process.env.NODE_ENV === 'test',
   });
 };
 
