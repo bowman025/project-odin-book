@@ -39,7 +39,7 @@ describe('Likes Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('🚀 POST /posts/:postId/likes - Toggle Engagement Link Gate', () => {
+  describe('POST /posts/:postId/likes - Toggle Engagement Link Gate', () => {
     it('should add a like to a post on the first call and increment the count', async () => {
       const response = await request(app)
         .post(`/posts/${targetPost.id}/likes`)
