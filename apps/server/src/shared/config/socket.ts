@@ -1,5 +1,5 @@
 import type { Server as HTTPServer } from 'node:http';
-import { Server } from 'socket.io';
+import { Server, type Socket } from 'socket.io';
 import { registerConversationHandlers } from '../../modules/conversations/conversationHandler.js';
 import { AppError } from '../errors/AppError.js';
 import { verifyAccessToken } from '../utils/jwt.js';
@@ -15,6 +15,41 @@ export const isUserOnline = (userId: string): boolean =>
 export const getOnlineUserIds = (): string[] =>
   Array.from(connectedUserRegistry.keys());
 
+export const socketAuthMiddleware = (
+  socket: Socket,
+  next: (err?: Error) => void,
+) => {
+  try {
+    const rawToken = socket.handshake.auth?.token;
+
+    if (!rawToken) {
+      return next(new AppError('Authentication token required', 401));
+    }
+
+    const token =
+      typeof rawToken === 'string' && rawToken.startsWith('Bearer ')
+        ? rawToken.split(' ').at(1)
+        : rawToken;
+
+    if (typeof token !== 'string' || !token) {
+      return next(new AppError('Authentication token required', 401));
+    }
+
+    const decoded = verifyAccessToken(token);
+
+    socket.data.userId = decoded.id;
+    socket.data.username = decoded.username;
+
+    return next();
+  } catch (error) {
+    return next(
+      new AppError('Invalid or expired authentication token', 401, true, {
+        cause: error instanceof Error ? error : undefined,
+      }),
+    );
+  }
+};
+
 export const initSocket = (server: HTTPServer): Server => {
   io = new Server(server, {
     transports: ['websocket'],
@@ -27,36 +62,7 @@ export const initSocket = (server: HTTPServer): Server => {
     pingInterval: 25000,
   });
 
-  io.use((socket, next) => {
-    try {
-      const rawToken = socket.handshake.auth?.token;
-
-      if (!rawToken) {
-        return next(new AppError('Authentication token required', 401));
-      }
-
-      const token = rawToken.startsWith('Bearer ')
-        ? rawToken.split(' ').at(1)
-        : rawToken;
-
-      if (!token) {
-        return next(new AppError('Authentication token required', 401));
-      }
-
-      const decoded = verifyAccessToken(token);
-
-      socket.data.userId = decoded.id;
-      socket.data.username = decoded.username;
-
-      return next();
-    } catch (error) {
-      return next(
-        new AppError('Invalid or expired authentication token', 401, true, {
-          cause: error instanceof Error ? error : undefined,
-        }),
-      );
-    }
-  });
+  io.use(socketAuthMiddleware);
 
   io.on('connection', (socket) => {
     const { userId, username } = socket.data;
