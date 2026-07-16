@@ -184,13 +184,13 @@ export const insertMessage = async (options: {
       throw new AppError('Conversation not found or access denied', 404);
     }
 
-    const isParticipant = participants.some((p) => (p.userId = senderId));
+    const isParticipant = participants.some((p) => p.userId === senderId);
 
     if (!isParticipant) {
       throw new AppError('Conversation not found or access denied', 404);
     }
 
-    const otherParticipantId = participants.find((p) => p.userId === senderId);
+    const otherParticipantId = participants.find((p) => p.userId !== senderId);
 
     if (!otherParticipantId) {
       throw new AppError(
