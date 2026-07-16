@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "build": "pnpm --filter @project-odin-book/validation run build && pnpm --filter @project-odin-book/db run build && tsc",
-    "dev": "tsx watch src/app.ts",
+    "dev": "tsx watch src/server.ts",
     "db:generate": "pnpm --filter @project-odin-book/db run db:generate",
     "db:migrate": "pnpm --filter @project-odin-book/db run db:migrate",
-    "start": "node dist/app.js",
+    "start": "node dist/server.js",
     "test": "vitest run"
   },
   "type": "module",

@@ -17,11 +17,9 @@ import { errorHandler } from './shared/middleware/errorHandler.js';
 import { notFound } from './shared/middleware/notFound.js';
 
 const app = express();
-const httpServer = createServer(app);
+export const httpServer = createServer(app);
 
 initSocket(httpServer);
-
-const PORT = env.PORT;
 
 app.use(helmet({ crossOriginEmbedderPolicy: false }));
 app.use(
@@ -52,7 +50,4 @@ app.get('/status', (_req: Request, res: Response) => {
 app.use(notFound);
 app.use(errorHandler);
 
-httpServer.listen(PORT, () => {
-  console.log(`Odin-Book Server running on port ${PORT}`);
-  console.log('Real-time Socket.io engine engaged over Websockets');
-});
+export default app;
