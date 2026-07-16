@@ -5,6 +5,7 @@ import {
   UpdatePostSchema,
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
+import { AppError } from '../../shared/errors/AppError.js';
 import {
   fetchGeneralTimeline,
   fetchPersonalTimeline,
@@ -13,7 +14,6 @@ import {
   modifyPost,
   removePost,
 } from './postService.js';
-import { AppError } from '../../shared/errors/AppError.js';
 
 export const createPost = async (
   req: Request,

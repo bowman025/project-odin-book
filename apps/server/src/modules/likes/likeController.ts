@@ -1,7 +1,7 @@
 import { PostIdParamSchema } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
-import { togglePostLike } from './likeService.js';
 import { AppError } from '../../shared/errors/AppError.js';
+import { togglePostLike } from './likeService.js';
 
 export const toggleLike = async (
   req: Request,

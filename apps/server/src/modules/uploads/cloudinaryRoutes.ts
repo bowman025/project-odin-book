@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { getUploadSignature } from './cloudinaryController.js';
 import { uploadLimiter } from '../../shared/config/rateLimiter.js';
 import { authenticate } from '../../shared/middleware/authenticate.js';
+import { getUploadSignature } from './cloudinaryController.js';
 
 const router = Router();
 
