@@ -105,7 +105,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
 
   describe('GET /users - Protected Paginated User Directory Index', () => {
     it('should return a paginated listing of directory profiles without the current user', async () => {
-      await db.user.create({
+      const secondaryUser = await db.user.create({
         data: {
           username: 'directory_neighbor',
           email: 'neighbor@odin.com',
@@ -121,14 +121,27 @@ describe('Users Module: End-to-End API Integration Suites', () => {
       expect(response.body).toEqual({
         status: 'success',
         data: {
-          items: expect.any(Array),
+          items: [
+            {
+              id: secondaryUser.id,
+              username: 'directory_neighbor',
+              bio: null,
+              profilePicture: null,
+              relationshipStatus: 'NONE',
+            },
+          ],
           pagination: {
             page: 1,
             limit: 10,
-            hasMore: expect.any(Boolean),
+            hasMore: false,
           },
         },
       });
+
+      const leakedUser = response.body.data.items[0];
+      expect(leakedUser.passwordHash).toBeUndefined();
+      expect(leakedUser.refreshToken).toBeUndefined();
+      expect(leakedUser.email).toBeUndefined();
 
       const userList = response.body.data.items as Array<{ id: string }>;
       const selfIsPresent = userList.some((u) => u.id === primaryUser.id);

@@ -78,7 +78,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
 
   describe('GET /posts/:postId/comments - Public Feed Index Lookup', () => {
     it('should return a paginated listing of comments matching the parent post identifier', async () => {
-      await db.comment.create({
+      const seededComment = await db.comment.create({
         data: {
           postId: testPost.id,
           authorId: authorUser.id,
@@ -94,14 +94,28 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
       expect(response.body).toEqual({
         status: 'success',
         data: {
-          items: expect.any(Array),
+          items: [
+            expect.objectContaining({
+              id: seededComment.id,
+              postId: testPost.id,
+              content: 'Publicly indexed response content',
+              author: expect.objectContaining({
+                id: authorUser.id,
+                username: authorUser.username,
+              }),
+            }),
+          ],
           pagination: {
             page: 1,
             limit: 5,
-            hasMore: expect.any(Boolean),
+            hasMore: false,
           },
         },
       });
+
+      const commentItem = response.body.data.items[0];
+      expect(commentItem.passwordHash).toBeUndefined();
+      expect(commentItem.email).toBeUndefined();
     });
   });
 

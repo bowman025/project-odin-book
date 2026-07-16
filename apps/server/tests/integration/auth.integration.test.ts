@@ -74,6 +74,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
           errors: expect.any(Array),
         }),
       );
+      expect(response.body.errors.length).toBeGreaterThan(0);
     });
 
     it('should prevent duplicate registration attempts on unique columns and return a 409 status', async () => {

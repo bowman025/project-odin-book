@@ -167,7 +167,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
 
   describe('GET /posts - Public Paginated General Timeline Index', () => {
     it('should return a paginated listing of posts and include explicit data shapes', async () => {
-      await db.post.create({
+      const seededPost = await db.post.create({
         data: {
           authorId: authorUser.id,
           content: 'A timeline item block entry trace',
@@ -180,14 +180,33 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
       expect(response.body).toEqual({
         status: 'success',
         data: {
-          items: expect.any(Array),
+          items: [
+            expect.objectContaining({
+              id: seededPost.id,
+              content: 'A timeline item block entry trace',
+              imageUrl: null,
+              author: expect.objectContaining({
+                id: authorUser.id,
+                username: authorUser.username,
+              }),
+              stats: {
+                comments: 0,
+                likes: 0,
+              },
+            }),
+          ],
           pagination: {
             page: 1,
             limit: 5,
-            hasMore: expect.any(Boolean),
+            hasMore: false,
           },
         },
       });
+
+      const leakedPostAuthor = response.body.data.items[0].author;
+      expect(leakedPostAuthor.passwordHash).toBeUndefined();
+      expect(leakedPostAuthor.refreshToken).toBeUndefined();
+      expect(leakedPostAuthor.email).toBeUndefined();
     });
   });
 

@@ -74,7 +74,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
 
   describe('GET /follows/requests - View Inbound Invites', () => {
     it('should fetch paginated inbound pending requests for the authenticated user', async () => {
-      await db.follow.create({
+      const seededFollow = await db.follow.create({
         data: {
           senderId: senderUser.id,
           receiverId: receiverUser.id,
@@ -87,15 +87,34 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
         .set('Authorization', `Bearer ${receiverToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(
-        expect.objectContaining({
-          status: 'success',
-          data: expect.objectContaining({
-            items: expect.any(Array),
-            pagination: expect.objectContaining({ page: 1, limit: 10 }),
-          }),
-        }),
-      );
+      expect(response.body).toEqual({
+        status: 'success',
+        data: {
+          items: [
+            {
+              id: seededFollow.id,
+              createdAt: expect.any(String),
+              sender: {
+                id: senderUser.id,
+                username: senderUser.username,
+                profilePicture: null,
+              },
+            },
+          ],
+          pagination: {
+            page: 1,
+            limit: 10,
+            hasMore: false,
+          },
+        },
+      });
+
+      const leakedSender = response.body.data.items[0]?.sender;
+
+      expect(leakedSender).toBeDefined();
+      expect(leakedSender?.passwordHash).toBeUndefined();
+      expect(leakedSender?.refreshToken).toBeUndefined();
+      expect(leakedSender?.email).toBeUndefined();
     });
   });
 
