@@ -173,4 +173,78 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
       expect(verifiedFollow?.status).toBe('REJECTED');
     });
   });
+
+  describe('GET /follows/:username/followers & following - Public Connection Indexes', () => {
+    beforeEach(async () => {
+      await db.follow.create({
+        data: {
+          senderId: senderUser.id,
+          receiverId: receiverUser.id,
+          status: 'ACCEPTED',
+        },
+      });
+    });
+
+    it('should fetch the paginated followers list and enforce a strict public data profile shape', async () => {
+      const response = await request(app).get(
+        `/follows/${receiverUser.username}/followers?page=1&limit=10`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        status: 'success',
+        data: {
+          items: [
+            {
+              id: senderUser.id,
+              username: senderUser.username,
+              bio: null,
+              profilePicture: null,
+            },
+          ],
+          pagination: {
+            page: 1,
+            limit: 10,
+            hasMore: false,
+          },
+        },
+      });
+
+      const leakedUser = response.body.data.items[0];
+      expect(leakedUser.passwordHash).toBeUndefined();
+      expect(leakedUser.refreshToken).toBeUndefined();
+      expect(leakedUser.email).toBeUndefined();
+    });
+
+    it('should fetch the paginated following list and enforce a strict public data profile shape', async () => {
+      const response = await request(app).get(
+        `/follows/${senderUser.username}/following?page=1&limit=10`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        status: 'success',
+        data: {
+          items: [
+            {
+              id: receiverUser.id,
+              username: receiverUser.username,
+              bio: null,
+              profilePicture: null,
+            },
+          ],
+          pagination: {
+            page: 1,
+            limit: 10,
+            hasMore: false,
+          },
+        },
+      });
+
+      const leakedUser = response.body.data.items[0];
+      expect(leakedUser.passwordHash).toBeUndefined();
+      expect(leakedUser.refreshToken).toBeUndefined();
+      expect(leakedUser.email).toBeUndefined();
+    });
+  });
 });
