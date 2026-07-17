@@ -111,6 +111,24 @@ export const createUser = async (
   });
 };
 
+export const createOrUpdateGuestUser = async (): Promise<AuthUser> => {
+  return await db.user.upsert({
+    where: { email: 'user@example.com' },
+    update: {},
+    create: {
+      username: 'guest',
+      email: 'user@example.com',
+      passwordHash: 'GUEST_ACCOUNT_BYPASS_NO_HASH_REQUIRED',
+      bio: 'Welcome! I am a guest exploring this social network.',
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+    },
+  });
+};
+
 export const fetchUserIdentityById = async (
   id: string,
 ): Promise<AuthUser | null> => {

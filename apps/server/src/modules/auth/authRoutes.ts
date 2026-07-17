@@ -4,6 +4,7 @@ import { authenticate } from '../../shared/middleware/authenticate.js';
 import {
   changePassword,
   deleteAccount,
+  guestLogin,
   login,
   logout,
   refresh,
@@ -18,6 +19,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
+router.post('/guest', guestLogin);
 router.patch('/change-password', authenticate, changePassword);
 router.delete('/delete-account', authenticate, deleteAccount);
 

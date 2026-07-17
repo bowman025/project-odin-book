@@ -18,6 +18,7 @@ import {
   verifyRefreshToken,
 } from '../../shared/utils/jwt.js';
 import {
+  createOrUpdateGuestUser,
   createUser,
   destroyUserAccount,
   fetchUserSessionById,
@@ -312,6 +313,45 @@ export const deleteAccount = async (
     res.clearCookie('refreshToken', clearCookieOptions);
 
     return res.status(204).end();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const guestLogin = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const guestUser = await createOrUpdateGuestUser();
+
+    const tokenPayload = {
+      id: guestUser.id,
+      username: guestUser.username,
+      email: guestUser.email,
+    };
+
+    const accessToken = signAccessToken(tokenPayload);
+    const refreshToken = signRefreshToken(tokenPayload);
+    const hashedRefreshToken = crypto
+      .createHash('sha256')
+      .update(refreshToken)
+      .digest('hex');
+
+    await updateRefreshToken({
+      id: guestUser.id,
+      hashedToken: hashedRefreshToken,
+    });
+
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions);
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Authenticated successfully as a guest',
+      accessToken,
+      user: guestUser,
+    });
   } catch (error) {
     return next(error);
   }

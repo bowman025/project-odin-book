@@ -347,6 +347,29 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
   });
 
+  describe('POST /auth/guest - Recruiter Bypass Authentication Gate', () => {
+    it('should provision a guest profile and return an access token with a refresh cookie', async () => {
+      const response = await request(app).post('/auth/guest').send();
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(
+        expect.objectContaining({
+          status: 'success',
+          message: 'Authenticated successfully as a guest',
+          accessToken: expect.any(String),
+          user: expect.objectContaining({
+            username: 'guest',
+            email: 'user@example.com',
+          }),
+        }),
+      );
+      const cookieHeader = response.headers['set-cookie'];
+      expect(cookieHeader).toBeDefined();
+      expect(cookieHeader?.[0]).toContain('refreshToken=');
+      expect(cookieHeader?.[0]).toContain('HttpOnly');
+    });
+  });
+
   describe('PATCH /auth/change-password - Protected Password Mutation Gate', () => {
     const originalPassword = 'OldSecurePassword123!';
     const brandNewPassword = 'BrandNewSecurePassword123!';
