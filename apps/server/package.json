@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "build": "pnpm --filter @project-odin-book/validation run build && pnpm --filter @project-odin-book/db run build && tsc",
-    "dev": "tsx watch src/server.ts",
     "db:generate": "pnpm --filter @project-odin-book/db run db:generate",
     "db:migrate": "pnpm --filter @project-odin-book/db run db:migrate",
+    "db:seed": "tsx src/seeds.ts",
+    "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "test": "vitest run"
   },
@@ -30,6 +31,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.5.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
