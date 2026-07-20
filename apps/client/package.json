@@ -2,12 +2,12 @@
   "name": "@project-odin-book/client",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "type": "module",
   "dependencies": {
     "@project-odin-book/validation": "workspace:*",
     "@hookform/resolvers": "^5.4.0",
