@@ -1,16 +1,10 @@
 import { formatDistanceToNow } from 'date-fns';
-import {
-  Globe,
-  Heart,
-  Loader2,
-  MessageCircle,
-  Plus,
-  Users,
-} from 'lucide-react';
+import { Globe, Heart, Loader2, MessageCircle, Users } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useSearchParams } from 'react-router';
 import { apiFetch } from '../../lib/api.js';
+import { PostComposer } from './PostComposer.jsx';
 import styles from './TimelinePage.module.css';
 import type { TimelineLoaderResult, TimelinePost } from './timelineLoader.js';
 
@@ -80,6 +74,10 @@ export const TimelinePage: FC = () => {
     [isFetchingMore, loadMorePosts],
   );
 
+  const handlePostCreated = (newPost: TimelinePost) => {
+    setPosts((prev) => [newPost, ...prev]);
+  };
+
   const handleFeedToggle = (feedType: 'general' | 'following') => {
     setSearchParams({ feed: feedType });
   };
@@ -107,16 +105,7 @@ export const TimelinePage: FC = () => {
             <span>Personal Realm</span>
           </button>
         </div>
-
-        <div className={styles.composerPlaceholder}>
-          <div className={styles.composerInputMock}>
-            What's unfolding in the realm?
-          </div>
-          <button type="button" className={styles.composerBtnMock}>
-            <Plus size={18} />
-            <span>Publish</span>
-          </button>
-        </div>
+        <PostComposer onPostCreated={handlePostCreated} />
       </header>
 
       <div className={styles.postsFeed}>

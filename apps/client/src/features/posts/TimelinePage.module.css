@@ -13,6 +13,13 @@
   margin-bottom: 8px;
 }
 
+.title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
 .tabsContainer {
   display: flex;
   gap: 12px;
@@ -47,44 +54,6 @@
   background-color: var(--color-accent-muted);
   color: var(--color-accent-primary);
   font-weight: 600;
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--color-text-primary);
-}
-
-.composerPlaceholder {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-}
-
-.composerInputMock {
-  flex: 1;
-  color: var(--color-text-muted);
-  font-size: 0.9375rem;
-  cursor: not-allowed;
-}
-
-.composerBtnMock {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: var(--color-bg-hover);
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: not-allowed;
 }
 
 .postsFeed {
