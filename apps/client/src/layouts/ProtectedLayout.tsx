@@ -13,7 +13,7 @@ export const ProtectedLayout: FC = () => {
   return (
     <div className={styles.container}>
       <aside className={styles.sidebar}>
-        <div className={styles.brand}>Odinum</div>
+        <div className={styles.brand}>odinum</div>
       </aside>
 
       <main className={styles.mainContent}>
