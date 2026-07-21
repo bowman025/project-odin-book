@@ -2,7 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Globe, Heart, Loader2, MessageCircle, Users } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useLoaderData, useSearchParams } from 'react-router';
+import { Link, useLoaderData, useSearchParams } from 'react-router';
 import { apiFetch } from '../../lib/api.js';
 import { PostComposer } from './PostComposer.jsx';
 import styles from './TimelinePage.module.css';
@@ -127,19 +127,32 @@ export const TimelinePage: FC = () => {
             return (
               <article key={post.id} className={styles.postCard}>
                 <header className={styles.postHeader}>
-                  {post.author.profilePicture ? (
-                    <img
-                      src={post.author.profilePicture}
-                      alt={post.author.username}
-                      className={styles.avatar}
-                    />
-                  ) : (
-                    <div className={styles.avatarFallback}>{authorInitial}</div>
-                  )}
+                  <Link
+                    to={`/users/${post.author.username}`}
+                    className={styles.avatarLink}
+                  >
+                    {post.author.profilePicture ? (
+                      <img
+                        src={post.author.profilePicture}
+                        alt={post.author.username}
+                        className={styles.avatar}
+                      />
+                    ) : (
+                      <div className={styles.avatarFallback}>
+                        {authorInitial}
+                      </div>
+                    )}
+                  </Link>
+
                   <div className={styles.meta}>
-                    <span className={styles.username}>
-                      {post.author.username}
-                    </span>
+                    <Link
+                      to={`/users/${post.author.username}`}
+                      className={styles.profileLink}
+                    >
+                      <span className={styles.username}>
+                        {post.author.username}
+                      </span>
+                    </Link>
                     <span className={styles.timestamp}>{timeAgo}</span>
                   </div>
                 </header>

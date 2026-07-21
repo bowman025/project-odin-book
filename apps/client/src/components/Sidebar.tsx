@@ -62,7 +62,7 @@ export const Sidebar: FC = () => {
   return (
     <aside className={sidebarClassName}>
       <div className={styles.headerContainer}>
-        <div className={styles.brand}>odinum</div>
+        <div className={styles.brand}>Odinum</div>
         <button
           type="button"
           className={styles.toggleBtn}

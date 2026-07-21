@@ -90,8 +90,8 @@ export const LoginPage: FC = () => {
     <div className={styles.viewport}>
       <div className={styles.card}>
         <header className={styles.header}>
-          <h1 className={styles.brand}>odinum</h1>
-          <p className={styles.subtitle}>connect with the realm</p>
+          <h1 className={styles.brand}>Odinum</h1>
+          <p className={styles.subtitle}>Connect with the Realm</p>
         </header>
 
         {globalError && <div className={styles.globalError}>{globalError}</div>}
