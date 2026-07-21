@@ -1,39 +1,53 @@
 import { formatDistanceToNow } from 'date-fns';
-import { Heart, Loader2, MessageCircle, Plus } from 'lucide-react';
+import {
+  Globe,
+  Heart,
+  Loader2,
+  MessageCircle,
+  Plus,
+  Users,
+} from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useSearchParams } from 'react-router';
 import { apiFetch } from '../../lib/api.js';
 import styles from './TimelinePage.module.css';
 import type { TimelineLoaderResult, TimelinePost } from './timelineLoader.js';
 
 export const TimelinePage: FC = () => {
   const initialData = useLoaderData() as TimelineLoaderResult;
-
-  // 🧱 Manage state data locally to allow incremental array updates
+  const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<TimelinePost[]>(initialData.items);
   const [pagination, setPagination] = useState(initialData.pagination);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-
-  // Keep a mutable reference track of the next page target sequence
   const nextPageRef = useRef(initialData.pagination.page + 1);
   const hasMoreRef = useRef(initialData.pagination.hasMore);
 
-  // Sync refs whenever pagination state shifts to avoid stale closure scopes in our observer
+  const activeFeed = searchParams.get('feed') || 'general';
+
+  useEffect(() => {
+    setPosts(initialData.items);
+    setPagination(initialData.pagination);
+    nextPageRef.current = initialData.pagination.page + 1;
+    hasMoreRef.current = initialData.pagination.hasMore;
+  }, [initialData]);
+
   useEffect(() => {
     nextPageRef.current = pagination.page + 1;
     hasMoreRef.current = pagination.hasMore;
   }, [pagination]);
 
-  // 💡 THE FETCHING ENGINE: Dispatches background requests for subsequent batches
   const loadMorePosts = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
 
     setIsFetchingMore(true);
     try {
-      const response = await apiFetch(
-        `/posts?page=${nextPageRef.current}&limit=10`,
-      );
+      const apiPath =
+        activeFeed === 'following'
+          ? `/posts/following?page=${nextPageRef.current}&limit=10`
+          : `/posts?page=${nextPageRef.current}&limit=10`;
+
+      const response = await apiFetch(apiPath);
 
       if (response.ok) {
         const payload = await response.json();
@@ -47,9 +61,8 @@ export const TimelinePage: FC = () => {
     } finally {
       setIsFetchingMore(false);
     }
-  }, [isFetchingMore]);
+  }, [isFetchingMore, activeFeed]);
 
-  // 🛰️ THE INTERSECTION OBSERVER HOOK: Binds to the sentinel DOM node layout
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -57,8 +70,7 @@ export const TimelinePage: FC = () => {
       if (observerRef.current) observerRef.current.disconnect();
 
       observerRef.current = new IntersectionObserver((entries) => {
-        // Trigger data retrieval the exact millisecond the target boundary crosses the viewport threshold
-        if (entries[0]?.isIntersecting && hasMoreRef.current) {
+        if (entries?.[0]?.isIntersecting && hasMoreRef.current) {
           loadMorePosts();
         }
       });
@@ -68,10 +80,34 @@ export const TimelinePage: FC = () => {
     [isFetchingMore, loadMorePosts],
   );
 
+  const handleFeedToggle = (feedType: 'general' | 'following') => {
+    setSearchParams({ feed: feedType });
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.feedHeader}>
         <h2 className={styles.title}>Home Feed</h2>
+
+        <div className={styles.tabsContainer}>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${activeFeed === 'general' ? styles.tabButtonActive : ''}`}
+            onClick={() => handleFeedToggle('general')}
+          >
+            <Globe size={16} />
+            <span>Global Realm</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${activeFeed === 'following' ? styles.tabButtonActive : ''}`}
+            onClick={() => handleFeedToggle('following')}
+          >
+            <Users size={16} />
+            <span>Personal Realm</span>
+          </button>
+        </div>
+
         <div className={styles.composerPlaceholder}>
           <div className={styles.composerInputMock}>
             What's unfolding in the realm?
@@ -87,8 +123,9 @@ export const TimelinePage: FC = () => {
         {posts.length === 0 ? (
           <div className={styles.emptyState}>
             <p>
-              The realm is quiet. Follow more profiles to populate your feed
-              updates!
+              {activeFeed === 'following'
+                ? 'Your connections haven’t posted recently. Explore the Global Realm to follow more creators!'
+                : 'The realm is completely quiet. Be the first to publish a post!'}
             </p>
           </div>
         ) : (
@@ -145,7 +182,6 @@ export const TimelinePage: FC = () => {
         )}
       </div>
 
-      {/* 💡 THE SENTINEL ANCHOR: Invisible trigger tracking point or active loading wheel */}
       <div ref={sentinelRef} className={styles.infiniteTrigger}>
         {isFetchingMore && (
           <div className={styles.scrollLoader}>

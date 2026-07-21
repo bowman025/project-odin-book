@@ -13,6 +13,42 @@
   margin-bottom: 8px;
 }
 
+.tabsContainer {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: 8px;
+  width: 100%;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.tabButton:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.tabButtonActive {
+  background-color: var(--color-accent-muted);
+  color: var(--color-accent-primary);
+  font-weight: 600;
+}
+
 .title {
   font-size: 1.5rem;
   font-weight: 800;

@@ -33,8 +33,14 @@ export const timelineLoader = async ({
   const url = new URL(request.url);
   const page = url.searchParams.get('page') || '1';
   const limit = url.searchParams.get('limit') || '10';
+  const feedType = url.searchParams.get('feed') || 'general';
 
-  const response = await apiFetch(`/posts?page=${page}&limit=${limit}`);
+  const apiPath =
+    feedType === 'following'
+      ? `/posts/following?page=${page}&limit=${limit}`
+      : `/posts?page=${page}&limit=${limit}`;
+
+  const response = await apiFetch(apiPath);
 
   if (!response.ok) {
     throw new Response('Failed to synchronize platform timeline feed metrics', {
