@@ -5,6 +5,9 @@
   "description": "A social media app.",
   "main": "index.js",
   "scripts": {
+    "dev": "concurrently -n \"server\",\"client\" -c \"cyan,green\" \"pnpm dev:server\" \"pnpm dev:client\"",
+    "dev:server": "pnpm --filter @project-odin-book/server dev",
+    "dev:client": "pnpm --filter @project-odin-book/client dev",
     "format": "pnpm biome check --write .",
     "lint": "pnpm biome lint ."
   },
@@ -20,6 +23,7 @@
   },
   "type": "module",
   "devDependencies": {
-    "@biomejs/biome": "^2.5.0"
+    "@biomejs/biome": "^2.5.0",
+    "concurrently": "^10.0.3"
   }
 }
