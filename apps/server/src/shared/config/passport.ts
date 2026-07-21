@@ -42,6 +42,7 @@ passport.use(
           id: user.id,
           username: user.username,
           email: user.email,
+          profilePicture: user.profilePicture,
         });
       } catch (error) {
         return done(error);

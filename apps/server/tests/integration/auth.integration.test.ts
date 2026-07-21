@@ -100,7 +100,12 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
 
   describe('POST /auth/login - Authentication Session Initializer Gate', () => {
     const loginUserPassword = 'SecureTestPassword123!';
-    let seededUser: { id: string; username: string; email: string };
+    let seededUser: {
+      id: string;
+      username: string;
+      email: string;
+      profilePicture: string | null;
+    };
 
     beforeEach(async () => {
       const hashedPassword = await bcrypt.hash(loginUserPassword, 10);
@@ -109,11 +114,13 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
           username: 'test_user',
           email: 'login@odin.com',
           passwordHash: hashedPassword,
+          profilePicture: 'https://www.link-to-a-fake-picture.com',
         },
         select: {
           id: true,
           username: true,
           email: true,
+          profilePicture: true,
         },
       });
     });
@@ -133,7 +140,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
           user: {
             id: seededUser.id,
             username: seededUser.username,
-            email: seededUser.email,
+            profilePicture: seededUser.profilePicture,
           },
         }),
       );
@@ -195,7 +202,12 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
 
   describe('POST /auth/refresh - Session Token Rotation Gate', () => {
     const testerPassword = 'SecureRefreshPassword123!';
-    let seededUser: { id: string; username: string; email: string };
+    let seededUser: {
+      id: string;
+      username: string;
+      email: string;
+      profilePicture: string | null;
+    };
     let initialRefreshToken: string;
 
     beforeEach(async () => {
@@ -205,8 +217,9 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
           username: 'test_user',
           email: 'refresh@odin.com',
           passwordHash: hashedPassword,
+          profilePicture: null,
         },
-        select: { id: true, username: true, email: true },
+        select: { id: true, username: true, email: true, profilePicture: true },
       });
       const loginResponse = await request(app).post('/auth/login').send({
         username: seededUser.email,
@@ -234,6 +247,11 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       expect(response.body).toEqual({
         status: 'success',
         accessToken: expect.any(String),
+        user: {
+          id: seededUser.id,
+          username: seededUser.username,
+          profilePicture: seededUser.profilePicture,
+        },
       });
 
       const newCookieHeader = response.headers['set-cookie'];

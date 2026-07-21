@@ -10,13 +10,23 @@ import { AppError } from '../../shared/errors/AppError.js';
 
 type CreateUserInput = Pick<User, 'username' | 'email' | 'passwordHash'>;
 
+export type SessionUser = Pick<User, 'id' | 'username' | 'profilePicture'>;
 export type AuthUser = Pick<User, 'id' | 'username' | 'email'>;
+export type SessionAuthUser = Pick<
+  User,
+  'id' | 'username' | 'email' | 'profilePicture'
+>;
+
+export type SessionAuthLookupUser = Pick<
+  User,
+  'id' | 'username' | 'email' | 'profilePicture' | 'passwordHash'
+>;
 export type AuthLookupUser = Pick<
   User,
   'id' | 'username' | 'email' | 'passwordHash'
 >;
+export type CreatedUser = Pick<User, 'id' | 'username' | 'email' | 'createdAt'>;
 
-export type PublicUser = Pick<User, 'id' | 'username' | 'email' | 'createdAt'>;
 export type UserProfile = {
   id: string;
   username: string;
@@ -54,23 +64,41 @@ export type UsersDirectoryResult = {
   hasMore: boolean;
 };
 
-const publicUserSelect = {
+const createdUserSelect = {
   id: true,
   username: true,
   email: true,
   createdAt: true,
 } as const;
 
-const authUserSelect = {
+const sessionUserSelect = {
+  id: true,
+  username: true,
+  profilePicture: true,
+} as const;
+
+// const authUserSelect = {
+//   id: true,
+//   username: true,
+//   email: true,
+// } as const;
+
+const sessionAuthUserSelect = {
   id: true,
   username: true,
   email: true,
-} as const;
+  profilePicture: true,
+};
 
-const authLookupSelect = {
-  ...authUserSelect,
+const sessionAuthLookupSelect = {
+  ...sessionAuthUserSelect,
   passwordHash: true,
 } as const;
+
+// const authLookupSelect = {
+//   ...authUserSelect,
+//   passwordHash: true,
+// } as const;
 
 const userProfileSelect = {
   id: true,
@@ -104,10 +132,10 @@ const mapToUserProfile = (user: UserWithCounts): UserProfile => {
 
 export const createUser = async (
   data: CreateUserInput,
-): Promise<PublicUser> => {
+): Promise<CreatedUser> => {
   return db.user.create({
     data,
-    select: publicUserSelect,
+    select: createdUserSelect,
   });
 };
 
@@ -131,20 +159,20 @@ export const createOrUpdateGuestUser = async (): Promise<AuthUser> => {
 
 export const fetchUserIdentityById = async (
   id: string,
-): Promise<AuthUser | null> => {
+): Promise<SessionUser | null> => {
   return db.user.findUnique({
     where: { id },
-    select: authUserSelect,
+    select: sessionUserSelect,
   });
 };
 
 export const fetchUserSessionById = async (
   id: string,
-): Promise<(AuthUser & { refreshToken: string | null }) | null> => {
+): Promise<(SessionAuthUser & { refreshToken: string | null }) | null> => {
   return db.user.findUnique({
     where: { id },
     select: {
-      ...authUserSelect,
+      ...sessionAuthUserSelect,
       refreshToken: true,
     },
   });
@@ -152,12 +180,12 @@ export const fetchUserSessionById = async (
 
 export const fetchUserForAuth = async (
   identifier: string,
-): Promise<AuthLookupUser | null> => {
+): Promise<SessionAuthLookupUser | null> => {
   return db.user.findFirst({
     where: {
       OR: [{ email: identifier }, { username: identifier }],
     },
-    select: authLookupSelect,
+    select: sessionAuthLookupSelect,
   });
 };
 

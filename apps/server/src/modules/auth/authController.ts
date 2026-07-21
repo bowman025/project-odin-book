@@ -32,6 +32,8 @@ type PassportInfo = {
 
 type BaseUserIdentity = Pick<User, 'id' | 'username' | 'email'>;
 
+type MainUserIdentity = Pick<User, 'id' | 'username' | 'profilePicture'>;
+
 const hashToken = (token: string): string =>
   crypto.createHash('sha256').update(token).digest('hex');
 
@@ -120,10 +122,10 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
 
         res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
-        const userResponse: BaseUserIdentity = {
+        const userResponse: MainUserIdentity = {
           id: user.id,
           username: user.username,
-          email: user.email,
+          profilePicture: user.profilePicture,
         };
 
         return res.status(200).json({
@@ -196,9 +198,16 @@ export const refresh = async (
 
     res.cookie('refreshToken', newRefreshToken, refreshCookieOptions);
 
+    const userResponse: MainUserIdentity = {
+      id: user.id,
+      username: user.username,
+      profilePicture: user.profilePicture,
+    };
+
     return res.status(200).json({
       status: 'success',
       accessToken: newAccessToken,
+      user: userResponse,
     });
   } catch (error) {
     return next(error);
