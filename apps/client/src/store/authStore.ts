@@ -11,6 +11,7 @@ export type AuthUser = {
 type AuthState = {
   user: AuthUser | null;
   accessToken: string | null;
+  isInitializing: boolean;
   setAuthData: (accessToken: string, user: AuthUser) => void;
   clearAuth: () => void;
 };
@@ -18,15 +19,18 @@ type AuthState = {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   accessToken: null,
+  isInitializing: true,
   setAuthData: (accessToken, user) =>
     set({
       accessToken,
       user,
+      isInitializing: false,
     }),
   clearAuth: () =>
     set({
       accessToken: null,
       user: null,
+      isInitializing: false,
     }),
 }));
 
