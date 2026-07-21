@@ -7,11 +7,13 @@ import { TimelinePage } from '../features/posts/TimelinePage';
 import { timelineLoader } from '../features/posts/timelineLoader';
 import { ProtectedLayout } from '../layouts/ProtectedLayout';
 import { RootLayout } from '../layouts/RootLayout';
+import { rootLoader } from '../layouts/rootLoader.js';
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    loader: rootLoader,
     children: [
       {
         path: 'login',
