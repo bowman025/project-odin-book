@@ -3,8 +3,6 @@ import { create } from 'zustand';
 export type AuthUser = {
   id: string;
   username: string;
-  email: string;
-  bio?: string | null;
   profilePicture?: string | null;
 };
 
