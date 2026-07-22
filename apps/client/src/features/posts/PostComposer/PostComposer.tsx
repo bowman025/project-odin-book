@@ -1,16 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreatePostSchema } from '@project-odin-book/validation';
+import {
+  type CreatePostInput,
+  CreatePostSchema,
+} from '@project-odin-book/validation';
 import { Image, Loader2, Send } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { z } from 'zod';
 import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './PostComposer.module.css';
-
-type PostComposerInputs = z.infer<typeof CreatePostSchema>;
 
 type PostComposerProps = {
   onPostCreated: (newPost: TimelinePost) => void;
@@ -26,11 +26,11 @@ export const PostComposer: FC<PostComposerProps> = ({ onPostCreated }) => {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<PostComposerInputs>({
+  } = useForm<CreatePostInput>({
     resolver: zodResolver(CreatePostSchema),
   });
 
-  const onFormSubmit = async (payload: PostComposerInputs) => {
+  const onFormSubmit = async (payload: CreatePostInput) => {
     setGlobalError(null);
     setIsSubmitting(true);
 

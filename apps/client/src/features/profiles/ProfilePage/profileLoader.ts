@@ -1,3 +1,4 @@
+import { UsernameParamSchema } from '@project-odin-book/validation';
 import type { LoaderFunctionArgs } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
@@ -31,13 +32,15 @@ export const profileLoader = async ({
   params,
   request,
 }: LoaderFunctionArgs): Promise<ProfileLoaderResult> => {
-  const username = params.username;
-  if (!username) {
-    throw new Response('Profile target username parameter is missing', {
-      status: 400,
-    });
+  const paramResult = UsernameParamSchema.safeParse(params);
+
+  if (!paramResult.success) {
+    const validationMessage =
+      paramResult.error.issues[0]?.message || 'Username is required';
+    throw new Error(validationMessage);
   }
 
+  const { username } = paramResult.data;
   const url = new URL(request.url);
   const page = url.searchParams.get('page') || '1';
 
