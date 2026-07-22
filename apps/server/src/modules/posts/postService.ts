@@ -156,6 +156,30 @@ export const removePost = async (options: {
   return result.count > 0;
 };
 
+export const fetchUserPosts = async (options: {
+  authorId: string;
+  skip: number;
+  take: number;
+}): Promise<{ items: PostPayload[]; hasMore: boolean }> => {
+  const { authorId, skip, take } = options;
+
+  const posts = await db.post.findMany({
+    where: { authorId },
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: postSelect,
+  });
+
+  const hasMore = posts.length > take;
+  const pagePosts = hasMore ? posts.slice(0, take) : posts;
+
+  return {
+    items: pagePosts.map(mapToPostPayload),
+    hasMore,
+  };
+};
+
 export const fetchGeneralTimeline = async (options: {
   skip: number;
   take: number;

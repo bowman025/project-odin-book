@@ -24,7 +24,7 @@ describe('Conversations & Real-Time Messaging Module Suites', () => {
     userA = await db.user.create({
       data: {
         username: `user_a_${uidA}`,
-        email: `user_a_${uidA}@odin.com`,
+        email: `user_a_${uidA}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },
@@ -33,7 +33,7 @@ describe('Conversations & Real-Time Messaging Module Suites', () => {
     userB = await db.user.create({
       data: {
         username: `user_b_${uidB}`,
-        email: `user_b_${uidB}@odin.com`,
+        email: `user_b_${uidB}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },

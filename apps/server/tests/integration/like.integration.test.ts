@@ -18,7 +18,7 @@ describe('Likes Module: End-to-End API Integration Suites', () => {
     activeUser = await db.user.create({
       data: {
         username: `liker_${uniqueId}`,
-        email: `liker_${uniqueId}@odin.com`,
+        email: `liker_${uniqueId}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },

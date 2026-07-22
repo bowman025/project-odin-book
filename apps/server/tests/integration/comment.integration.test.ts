@@ -18,7 +18,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
     authorUser = await db.user.create({
       data: {
         username: `commenter_${uniqueId}`,
-        email: `commenter_${uniqueId}@odin.com`,
+        email: `commenter_${uniqueId}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },

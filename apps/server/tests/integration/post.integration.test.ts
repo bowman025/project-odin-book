@@ -17,7 +17,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
     authorUser = await db.user.create({
       data: {
         username: `author_${uniqueId}`,
-        email: `author_${uniqueId}@odin.com`,
+        email: `author_${uniqueId}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },
@@ -222,7 +222,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
       followedUser = await db.user.create({
         data: {
           username: `followed_${uid1}`,
-          email: `followed_${uid1}@odin.com`,
+          email: `followed_${uid1}@odinum.com`,
           passwordHash,
         },
         select: { id: true, username: true, email: true },
@@ -231,7 +231,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
       strangerUser = await db.user.create({
         data: {
           username: `stranger_${uid2}`,
-          email: `stranger_${uid2}@odin.com`,
+          email: `stranger_${uid2}@odinum.com`,
           passwordHash,
         },
         select: { id: true, username: true, email: true },

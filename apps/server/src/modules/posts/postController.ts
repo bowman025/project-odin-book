@@ -3,13 +3,16 @@ import {
   PaginationQuerySchema,
   PostIdParamSchema,
   UpdatePostSchema,
+  UsernameParamSchema,
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../../shared/errors/AppError.js';
+import { fetchUserProfileByUsername } from '../users/userService.js';
 import {
   fetchGeneralTimeline,
   fetchPersonalTimeline,
   fetchPost,
+  fetchUserPosts,
   insertPost,
   modifyPost,
   removePost,
@@ -154,6 +157,43 @@ export const deletePost = async (
     }
 
     return res.status(204).end();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getUserPosts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramResult = UsernameParamSchema.safeParse(req.params);
+  if (!paramResult.success) return next(paramResult.error);
+
+  const queryResult = PaginationQuerySchema.safeParse(req.query);
+  if (!queryResult.success) return next(queryResult.error);
+
+  try {
+    const { username } = paramResult.data;
+
+    const author = await fetchUserProfileByUsername(username);
+    if (!author) {
+      return next(new AppError(`User '@${username}' not found`, 404));
+    }
+
+    const { page, limit } = queryResult.data;
+    const skip = (page - 1) * limit;
+
+    const { items, hasMore } = await fetchUserPosts({
+      authorId: author.id,
+      skip,
+      take: limit,
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: { items, pagination: { page, limit, hasMore } },
+    });
   } catch (error) {
     return next(error);
   }

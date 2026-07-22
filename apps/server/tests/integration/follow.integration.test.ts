@@ -19,7 +19,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
     senderUser = await db.user.create({
       data: {
         username: `sender_${uid1}`,
-        email: `sender_${uid1}@odin.com`,
+        email: `sender_${uid1}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },
@@ -29,7 +29,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
     receiverUser = await db.user.create({
       data: {
         username: `receiver_${uid2}`,
-        email: `receiver_${uid2}@odin.com`,
+        email: `receiver_${uid2}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },

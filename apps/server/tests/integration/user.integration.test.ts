@@ -17,7 +17,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
     primaryUser = await db.user.create({
       data: {
         username: `primary_${uniqueId}`,
-        email: `primary_${uniqueId}@odin.com`,
+        email: `primary_${uniqueId}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },
@@ -108,7 +108,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
       const secondaryUser = await db.user.create({
         data: {
           username: 'directory_neighbor',
-          email: 'neighbor@odin.com',
+          email: 'neighbor@odinum.com',
           passwordHash: 'mock_placeholder',
         },
       });
@@ -146,6 +146,96 @@ describe('Users Module: End-to-End API Integration Suites', () => {
       const userList = response.body.data.items as Array<{ id: string }>;
       const selfIsPresent = userList.some((u) => u.id === primaryUser.id);
       expect(selfIsPresent).toBe(false);
+    });
+  });
+
+  describe('GET /users/:username/posts - Public Paginated User Posts Feed', () => {
+    beforeEach(async () => {
+      await db.post.deleteMany();
+      await db.post.createMany({
+        data: [
+          {
+            content: 'Chronicle alpha content logs',
+            authorId: primaryUser.id,
+            createdAt: new Date('2026-01-01T10:00:00Z'),
+          },
+          {
+            content: 'Chronicle beta content logs',
+            authorId: primaryUser.id,
+            createdAt: new Date('2026-01-02T10:00:00Z'),
+          },
+          {
+            content: 'Chronicle gamma content logs',
+            authorId: primaryUser.id,
+            createdAt: new Date('2026-01-03T10:00:00Z'),
+          },
+        ],
+      });
+    });
+
+    it('should return a paginated collection of posts matching the target username sorted newest first', async () => {
+      const response = await request(app).get(
+        `/users/${primaryUser.username}/posts?page=1&limit=2`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        status: 'success',
+        data: {
+          pagination: {
+            page: 1,
+            limit: 2,
+            hasMore: true,
+          },
+          items: [
+            expect.objectContaining({
+              content: 'Chronicle gamma content logs',
+              author: expect.objectContaining({
+                id: primaryUser.id,
+                username: primaryUser.username,
+              }),
+            }),
+            expect.objectContaining({
+              content: 'Chronicle beta content logs',
+              author: expect.objectContaining({
+                id: primaryUser.id,
+                username: primaryUser.username,
+              }),
+            }),
+          ],
+        },
+      });
+    });
+
+    it('should correctly evaluate hasMore as false when hitting the final page layer boundary', async () => {
+      const response = await request(app).get(
+        `/users/${primaryUser.username}/posts?page=2&limit=2`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.pagination).toEqual({
+        page: 2,
+        limit: 2,
+        hasMore: false,
+      });
+      expect(response.body.data.items).toHaveLength(1);
+      expect(response.body.data.items[0]?.content).toBe(
+        'Chronicle alpha content logs',
+      );
+    });
+
+    it('should respond with a 404 status code if the username slug parameter is non-existent', async () => {
+      const response = await request(app).get(
+        '/users/non_existent_username_slug/posts?page=1&limit=10',
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual(
+        expect.objectContaining({
+          status: 'error',
+          message: "User '@non_existent_username_slug' not found",
+        }),
+      );
     });
   });
 });

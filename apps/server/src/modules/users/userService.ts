@@ -77,12 +77,6 @@ const sessionUserSelect = {
   profilePicture: true,
 } as const;
 
-// const authUserSelect = {
-//   id: true,
-//   username: true,
-//   email: true,
-// } as const;
-
 const sessionAuthUserSelect = {
   id: true,
   username: true,
@@ -94,11 +88,6 @@ const sessionAuthLookupSelect = {
   ...sessionAuthUserSelect,
   passwordHash: true,
 } as const;
-
-// const authLookupSelect = {
-//   ...authUserSelect,
-//   passwordHash: true,
-// } as const;
 
 const userProfileSelect = {
   id: true,

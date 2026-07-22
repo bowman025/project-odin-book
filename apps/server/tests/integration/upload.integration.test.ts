@@ -17,7 +17,7 @@ describe('Uploads Module: End-to-End API Integration Suites', () => {
     activeUser = await db.user.create({
       data: {
         username: `uploader_${uniqueId}`,
-        email: `uploader_${uniqueId}@odin.com`,
+        email: `uploader_${uniqueId}@odinum.com`,
         passwordHash,
       },
       select: { id: true, username: true, email: true },

@@ -1,0 +1,67 @@
+import type { LoaderFunctionArgs } from 'react-router';
+import { apiFetch } from '../../lib/api.js';
+import type { TimelinePost } from '../posts/timelineLoader.js';
+
+export type UserProfile = {
+  id: string;
+  username: string;
+  profilePicture: string | null;
+  bio: string | null;
+  createdAt: string;
+  stats: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
+};
+
+export type ProfileLoaderResult = {
+  profile: UserProfile;
+  initialPosts: {
+    items: TimelinePost[];
+    pagination: {
+      page: number;
+      limit: number;
+      hasMore: boolean;
+    };
+  };
+};
+
+export const profileLoader = async ({
+  params,
+  request,
+}: LoaderFunctionArgs): Promise<ProfileLoaderResult> => {
+  const username = params.username;
+  if (!username) {
+    throw new Response('Profile target username parameter is missing', {
+      status: 400,
+    });
+  }
+
+  const url = new URL(request.url);
+  const page = url.searchParams.get('page') || '1';
+
+  const profileRes = await apiFetch(`/users/${username}`);
+  if (!profileRes.ok) {
+    throw new Response('Profile not found in Odinum', {
+      status: profileRes.status,
+    });
+  }
+
+  const profilePayload = await profileRes.json();
+  const profile: UserProfile = profilePayload.data.profile;
+  const postsRes = await apiFetch(
+    `/users/${profile.username}/posts?page=${page}&limit=10`,
+  );
+  if (!postsRes.ok) {
+    throw new Response('Failed to load user chronicles', {
+      status: postsRes.status,
+    });
+  }
+  const postsPayload = await postsRes.json();
+
+  return {
+    profile,
+    initialPosts: postsPayload.data,
+  };
+};

@@ -7,7 +7,7 @@ import app from '../../src/app.js';
 describe('Auth Module: End-to-End API Integration Suites', () => {
   const pristineRegistrationPayload = {
     username: 'test_user',
-    email: 'integration@odin.com',
+    email: 'integration@odinum.com',
     password: 'SecureTestPassword123!',
     confirmPassword: 'SecureTestPassword123!',
   };
@@ -112,7 +112,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       seededUser = await db.user.create({
         data: {
           username: 'test_user',
-          email: 'login@odin.com',
+          email: 'login@odinum.com',
           passwordHash: hashedPassword,
           profilePicture: 'https://www.link-to-a-fake-picture.com',
         },
@@ -215,7 +215,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       seededUser = await db.user.create({
         data: {
           username: 'test_user',
-          email: 'refresh@odin.com',
+          email: 'refresh@odinum.com',
           passwordHash: hashedPassword,
           profilePicture: null,
         },
@@ -315,7 +315,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       seededUser = await db.user.create({
         data: {
           username: 'test_user',
-          email: 'logout@odin.com',
+          email: 'logout@odinum.com',
           passwordHash: hashedPassword,
         },
         select: { id: true, username: true, email: true },
@@ -399,7 +399,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       seededUser = await db.user.create({
         data: {
           username: 'test_user',
-          email: 'changer@odin.com',
+          email: 'changer@odinum.com',
           passwordHash: hashedPassword,
         },
         select: { id: true, username: true, email: true },
@@ -486,7 +486,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       seededUser = await db.user.create({
         data: {
           username: 'test_user',
-          email: 'deleter@odin.com',
+          email: 'deleter@odinum.com',
           passwordHash: hashedPassword,
         },
         select: { id: true, username: true, email: true },
