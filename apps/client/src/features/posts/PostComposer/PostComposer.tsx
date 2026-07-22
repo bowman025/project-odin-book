@@ -47,17 +47,7 @@ export const PostComposer: FC<PostComposerProps> = ({ onPostCreated }) => {
         return;
       }
 
-      const fullyTypedNewPost: TimelinePost = {
-        ...body.data.post,
-        author: {
-          id: user?.id || '',
-          username: user?.username || '',
-          profilePicture: user?.profilePicture || null,
-        },
-        _count: { likes: 0, comments: 0 },
-      };
-
-      onPostCreated(fullyTypedNewPost);
+      onPostCreated(body.data.post);
       reset();
     } catch {
       setGlobalError('Unable to broadcast post. Server network error.');
@@ -71,7 +61,6 @@ export const PostComposer: FC<PostComposerProps> = ({ onPostCreated }) => {
   return (
     <div className={styles.composerCard}>
       {globalError && <div className={styles.globalError}>{globalError}</div>}
-
       <form
         onSubmit={handleSubmit(onFormSubmit)}
         className={styles.formStructure}
@@ -86,7 +75,6 @@ export const PostComposer: FC<PostComposerProps> = ({ onPostCreated }) => {
           ) : (
             <div className={styles.avatarFallback}>{avatarFallbackChar}</div>
           )}
-
           <div className={styles.inputWrapper}>
             <textarea
               id="content"
@@ -102,7 +90,6 @@ export const PostComposer: FC<PostComposerProps> = ({ onPostCreated }) => {
             )}
           </div>
         </div>
-
         <div className={styles.actionTray}>
           <div className={styles.mediaSlot}>
             <button
@@ -114,7 +101,6 @@ export const PostComposer: FC<PostComposerProps> = ({ onPostCreated }) => {
               <span className={styles.mediaLabel}>Add Image</span>
             </button>
           </div>
-
           <button
             type="submit"
             className={styles.publishBtn}

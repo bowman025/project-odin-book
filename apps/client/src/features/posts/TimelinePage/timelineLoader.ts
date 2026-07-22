@@ -13,7 +13,7 @@ export type TimelinePost = {
     username: string;
     profilePicture: string | null;
   };
-  _count?: {
+  stats: {
     likes: number;
     comments: number;
   };

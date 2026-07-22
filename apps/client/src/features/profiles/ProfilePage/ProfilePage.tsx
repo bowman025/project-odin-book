@@ -13,7 +13,6 @@ import type { ProfileLoaderResult, UserProfile } from './profileLoader.js';
 export const ProfilePage: FC = () => {
   const initialData = useLoaderData() as ProfileLoaderResult;
   const currentLoggedInUser = useAuthStore((state) => state.user);
-
   const [profile, setProfile] = useState<UserProfile>(initialData.profile);
   const [posts, setPosts] = useState<TimelinePost[]>(
     initialData.initialPosts.items,
@@ -22,7 +21,6 @@ export const ProfilePage: FC = () => {
     initialData.initialPosts.pagination,
   );
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-
   const nextPageRef = useRef(initialData.initialPosts.pagination.page + 1);
   const hasMoreRef = useRef(initialData.initialPosts.pagination.hasMore);
 
@@ -82,10 +80,8 @@ export const ProfilePage: FC = () => {
   return (
     <div className={styles.container}>
       <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
-
       <section className={styles.postsSection}>
         <h3 className={styles.sectionTitle}>Recent Chronicles</h3>
-
         <div className={styles.feedStack}>
           {posts.length === 0 ? (
             <div className={styles.emptyState}>
@@ -112,11 +108,11 @@ export const ProfilePage: FC = () => {
                   <footer className={styles.cardFooter}>
                     <div className={styles.metric}>
                       <Heart size={16} />
-                      <span>{post._count?.likes ?? 0}</span>
+                      <span>{post.stats.likes ?? 0}</span>
                     </div>
                     <div className={styles.metric}>
                       <MessageCircle size={16} />
-                      <span>{post._count?.comments ?? 0}</span>
+                      <span>{post.stats.comments ?? 0}</span>
                     </div>
                   </footer>
                 </article>
@@ -125,7 +121,6 @@ export const ProfilePage: FC = () => {
           )}
         </div>
       </section>
-
       <div ref={sentinelRef} className={styles.infiniteTrigger}>
         {isFetchingMore && (
           <div className={styles.scrollLoader}>

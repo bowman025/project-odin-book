@@ -86,7 +86,6 @@ export const TimelinePage: FC = () => {
     <div className={styles.container}>
       <header className={styles.feedHeader}>
         <h2 className={styles.title}>Home Feed</h2>
-
         <div className={styles.tabsContainer}>
           <button
             type="button"
@@ -107,7 +106,6 @@ export const TimelinePage: FC = () => {
         </div>
         <PostComposer onPostCreated={handlePostCreated} />
       </header>
-
       <div className={styles.postsFeed}>
         {posts.length === 0 ? (
           <div className={styles.emptyState}>
@@ -143,7 +141,6 @@ export const TimelinePage: FC = () => {
                       </div>
                     )}
                   </Link>
-
                   <div className={styles.meta}>
                     <Link
                       to={`/users/${post.author.username}`}
@@ -156,7 +153,6 @@ export const TimelinePage: FC = () => {
                     <span className={styles.timestamp}>{timeAgo}</span>
                   </div>
                 </header>
-
                 <div className={styles.postBody}>
                   <p className={styles.content}>{post.content}</p>
                   {post.imageUrl && (
@@ -167,15 +163,14 @@ export const TimelinePage: FC = () => {
                     />
                   )}
                 </div>
-
                 <footer className={styles.postFooter}>
                   <button type="button" className={styles.interactionBtn}>
                     <Heart size={18} />
-                    <span>{post._count?.likes ?? 0}</span>
+                    <span>{post.stats.likes ?? 0}</span>
                   </button>
                   <button type="button" className={styles.interactionBtn}>
                     <MessageCircle size={18} />
-                    <span>{post._count?.comments ?? 0}</span>
+                    <span>{post.stats.comments ?? 0}</span>
                   </button>
                 </footer>
               </article>
@@ -183,7 +178,6 @@ export const TimelinePage: FC = () => {
           })
         )}
       </div>
-
       <div ref={sentinelRef} className={styles.infiniteTrigger}>
         {isFetchingMore && (
           <div className={styles.scrollLoader}>
