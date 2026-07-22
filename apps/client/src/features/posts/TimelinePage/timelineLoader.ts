@@ -5,6 +5,7 @@ export type TimelinePost = {
   id: string;
   content: string;
   imageUrl: string | null;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
   author: {

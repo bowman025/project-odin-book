@@ -1,16 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RegisterSchema } from '@project-odin-book/validation';
+import {
+  type RegisterDTO,
+  RegisterSchema,
+} from '@project-odin-book/validation';
 import { Loader2, UserPlus } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import type { z } from 'zod';
 import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import styles from './RegisterPage.module.css';
-
-type RegisterFormInputs = z.infer<typeof RegisterSchema>;
 
 export const RegisterPage: FC = () => {
   const navigate = useNavigate();
@@ -22,18 +22,20 @@ export const RegisterPage: FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormInputs>({
+  } = useForm<RegisterDTO>({
     resolver: zodResolver(RegisterSchema),
   });
 
-  const onFormSubmit = async (payload: RegisterFormInputs) => {
+  const onFormSubmit = async (payload: RegisterDTO) => {
     setGlobalError(null);
     setIsSubmitting(true);
+
+    const { confirmPassword, ...registerPayload } = payload;
 
     try {
       const response = await apiFetch('/auth/register', {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(registerPayload),
         skipAuth: true,
       });
 

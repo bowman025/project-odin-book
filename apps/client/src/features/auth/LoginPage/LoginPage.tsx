@@ -1,16 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoginSchema } from '@project-odin-book/validation';
+import { type LoginInput, LoginSchema } from '@project-odin-book/validation';
 import { Loader2, LogIn, ShieldAlert } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import type { z } from 'zod';
 import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import styles from './LoginPage.module.css';
-
-type LoginFormInputs = z.infer<typeof LoginSchema>;
 
 export const LoginPage: FC = () => {
   const navigate = useNavigate();
@@ -22,11 +19,11 @@ export const LoginPage: FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormInputs>({
+  } = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
   });
 
-  const onFormSubmit = async (payload: LoginFormInputs) => {
+  const onFormSubmit = async (payload: LoginInput) => {
     setGlobalError(null);
     setIsSubmitting(true);
 
