@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { Outlet, ScrollRestoration } from 'react-router';
-import { LoadingScreen } from '../components/LoadingScreen.jsx';
+import { LoadingScreen } from '../components/LoadingScreen/LoadingScreen.js';
 import { useAuthStore } from '../store/authStore.js';
 
 export const RootLayout: FC = () => {

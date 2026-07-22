@@ -11,9 +11,9 @@ import {
 import type { FC } from 'react';
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { apiFetch } from '../lib/api.js';
-import { useAuthStore } from '../store/authStore.js';
-import { useThemeStore } from '../store/themeStore.js';
+import { apiFetch } from '../../lib/api.js';
+import { useAuthStore } from '../../store/authStore.js';
+import { useThemeStore } from '../../store/themeStore.js';
 import styles from './Sidebar.module.css';
 
 const SIDEBAR_COLLAPSED_KEY = 'odinum_sidebar_collapsed';

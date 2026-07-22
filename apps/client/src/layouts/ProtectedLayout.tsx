@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { Navigate, Outlet } from 'react-router';
-import { Sidebar } from '../components/Sidebar.jsx';
+import { Sidebar } from '../components/Sidebar/Sidebar.js';
 import { useIsAuthenticated } from '../store/authStore.js';
 import styles from './ProtectedLayout.module.css';
 

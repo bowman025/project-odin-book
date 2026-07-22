@@ -1,11 +1,12 @@
 import { createBrowserRouter } from 'react-router';
+import { ErrorPage } from '../components/ErrorPage/ErrorPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
-import { ExplorePage } from '../features/follows/ExplorePage.jsx';
+import { ExplorePage } from '../features/follows/ExplorePage';
 import { exploreLoader } from '../features/follows/exploreLoader.js';
 import { TimelinePage } from '../features/posts/TimelinePage';
 import { timelineLoader } from '../features/posts/timelineLoader';
-import { ProfilePage } from '../features/profiles/ProfilePage.jsx';
+import { ProfilePage } from '../features/profiles/ProfilePage';
 import { profileLoader } from '../features/profiles/profileLoader.js';
 import { ProtectedLayout } from '../layouts/ProtectedLayout';
 import { RootLayout } from '../layouts/RootLayout';
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
     path: '/',
     element: <RootLayout />,
     loader: rootLoader,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: 'login',
