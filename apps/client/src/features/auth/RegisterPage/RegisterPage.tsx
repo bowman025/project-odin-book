@@ -1,18 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoginSchema } from '@project-odin-book/validation';
-import { Loader2, LogIn, ShieldAlert } from 'lucide-react';
+import { RegisterSchema } from '@project-odin-book/validation';
+import { Loader2, UserPlus } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import type { z } from 'zod';
-import { apiFetch } from '../../lib/api.js';
-import { useAuthStore } from '../../store/authStore.js';
-import styles from './LoginPage.module.css';
+import { apiFetch } from '../../../lib/api.js';
+import { useAuthStore } from '../../../store/authStore.js';
+import styles from './RegisterPage.module.css';
 
-type LoginFormInputs = z.infer<typeof LoginSchema>;
+type RegisterFormInputs = z.infer<typeof RegisterSchema>;
 
-export const LoginPage: FC = () => {
+export const RegisterPage: FC = () => {
   const navigate = useNavigate();
   const setAuthData = useAuthStore((state) => state.setAuthData);
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -22,16 +22,16 @@ export const LoginPage: FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormInputs>({
-    resolver: zodResolver(LoginSchema),
+  } = useForm<RegisterFormInputs>({
+    resolver: zodResolver(RegisterSchema),
   });
 
-  const onFormSubmit = async (payload: LoginFormInputs) => {
+  const onFormSubmit = async (payload: RegisterFormInputs) => {
     setGlobalError(null);
     setIsSubmitting(true);
 
     try {
-      const response = await apiFetch('/auth/login', {
+      const response = await apiFetch('/auth/register', {
         method: 'POST',
         body: JSON.stringify(payload),
         skipAuth: true,
@@ -41,37 +41,8 @@ export const LoginPage: FC = () => {
 
       if (!response.ok) {
         setGlobalError(
-          body.message ||
-            'Authentication rejected. Please check your credentials.',
+          body.message || 'Registration rejected. Please verify your inputs.',
         );
-        return;
-      }
-
-      setAuthData(body.accessToken, body.user);
-      navigate('/', { replace: true });
-    } catch {
-      setGlobalError(
-        'Unable to connect to the server network. Please try again.',
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleGuestSignIn = async () => {
-    setGlobalError(null);
-    setIsSubmitting(true);
-
-    try {
-      const response = await apiFetch('/auth/guest', {
-        method: 'POST',
-        skipAuth: true,
-      });
-
-      const body = await response.json();
-
-      if (!response.ok) {
-        setGlobalError(body.message || 'Failed to initialize guest session.');
         return;
       }
 
@@ -91,7 +62,7 @@ export const LoginPage: FC = () => {
       <div className={styles.card}>
         <header className={styles.header}>
           <h1 className={styles.brand}>Odinum</h1>
-          <p className={styles.subtitle}>Connect with the Realm</p>
+          <p className={styles.subtitle}>Create Your Account in the Realm</p>
         </header>
 
         {globalError && <div className={styles.globalError}>{globalError}</div>}
@@ -99,7 +70,7 @@ export const LoginPage: FC = () => {
         <form className={styles.form} onSubmit={handleSubmit(onFormSubmit)}>
           <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor="username">
-              Username or Email
+              Username
             </label>
             <input
               id="username"
@@ -117,13 +88,32 @@ export const LoginPage: FC = () => {
           </div>
 
           <div className={styles.fieldGroup}>
+            <label className={styles.label} htmlFor="email">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              disabled={isSubmitting}
+              className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
+              {...register('email')}
+            />
+            {errors.email && (
+              <span className={styles.errorMessage}>
+                {errors.email.message}
+              </span>
+            )}
+          </div>
+
+          <div className={styles.fieldGroup}>
             <label className={styles.label} htmlFor="password">
               Password
             </label>
             <input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               disabled={isSubmitting}
               className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
               {...register('password')}
@@ -131,6 +121,25 @@ export const LoginPage: FC = () => {
             {errors.password && (
               <span className={styles.errorMessage}>
                 {errors.password.message}
+              </span>
+            )}
+          </div>
+
+          <div className={styles.fieldGroup}>
+            <label className={styles.label} htmlFor="confirmPassword">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              disabled={isSubmitting}
+              className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ''}`}
+              {...register('confirmPassword')}
+            />
+            {errors.confirmPassword && (
+              <span className={styles.errorMessage}>
+                {errors.confirmPassword.message}
               </span>
             )}
           </div>
@@ -143,32 +152,16 @@ export const LoginPage: FC = () => {
             {isSubmitting ? (
               <Loader2 className={styles.spinner} size={18} />
             ) : (
-              <LogIn size={18} />
+              <UserPlus size={18} />
             )}
-            <span>{isSubmitting ? 'Authenticating...' : 'Sign In'}</span>
+            <span>{isSubmitting ? 'Creating Account...' : 'Sign Up'}</span>
           </button>
         </form>
 
-        <div className={styles.dividerContainer}>
-          <div className={styles.dividerLine} />
-          <span className={styles.dividerText}>Recruiter Access</span>
-          <div className={styles.dividerLine} />
-        </div>
-
-        <button
-          type="button"
-          className={styles.guestButton}
-          onClick={handleGuestSignIn}
-          disabled={isSubmitting}
-        >
-          <ShieldAlert size={18} />
-          <span>Guest Sign-In (Instant Bypass)</span>
-        </button>
-
         <footer className={styles.footer}>
-          <span>Don't have an account?</span>
-          <Link to="/register" className={styles.link}>
-            Register
+          <span>Already have an account?</span>
+          <Link to="/login" className={styles.link}>
+            Log In
           </Link>
         </footer>
       </div>

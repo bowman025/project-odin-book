@@ -2,7 +2,7 @@ import { ArrowUpRight, Loader2 } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from 'react-router';
-import { apiFetch } from '../../lib/api.js';
+import { apiFetch } from '../../../lib/api.js';
 import styles from './ExplorePage.module.css';
 import type { DirectoryUser, ExploreLoaderResult } from './exploreLoader.js';
 

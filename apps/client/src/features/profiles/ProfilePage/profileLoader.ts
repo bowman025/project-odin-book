@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from 'react-router';
-import { apiFetch } from '../../lib/api.js';
-import type { TimelinePost } from '../posts/timelineLoader.js';
+import { apiFetch } from '../../../lib/api.js';
+import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
 
 export type UserProfile = {
   id: string;

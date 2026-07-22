@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from 'react-router';
-import { apiFetch } from '../../lib/api.js';
+import { apiFetch } from '../../../lib/api.js';
 
 export type TimelinePost = {
   id: string;

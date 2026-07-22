@@ -1,8 +1,8 @@
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import type { FC } from 'react';
-import styles from './ProfilePage.module.css';
-import type { UserProfile } from './profileLoader.js';
+import styles from '../ProfilePage/ProfilePage.module.css';
+import type { UserProfile } from '../ProfilePage/profileLoader.js';
 
 type ProfileHeaderProps = {
   profile: UserProfile;

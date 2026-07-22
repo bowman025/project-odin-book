@@ -1,4 +1,4 @@
-import { useAuthStore } from '../store/authStore.js';
+import { useAuthStore } from '../../store/authStore.js';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 

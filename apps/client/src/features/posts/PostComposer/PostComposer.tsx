@@ -5,10 +5,10 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-import { apiFetch } from '../../lib/api.js';
-import { useAuthStore } from '../../store/authStore.js';
+import { apiFetch } from '../../../lib/api.js';
+import { useAuthStore } from '../../../store/authStore.js';
+import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './PostComposer.module.css';
-import type { TimelinePost } from './timelineLoader.js';
 
 type PostComposerInputs = z.infer<typeof CreatePostSchema>;
 

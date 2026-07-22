@@ -3,8 +3,8 @@ import { Globe, Heart, Loader2, MessageCircle, Users } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData, useSearchParams } from 'react-router';
-import { apiFetch } from '../../lib/api.js';
-import { PostComposer } from './PostComposer.jsx';
+import { apiFetch } from '../../../lib/api.js';
+import { PostComposer } from '../PostComposer/PostComposer';
 import styles from './TimelinePage.module.css';
 import type { TimelineLoaderResult, TimelinePost } from './timelineLoader.js';
 

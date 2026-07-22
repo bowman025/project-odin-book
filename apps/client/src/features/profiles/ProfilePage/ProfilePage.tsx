@@ -3,10 +3,10 @@ import { Heart, Loader2, MessageCircle } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
-import { apiFetch } from '../../lib/api.js';
-import { useAuthStore } from '../../store/authStore.js';
-import type { TimelinePost } from '../posts/timelineLoader.js';
-import { ProfileHeader } from './ProfileHeader.jsx';
+import { apiFetch } from '../../../lib/api.js';
+import { useAuthStore } from '../../../store/authStore.js';
+import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
+import { ProfileHeader } from '../ProfileHeader/ProfileHeader';
 import styles from './ProfilePage.module.css';
 import type { ProfileLoaderResult, UserProfile } from './profileLoader.js';
 

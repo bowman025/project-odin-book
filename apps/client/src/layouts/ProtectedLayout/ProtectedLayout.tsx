@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { Navigate, Outlet } from 'react-router';
-import { Sidebar } from '../components/Sidebar/Sidebar.js';
-import { useIsAuthenticated } from '../store/authStore.js';
+import { Sidebar } from '../../components/Sidebar/Sidebar.js';
+import { useIsAuthenticated } from '../../store/authStore.js';
 import styles from './ProtectedLayout.module.css';
 
 export const ProtectedLayout: FC = () => {
