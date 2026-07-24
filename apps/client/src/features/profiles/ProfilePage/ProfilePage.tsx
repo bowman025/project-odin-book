@@ -3,12 +3,13 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
+import { handleLikeToggleNetwork } from '../../../lib/interactions.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
-import { Post } from '../../posts/Post/Post';
+import { Post } from '../../posts/Post/Post.jsx';
 import type { PostComment } from '../../posts/PostDetailPage/postDetailLoader.js';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
-import { ProfileHeader } from '../ProfileHeader/ProfileHeader';
+import { ProfileHeader } from '../ProfileHeader/ProfileHeader.jsx';
 import styles from './ProfilePage.module.css';
 import type { ProfileLoaderResult, UserProfile } from './profileLoader.js';
 
@@ -53,18 +54,22 @@ export const ProfilePage: FC = () => {
           if (post.id !== postId) return post;
           return {
             ...post,
-            stats: { ...post.stats, comments: post.stats.comments + 1 },
+            stats: {
+              ...post.stats,
+              comments: post.stats.comments + 1,
+            },
           };
         }),
       );
     };
 
     window.addEventListener('odinum_global_comment_added', handleGlobalComment);
-    return () =>
+    return () => {
       window.removeEventListener(
         'odinum_global_comment_added',
         handleGlobalComment,
       );
+    };
   }, []);
 
   const loadMorePosts = useCallback(async () => {
@@ -87,19 +92,17 @@ export const ProfilePage: FC = () => {
     }
   }, [isFetchingMore, profile.username]);
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (isFetchingMore) return;
-      if (observerRef.current) observerRef.current.disconnect();
 
-      observerRef.current = new IntersectionObserver((entries) => {
+      const observer = new IntersectionObserver((entries) => {
         if (entries?.at(0)?.isIntersecting && hasMoreRef.current) {
           loadMorePosts();
         }
       });
 
-      if (node) observerRef.current.observe(node);
+      if (node) observer.observe(node);
     },
     [isFetchingMore, loadMorePosts],
   );
@@ -107,9 +110,7 @@ export const ProfilePage: FC = () => {
   const isOwnProfile = currentLoggedInUser?.id === profile.id;
 
   const handleLikeToggle = (postId: string) => {
-    console.log(
-      `Toggling like state interaction on profile timeline for post identifier: ${postId}`,
-    );
+    handleLikeToggleNetwork(postId, setPosts);
   };
 
   return (

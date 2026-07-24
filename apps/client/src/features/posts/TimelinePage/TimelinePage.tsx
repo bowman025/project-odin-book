@@ -3,6 +3,7 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useSearchParams } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
+import { handleLikeToggleNetwork } from '../../../lib/interactions.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { Post } from '../Post/Post.jsx';
 import { PostComposer } from '../PostComposer/PostComposer.jsx';
@@ -116,9 +117,7 @@ export const TimelinePage: FC = () => {
   };
 
   const handleLikeToggle = (postId: string) => {
-    console.log(
-      `Toggling like state interaction for post identifier: ${postId}`,
-    );
+    handleLikeToggleNetwork(postId, setPosts);
   };
 
   return (

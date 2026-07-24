@@ -7,16 +7,51 @@
   width: 100%;
 }
 
-.ctaWrapper {
+.actionControlRow {
+  display: flex;
+  gap: 12px;
   width: 100%;
 }
 
-.ctaButton {
-  width: 100%;
+.likeCtaButton {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 24px;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+  min-width: 110px;
+}
+
+.likeCtaButton:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-error-base);
+  border-color: var(--color-error-base);
+}
+
+.likeCtaActive {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-base);
+  border-color: transparent;
+}
+
+.commentCtaButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
@@ -32,7 +67,7 @@
     color var(--transition-fast);
 }
 
-.ctaButton:hover {
+.commentCtaButton:hover {
   border-color: var(--color-accent-primary);
   background-color: var(--color-bg-hover);
   color: var(--color-accent-primary);

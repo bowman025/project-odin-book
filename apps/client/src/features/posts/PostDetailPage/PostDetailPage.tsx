@@ -1,11 +1,11 @@
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2, MessageSquare } from 'lucide-react';
+import { Heart, Loader2, MessageSquare } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useUIStore } from '../../../store/uiStore.js';
-import { Post } from '../../posts/Post/Post';
+import { Post } from '../Post/Post.jsx';
 import styles from './PostDetailPage.module.css';
 import type {
   PostComment,
@@ -14,8 +14,8 @@ import type {
 
 export const PostDetailPage: FC = () => {
   const initialData = useLoaderData() as PostDetailLoaderResult;
-
   const openCommentModal = useUIStore((state) => state.openCommentModal);
+  const [parentPost, setParentPost] = useState(initialData.post);
   const [comments, setComments] = useState<PostComment[]>(
     initialData.initialComments.items,
   );
@@ -23,20 +23,18 @@ export const PostDetailPage: FC = () => {
     initialData.initialComments.pagination,
   );
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isLikedLocally, setIsLikedLocally] = useState(false);
   const nextPageRef = useRef(initialData.initialComments.pagination.page + 1);
   const hasMoreRef = useRef(initialData.initialComments.pagination.hasMore);
 
   useEffect(() => {
+    setParentPost(initialData.post);
     setComments(initialData.initialComments.items);
     setPagination(initialData.initialComments.pagination);
     nextPageRef.current = initialData.initialComments.pagination.page + 1;
     hasMoreRef.current = initialData.initialComments.pagination.hasMore;
+    setIsLikedLocally(false);
   }, [initialData]);
-
-  useEffect(() => {
-    nextPageRef.current = pagination.page + 1;
-    hasMoreRef.current = pagination.hasMore;
-  }, [pagination]);
 
   useEffect(() => {
     const handleGlobalComment = (e: Event) => {
@@ -45,8 +43,15 @@ export const PostDetailPage: FC = () => {
         comment: PostComment;
       }>;
 
-      if (customEvent.detail.postId === initialData.post.id) {
+      if (customEvent.detail.postId === parentPost.id) {
         setComments((prev) => [customEvent.detail.comment, ...prev]);
+        setParentPost((prev) => ({
+          ...prev,
+          stats: {
+            ...prev.stats,
+            comments: prev.stats.comments + 1,
+          },
+        }));
       }
     };
 
@@ -57,7 +62,12 @@ export const PostDetailPage: FC = () => {
         handleGlobalComment,
       );
     };
-  }, [initialData.post.id]);
+  }, [parentPost.id]);
+
+  useEffect(() => {
+    nextPageRef.current = pagination.page + 1;
+    hasMoreRef.current = pagination.hasMore;
+  }, [pagination]);
 
   const loadMoreComments = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
@@ -65,7 +75,7 @@ export const PostDetailPage: FC = () => {
     setIsFetchingMore(true);
     try {
       const response = await apiFetch(
-        `/posts/${initialData.post.id}/comments?page=${nextPageRef.current}&limit=10`,
+        `/posts/${parentPost.id}/comments?page=${nextPageRef.current}&limit=10`,
       );
       if (response.ok) {
         const payload = await response.json();
@@ -73,51 +83,81 @@ export const PostDetailPage: FC = () => {
         setPagination(payload.data.pagination);
       }
     } catch (error) {
-      console.error('Failed to load incremental comments:', error);
+      console.error('Failed to load incremental commentary items:', error);
     } finally {
       setIsFetchingMore(false);
     }
-  }, [isFetchingMore, initialData.post.id]);
+  }, [isFetchingMore, parentPost.id]);
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (isFetchingMore) return;
-      if (observerRef.current) observerRef.current.disconnect();
 
-      observerRef.current = new IntersectionObserver((entries) => {
+      const observer = new IntersectionObserver((entries) => {
         if (entries?.at(0)?.isIntersecting && hasMoreRef.current) {
           loadMoreComments();
         }
       });
 
-      if (node) observerRef.current.observe(node);
+      if (node) observer.observe(node);
     },
     [isFetchingMore, loadMoreComments],
   );
 
-  const parent = initialData.post;
+  const handleLikeToggle = async () => {
+    try {
+      const response = await apiFetch(`/posts/${parentPost.id}/likes`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const body = await response.json();
+        const { likeCount, liked } = body.data;
+
+        setParentPost((prev) => ({
+          ...prev,
+          stats: {
+            ...prev.stats,
+            likes: likeCount,
+          },
+        }));
+        setIsLikedLocally(liked);
+      }
+    } catch (error) {
+      console.error(
+        'Failed to execute direct like interaction over network:',
+        error,
+      );
+    }
+  };
 
   return (
     <div className={styles.container}>
-      <Post
-        post={parent}
-        isDetailView={true}
-        onLikeToggle={(id) => console.log('Toggle like:', id)}
-        onCommentClick={() => openCommentModal(parent.id)}
-      />
-      <div className={styles.ctaWrapper}>
+      <Post post={parentPost} isDetailView={true} />
+
+      <div className={styles.actionControlRow}>
         <button
           type="button"
-          className={styles.ctaButton}
-          onClick={() => openCommentModal(parent.id)}
+          className={`${styles.likeCtaButton} ${isLikedLocally ? styles.likeCtaActive : ''}`}
+          onClick={handleLikeToggle}
+        >
+          <Heart size={16} fill={isLikedLocally ? 'currentColor' : 'none'} />
+          <span>{isLikedLocally ? 'Liked' : 'Like'}</span>
+        </button>
+
+        <button
+          type="button"
+          className={styles.commentCtaButton}
+          onClick={() => openCommentModal(parentPost.id)}
         >
           <MessageSquare size={16} />
           <span>Join the conversation...</span>
         </button>
       </div>
+
       <section className={styles.repliesStreamSection}>
         <h4 className={styles.streamHeadline}>Responses</h4>
+
         <div className={styles.commentsStack}>
           {comments.length === 0 ? (
             <div className={styles.emptyCommentsState}>
