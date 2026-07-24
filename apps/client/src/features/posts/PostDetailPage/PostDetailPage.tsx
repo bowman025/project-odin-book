@@ -1,11 +1,11 @@
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MessageSquare } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
-import { CommentComposer } from '../../comments/CommentComposer';
-import { Post } from '../Post/Post';
+import { useUIStore } from '../../../store/uiStore.js';
+import { Post } from '../../posts/Post/Post';
 import styles from './PostDetailPage.module.css';
 import type {
   PostComment,
@@ -14,6 +14,8 @@ import type {
 
 export const PostDetailPage: FC = () => {
   const initialData = useLoaderData() as PostDetailLoaderResult;
+
+  const openCommentModal = useUIStore((state) => state.openCommentModal);
   const [comments, setComments] = useState<PostComment[]>(
     initialData.initialComments.items,
   );
@@ -23,7 +25,6 @@ export const PostDetailPage: FC = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const nextPageRef = useRef(initialData.initialComments.pagination.page + 1);
   const hasMoreRef = useRef(initialData.initialComments.pagination.hasMore);
-  const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     setComments(initialData.initialComments.items);
@@ -36,6 +37,27 @@ export const PostDetailPage: FC = () => {
     nextPageRef.current = pagination.page + 1;
     hasMoreRef.current = pagination.hasMore;
   }, [pagination]);
+
+  useEffect(() => {
+    const handleGlobalComment = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        postId: string;
+        comment: PostComment;
+      }>;
+
+      if (customEvent.detail.postId === initialData.post.id) {
+        setComments((prev) => [customEvent.detail.comment, ...prev]);
+      }
+    };
+
+    window.addEventListener('odinum_global_comment_added', handleGlobalComment);
+    return () => {
+      window.removeEventListener(
+        'odinum_global_comment_added',
+        handleGlobalComment,
+      );
+    };
+  }, [initialData.post.id]);
 
   const loadMoreComments = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
@@ -74,22 +96,6 @@ export const PostDetailPage: FC = () => {
     [isFetchingMore, loadMoreComments],
   );
 
-  const handleCommentCreated = (newComment: PostComment) => {
-    setComments((prev) => [newComment, ...prev]);
-  };
-
-  const handleLikeToggle = (postId: string) => {
-    console.log(
-      `Toggling like state interaction within detail screen overlay for post identifier: ${postId}`,
-    );
-  };
-
-  const handleCommentClick = () => {
-    if (commentInputRef.current) {
-      commentInputRef.current.focus();
-    }
-  };
-
   const parent = initialData.post;
 
   return (
@@ -97,24 +103,26 @@ export const PostDetailPage: FC = () => {
       <Post
         post={parent}
         isDetailView={true}
-        onLikeToggle={handleLikeToggle}
-        onCommentClick={handleCommentClick}
+        onLikeToggle={(id) => console.log('Toggle like:', id)}
+        onCommentClick={() => openCommentModal(parent.id)}
       />
-
-      <CommentComposer
-        postId={parent.id}
-        onCommentCreated={handleCommentCreated}
-        ref={commentInputRef}
-      />
-
+      <div className={styles.ctaWrapper}>
+        <button
+          type="button"
+          className={styles.ctaButton}
+          onClick={() => openCommentModal(parent.id)}
+        >
+          <MessageSquare size={16} />
+          <span>Join the conversation...</span>
+        </button>
+      </div>
       <section className={styles.repliesStreamSection}>
         <h4 className={styles.streamHeadline}>Responses</h4>
-
         <div className={styles.commentsStack}>
           {comments.length === 0 ? (
             <div className={styles.emptyCommentsState}>
               <p>
-                No comments have been recorded yet. Be the first to share your
+                No answers have been recorded yet. Be the first to share your
                 thoughts!
               </p>
             </div>

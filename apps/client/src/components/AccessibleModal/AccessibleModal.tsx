@@ -74,16 +74,15 @@ export const AccessibleModal = ({
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    const root = document.getElementById('root');
-    if (!root) return;
-
     if (isOpen) {
-      root.inert = true;
-      root.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = 'hidden';
     } else {
-      root.inert = false;
-      root.removeAttribute('aria-hidden');
+      document.body.style.overflow = '';
     }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
