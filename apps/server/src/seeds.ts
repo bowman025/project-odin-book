@@ -13,13 +13,13 @@ async function main() {
   await db.$transaction(
     async (tx) => {
       const guestUser = await tx.user.upsert({
-        where: { email: 'user@example' },
+        where: { email: 'user@example.com' },
         update: {},
         create: {
           username: 'guest',
           email: 'user@example.com',
           passwordHash: 'GUEST_ACCOUNT_BYPASS_NO_HASH_REQUIRED',
-          bio: 'Welcome! I am a guest exploring this social network.',
+          bio: 'I am a guest exploring this social network.',
         },
         select: { id: true },
       });
@@ -105,6 +105,31 @@ async function main() {
 
       const entireUserPool = [guestUser.id, ...userIds];
 
+      console.log('Pre-seeding platform taxonomies and tag registries...');
+      const tagNames = [
+        'tech',
+        'gaming',
+        'philosophy',
+        'travel',
+        'fitness',
+        'cooking',
+        'art',
+        'music',
+        'science',
+        'nature',
+      ];
+      const tagIds: string[] = [];
+
+      for (const name of tagNames) {
+        const seededTag = await tx.tag.upsert({
+          where: { name },
+          update: {},
+          create: { name },
+          select: { id: true },
+        });
+        tagIds.push(seededTag.id);
+      }
+
       console.log('Publishing 1000 posts spanning a 14-day window...');
       const postIds: string[] = [];
 
@@ -115,12 +140,28 @@ async function main() {
           ? faker.image.urlPicsumPhotos({ width: 640, height: 480 })
           : null;
 
+        const createdAt = faker.date.recent({ days: 14 });
+
+        const isEdited = Math.random() < 0.15;
+        const updatedAt = isEdited
+          ? faker.date.between({ from: createdAt, to: new Date() })
+          : createdAt;
+
+        const wantsTags = Math.random() < 0.6;
+        const randomTagNames = wantsTags
+          ? faker.helpers.arrayElements(tagNames, { min: 1, max: 5 })
+          : [];
+
         const post = await tx.post.create({
           data: {
             authorId,
             content: faker.lorem.paragraph({ min: 1, max: 4 }),
             imageUrl,
-            createdAt: faker.date.recent({ days: 14 }),
+            createdAt,
+            updatedAt,
+            tags: {
+              connect: randomTagNames.map((name) => ({ name })),
+            },
           },
           select: { id: true },
         });
@@ -128,6 +169,7 @@ async function main() {
       }
 
       console.log('Injecting 5000 random engagement likes...');
+
       const existingLikesTracker = new Set<string>();
       let seededLikesCount = 0;
 

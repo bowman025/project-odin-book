@@ -113,6 +113,22 @@
   flex-direction: column;
 }
 
+.metaTopRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.editedBadge {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-style: italic;
+  cursor: help;
+  user-select: none;
+}
+
 .username {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -172,6 +188,29 @@
 .interactionBtn:hover {
   background-color: var(--color-bg-hover);
   color: var(--color-accent-primary);
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.tagBadge {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-primary);
+  background-color: var(--color-accent-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition-fast);
+  cursor: pointer;
+}
+
+.tagBadge:hover {
+  opacity: 0.8;
 }
 
 .infiniteTrigger {

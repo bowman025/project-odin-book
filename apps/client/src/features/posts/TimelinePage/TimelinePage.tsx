@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { Globe, Heart, Loader2, MessageCircle, Users } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -142,19 +142,42 @@ export const TimelinePage: FC = () => {
                     )}
                   </Link>
                   <div className={styles.meta}>
-                    <Link
-                      to={`/users/${post.author.username}`}
-                      className={styles.profileLink}
-                    >
-                      <span className={styles.username}>
-                        {post.author.username}
-                      </span>
-                    </Link>
-                    <span className={styles.timestamp}>{timeAgo}</span>
+                    <div className={styles.metaTopRow}>
+                      <Link
+                        to={`/users/${post.author.username}`}
+                        className={styles.profileLink}
+                      >
+                        <span className={styles.username}>
+                          {post.author.username}
+                        </span>
+                      </Link>
+                      <span className={styles.timestamp}>{timeAgo}</span>
+
+                      {post.updatedAt &&
+                        new Date(post.updatedAt).getTime() -
+                          new Date(post.createdAt).getTime() >
+                          1000 && (
+                          <span
+                            className={styles.editedBadge}
+                            title={`Edited: ${format(new Date(post.updatedAt), 'PPpp')}`}
+                          >
+                            (edited)
+                          </span>
+                        )}
+                    </div>
                   </div>
                 </header>
                 <div className={styles.postBody}>
                   <p className={styles.content}>{post.content}</p>
+                  {post.tags && post.tags.length > 0 && (
+                    <div className={styles.tagsContainer}>
+                      {post.tags.map((tag) => (
+                        <span key={tag} className={styles.tagBadge}>
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {post.imageUrl && (
                     <img
                       src={post.imageUrl}

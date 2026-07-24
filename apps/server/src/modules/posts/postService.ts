@@ -16,6 +16,8 @@ export type PostPayload = {
   content: string;
   imageUrl: string | null;
   createdAt: Date;
+  updatedAt: Date;
+  tags: string[];
   author: PostAuthor;
   stats: PostStats;
 };
@@ -25,7 +27,8 @@ type TimelineResult = {
   hasMore: boolean;
 };
 
-type PostRecord = Omit<PostPayload, 'stats'> & {
+type PostRecord = Omit<PostPayload, 'tags' | 'stats'> & {
+  tags: { id: string; createdAt: Date; name: string }[];
   _count: PostStats;
 };
 
@@ -40,6 +43,8 @@ const postSelect = {
   content: true,
   imageUrl: true,
   createdAt: true,
+  updatedAt: true,
+  tags: true,
   author: {
     select: authorSelect,
   },
@@ -56,6 +61,8 @@ const mapToPostPayload = (post: PostRecord): PostPayload => ({
   content: post.content,
   imageUrl: post.imageUrl,
   createdAt: post.createdAt,
+  updatedAt: post.updatedAt,
+  tags: Array.isArray(post.tags) ? post.tags.map((t) => t.name) : [],
   author: post.author,
   stats: {
     likes: post._count.likes,
