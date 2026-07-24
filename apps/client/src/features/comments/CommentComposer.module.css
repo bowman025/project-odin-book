@@ -1,0 +1,106 @@
+.commentComposerSection {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.composerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 72px;
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.textarea:focus {
+  border-color: var(--color-accent-primary);
+}
+
+.textareaError {
+  border-color: var(--color-error-base);
+}
+
+.errorFieldMessage {
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--color-error-base);
+  font-weight: 500;
+  text-align: left;
+}
+
+.submitReplyBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: var(--color-accent-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.submitReplyBtn:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.submitReplyBtn:disabled {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.composerErrorBlock {
+  padding: 12px;
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error-base);
+  border-radius: var(--radius-md);
+  color: var(--color-error-base);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: center;
+  width: 100%;
+}
+
+.spinner {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

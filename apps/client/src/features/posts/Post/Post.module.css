@@ -1,0 +1,242 @@
+.postCard {
+  position: relative;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.stretchedCardLink {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.postCardDetail {
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  gap: 20px;
+}
+
+.postHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatarLink,
+.profileLink {
+  text-decoration: none;
+  outline: none;
+  color: inherit;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: var(--color-bg-base);
+}
+
+.postCardDetail .avatar {
+  width: 44px;
+  height: 44px;
+}
+
+.avatarFallback {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.postCardDetail .avatarFallback {
+  width: 44px;
+  height: 44px;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.metaTopRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.username {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.postCardDetail .username {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.profileLink:hover .username {
+  text-decoration: underline;
+  color: var(--color-accent-primary);
+}
+
+.timestamp {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.editedBadge {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-style: italic;
+  cursor: help;
+  user-select: none;
+}
+
+.postBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.content {
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.postCardDetail .content {
+  font-size: 1.0625rem;
+}
+
+.readMoreLink {
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-left: 4px;
+}
+
+.readMoreLink:hover {
+  text-decoration: underline;
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.tagBadge {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-primary);
+  background-color: var(--color-accent-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition-fast);
+  cursor: pointer;
+}
+
+.tagBadge:hover {
+  opacity: 0.8;
+}
+
+.postImage {
+  border-radius: var(--radius-md);
+  max-height: 360px;
+  width: 100%;
+  object-fit: cover;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.postFooter {
+  display: flex;
+  gap: 16px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 12px;
+}
+
+.postCardDetail .postFooter {
+  gap: 24px;
+  padding-top: 16px;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.interactionBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.interactionBtn:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-accent-primary);
+}
+
+.postCardDetail .interactionBtn {
+  cursor: default;
+  padding: 0;
+}
+
+.postCardDetail .interactionBtn:hover {
+  background-color: transparent;
+  color: inherit;
+}
+
+.btnDetail {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+}
+
+.btnDetail:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-accent-primary);
+}
+
+.avatarLink,
+.profileLink,
+.tagBadge,
+.postFooter,
+.readMoreLink {
+  position: relative;
+  z-index: 2;
+}

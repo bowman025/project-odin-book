@@ -4,6 +4,8 @@ import { LoginPage } from '../features/auth/LoginPage/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage/RegisterPage';
 import { ExplorePage } from '../features/follows/ExplorePage/ExplorePage';
 import { exploreLoader } from '../features/follows/ExplorePage/exploreLoader.js';
+import { PostDetailPage } from '../features/posts/PostDetailPage/PostDetailPage';
+import { postDetailLoader } from '../features/posts/PostDetailPage/postDetailLoader.js';
 import { TimelinePage } from '../features/posts/TimelinePage/TimelinePage.js';
 import { timelineLoader } from '../features/posts/TimelinePage/timelineLoader';
 import { ProfilePage } from '../features/profiles/ProfilePage/ProfilePage.js';
@@ -34,6 +36,11 @@ export const router = createBrowserRouter([
             index: true,
             element: <TimelinePage />,
             loader: timelineLoader,
+          },
+          {
+            path: 'posts/:postId',
+            element: <PostDetailPage />,
+            loader: postDetailLoader,
           },
           {
             path: 'users',

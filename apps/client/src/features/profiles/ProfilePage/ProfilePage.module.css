@@ -163,53 +163,6 @@
   border-radius: var(--radius-lg);
 }
 
-.postCard {
-  background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.cardTime {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-}
-
-.cardContent {
-  font-size: 0.9375rem;
-  color: var(--color-text-primary);
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.cardImage {
-  border-radius: var(--radius-md);
-  max-height: 360px;
-  width: 100%;
-  object-fit: cover;
-  border: 1px solid var(--color-border-subtle);
-}
-
-.cardFooter {
-  display: flex;
-  gap: 20px;
-  color: var(--color-text-secondary);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border-top: 1px solid var(--color-border-subtle);
-  padding-top: 12px;
-  margin-top: 4px;
-}
-
-.metric {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .infiniteTrigger {
   padding: 16px 0 40px;
   display: flex;

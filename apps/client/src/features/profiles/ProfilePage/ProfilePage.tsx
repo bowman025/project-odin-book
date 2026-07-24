@@ -1,10 +1,10 @@
-import { formatDistanceToNow } from 'date-fns';
-import { Heart, Loader2, MessageCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
+import { Post } from '../../posts/Post/Post';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
 import { ProfileHeader } from '../ProfileHeader/ProfileHeader';
 import styles from './ProfilePage.module.css';
@@ -13,6 +13,7 @@ import type { ProfileLoaderResult, UserProfile } from './profileLoader.js';
 export const ProfilePage: FC = () => {
   const initialData = useLoaderData() as ProfileLoaderResult;
   const currentLoggedInUser = useAuthStore((state) => state.user);
+
   const [profile, setProfile] = useState<UserProfile>(initialData.profile);
   const [posts, setPosts] = useState<TimelinePost[]>(
     initialData.initialPosts.items,
@@ -21,6 +22,7 @@ export const ProfilePage: FC = () => {
     initialData.initialPosts.pagination,
   );
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+
   const nextPageRef = useRef(initialData.initialPosts.pagination.page + 1);
   const hasMoreRef = useRef(initialData.initialPosts.pagination.hasMore);
 
@@ -45,7 +47,6 @@ export const ProfilePage: FC = () => {
       const response = await apiFetch(
         `/users/${profile.username}/posts?page=${nextPageRef.current}&limit=10`,
       );
-
       if (response.ok) {
         const payload = await response.json();
         setPosts((prev) => [...prev, ...payload.data.items]);
@@ -77,50 +78,43 @@ export const ProfilePage: FC = () => {
 
   const isOwnProfile = currentLoggedInUser?.id === profile.id;
 
+  const handleLikeToggle = (postId: string) => {
+    console.log(
+      `Toggling like state interaction on profile timeline for post identifier: ${postId}`,
+    );
+  };
+
+  const handleCommentClick = (postId: string) => {
+    console.log(
+      `Opening profile timeline commentary modal window for post identifier: ${postId}`,
+    );
+  };
+
   return (
     <div className={styles.container}>
       <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
+
       <section className={styles.postsSection}>
         <h3 className={styles.sectionTitle}>Recent Chronicles</h3>
+
         <div className={styles.feedStack}>
           {posts.length === 0 ? (
             <div className={styles.emptyState}>
               <p>This citizen has not broadcast any records yet.</p>
             </div>
           ) : (
-            posts.map((post) => {
-              const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
-                addSuffix: true,
-              });
-              return (
-                <article key={post.id} className={styles.postCard}>
-                  <header className={styles.postCardHeader}>
-                    <span className={styles.cardTime}>{timeAgo}</span>
-                  </header>
-                  <p className={styles.cardContent}>{post.content}</p>
-                  {post.imageUrl && (
-                    <img
-                      src={post.imageUrl}
-                      alt="Post media"
-                      className={styles.cardImage}
-                    />
-                  )}
-                  <footer className={styles.cardFooter}>
-                    <div className={styles.metric}>
-                      <Heart size={16} />
-                      <span>{post.stats.likes ?? 0}</span>
-                    </div>
-                    <div className={styles.metric}>
-                      <MessageCircle size={16} />
-                      <span>{post.stats.comments ?? 0}</span>
-                    </div>
-                  </footer>
-                </article>
-              );
-            })
+            posts.map((post) => (
+              <Post
+                key={post.id}
+                post={post}
+                onLikeToggle={handleLikeToggle}
+                onCommentClick={handleCommentClick}
+              />
+            ))
           )}
         </div>
       </section>
+
       <div ref={sentinelRef} className={styles.infiniteTrigger}>
         {isFetchingMore && (
           <div className={styles.scrollLoader}>
