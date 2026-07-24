@@ -100,7 +100,7 @@ export const ProfilePage: FC = () => {
         <div className={styles.feedStack}>
           {posts.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>This citizen has not broadcast any records yet.</p>
+              <p>This citizen has not written any chronicles yet.</p>
             </div>
           ) : (
             posts.map((post) => (
