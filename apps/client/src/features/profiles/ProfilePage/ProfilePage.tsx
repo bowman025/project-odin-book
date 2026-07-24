@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
+import { useUIStore } from '../../../store/uiStore.js';
 import { Post } from '../../posts/Post/Post';
+import type { PostComment } from '../../posts/PostDetailPage/postDetailLoader.js';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
 import { ProfileHeader } from '../ProfileHeader/ProfileHeader';
 import styles from './ProfilePage.module.css';
@@ -13,7 +15,7 @@ import type { ProfileLoaderResult, UserProfile } from './profileLoader.js';
 export const ProfilePage: FC = () => {
   const initialData = useLoaderData() as ProfileLoaderResult;
   const currentLoggedInUser = useAuthStore((state) => state.user);
-
+  const openCommentModal = useUIStore((state) => state.openCommentModal);
   const [profile, setProfile] = useState<UserProfile>(initialData.profile);
   const [posts, setPosts] = useState<TimelinePost[]>(
     initialData.initialPosts.items,
@@ -22,7 +24,6 @@ export const ProfilePage: FC = () => {
     initialData.initialPosts.pagination,
   );
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-
   const nextPageRef = useRef(initialData.initialPosts.pagination.page + 1);
   const hasMoreRef = useRef(initialData.initialPosts.pagination.hasMore);
 
@@ -38,6 +39,33 @@ export const ProfilePage: FC = () => {
     nextPageRef.current = pagination.page + 1;
     hasMoreRef.current = pagination.hasMore;
   }, [pagination]);
+
+  useEffect(() => {
+    const handleGlobalComment = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        postId: string;
+        comment: PostComment;
+      }>;
+      const { postId } = customEvent.detail;
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id !== postId) return post;
+          return {
+            ...post,
+            stats: { ...post.stats, comments: post.stats.comments + 1 },
+          };
+        }),
+      );
+    };
+
+    window.addEventListener('odinum_global_comment_added', handleGlobalComment);
+    return () =>
+      window.removeEventListener(
+        'odinum_global_comment_added',
+        handleGlobalComment,
+      );
+  }, []);
 
   const loadMorePosts = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
@@ -84,12 +112,6 @@ export const ProfilePage: FC = () => {
     );
   };
 
-  const handleCommentClick = (postId: string) => {
-    console.log(
-      `Opening profile timeline commentary modal window for post identifier: ${postId}`,
-    );
-  };
-
   return (
     <div className={styles.container}>
       <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
@@ -108,7 +130,7 @@ export const ProfilePage: FC = () => {
                 key={post.id}
                 post={post}
                 onLikeToggle={handleLikeToggle}
-                onCommentClick={handleCommentClick}
+                onCommentClick={(id) => openCommentModal(id)}
               />
             ))
           )}

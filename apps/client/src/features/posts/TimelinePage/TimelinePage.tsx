@@ -3,8 +3,10 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useSearchParams } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
-import { Post } from '../Post/Post';
-import { PostComposer } from '../PostComposer/PostComposer';
+import { useUIStore } from '../../../store/uiStore.js';
+import { Post } from '../Post/Post.jsx';
+import { PostComposer } from '../PostComposer/PostComposer.jsx';
+import type { PostComment } from '../PostDetailPage/postDetailLoader.js';
 import styles from './TimelinePage.module.css';
 import type { TimelineLoaderResult, TimelinePost } from './timelineLoader.js';
 
@@ -12,11 +14,10 @@ export const TimelinePage: FC = () => {
   const initialData = useLoaderData() as TimelineLoaderResult;
   const [searchParams, setSearchParams] = useSearchParams();
   const activeFeed = searchParams.get('feed') || 'general';
-
+  const openCommentModal = useUIStore((state) => state.openCommentModal);
   const [posts, setPosts] = useState<TimelinePost[]>(initialData.items);
   const [pagination, setPagination] = useState(initialData.pagination);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-
   const nextPageRef = useRef(initialData.pagination.page + 1);
   const hasMoreRef = useRef(initialData.pagination.hasMore);
 
@@ -31,6 +32,37 @@ export const TimelinePage: FC = () => {
     nextPageRef.current = pagination.page + 1;
     hasMoreRef.current = pagination.hasMore;
   }, [pagination]);
+
+  useEffect(() => {
+    const handleGlobalComment = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        postId: string;
+        comment: PostComment;
+      }>;
+      const { postId } = customEvent.detail;
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id !== postId) return post;
+          return {
+            ...post,
+            stats: {
+              ...post.stats,
+              comments: post.stats.comments + 1,
+            },
+          };
+        }),
+      );
+    };
+
+    window.addEventListener('odinum_global_comment_added', handleGlobalComment);
+    return () => {
+      window.removeEventListener(
+        'odinum_global_comment_added',
+        handleGlobalComment,
+      );
+    };
+  }, []);
 
   const loadMorePosts = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
@@ -89,12 +121,6 @@ export const TimelinePage: FC = () => {
     );
   };
 
-  const handleCommentClick = (postId: string) => {
-    console.log(
-      `Opening timeline overlay commentary modal window for post identifier: ${postId}`,
-    );
-  };
-
   return (
     <div className={styles.container}>
       <header className={styles.feedHeader}>
@@ -127,7 +153,7 @@ export const TimelinePage: FC = () => {
           <div className={styles.emptyState}>
             <p>
               {activeFeed === 'following'
-                ? 'Your connections haven’t posted recently. Explore the Global Realm to follow more creators!'
+                ? 'Your connections have no recent posts. Explore the Global Realm to follow more creators!'
                 : 'The realm is completely quiet. Be the first to publish a post!'}
             </p>
           </div>
@@ -137,7 +163,7 @@ export const TimelinePage: FC = () => {
               key={post.id}
               post={post}
               onLikeToggle={handleLikeToggle}
-              onCommentClick={handleCommentClick}
+              onCommentClick={(id) => openCommentModal(id)}
             />
           ))
         )}
