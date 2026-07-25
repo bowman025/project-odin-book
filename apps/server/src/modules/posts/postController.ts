@@ -64,7 +64,8 @@ export const getPost = async (
 
   try {
     const { postId } = paramResult.data;
-    const post = await fetchPost(postId);
+    const currentUserId = req.user?.id ?? '';
+    const post = await fetchPost({ currentUserId, id: postId });
 
     if (!post) {
       return next(new AppError('Post not found', 404));
@@ -183,9 +184,10 @@ export const getUserPosts = async (
 
     const { page, limit } = queryResult.data;
     const skip = (page - 1) * limit;
-
+    const currentUserId = req.user?.id;
     const { items, hasMore } = await fetchUserPosts({
       authorId: author.id,
+      currentUserId,
       skip,
       take: limit,
     });
@@ -213,7 +215,9 @@ export const getGeneralTimeline = async (
   try {
     const { page, limit } = queryResult.data;
     const skip = (page - 1) * limit;
+    const currentUserId = req.user?.id; 
     const { items, hasMore } = await fetchGeneralTimeline({
+      currentUserId,
       skip,
       take: limit,
     });

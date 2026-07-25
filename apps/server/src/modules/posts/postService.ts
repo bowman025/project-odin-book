@@ -20,6 +20,7 @@ export type PostPayload = {
   tags: string[];
   author: PostAuthor;
   stats: PostStats;
+  isLiked: boolean;
 };
 
 type TimelineResult = {
@@ -27,9 +28,16 @@ type TimelineResult = {
   hasMore: boolean;
 };
 
-type PostRecord = Omit<PostPayload, 'tags' | 'stats'> & {
+type PostRecord = {
+  id: string;
+  content: string;
+  imageUrl: string | null;
+  createdAt: Date;
+  updatedAt: Date;
   tags: { id: string; createdAt: Date; name: string }[];
+  author: PostAuthor;
   _count: PostStats;
+  likes?: Array<{ userId: string }>;
 };
 
 const authorSelect = {
@@ -38,23 +46,30 @@ const authorSelect = {
   profilePicture: true,
 } as const;
 
-const postSelect = {
-  id: true,
-  content: true,
-  imageUrl: true,
-  createdAt: true,
-  updatedAt: true,
-  tags: true,
-  author: {
-    select: authorSelect,
-  },
-  _count: {
-    select: {
-      likes: true,
-      comments: true,
+const postSelect = (currentUserId?: string) =>
+  ({
+    id: true,
+    content: true,
+    imageUrl: true,
+    createdAt: true,
+    updatedAt: true,
+    tags: true,
+    author: {
+      select: authorSelect,
     },
-  },
-} as const;
+    _count: {
+      select: {
+        likes: true,
+        comments: true,
+      },
+    },
+    ...(currentUserId && {
+      likes: {
+        where: { userId: currentUserId },
+        select: { userId: true },
+      },
+    }),
+  }) as const;
 
 const mapToPostPayload = (post: PostRecord): PostPayload => ({
   id: post.id,
@@ -68,6 +83,7 @@ const mapToPostPayload = (post: PostRecord): PostPayload => ({
     likes: post._count.likes,
     comments: post._count.comments,
   },
+  isLiked: Array.isArray(post.likes) && post.likes.length > 0,
 });
 
 const normalizeTags = (tags?: string[]) => {
@@ -99,16 +115,20 @@ export const insertPost = async (
       imageUrl: imageUrl ?? null,
       tags: normalizeTags(tags),
     },
-    select: postSelect,
+    select: postSelect(),
   });
 
   return mapToPostPayload(post);
 };
 
-export const fetchPost = async (id: string): Promise<PostPayload | null> => {
+export const fetchPost = async (options: {
+  currentUserId: string;
+  id: string;
+}): Promise<PostPayload | null> => {
+  const { currentUserId, id } = options;
   const post = await db.post.findUnique({
     where: { id },
-    select: postSelect,
+    select: postSelect(currentUserId),
   });
 
   return post ? mapToPostPayload(post) : null;
@@ -142,7 +162,7 @@ export const modifyPost = async (options: {
       }),
       ...(isVisualUpdate && { edited: true }),
     },
-    select: postSelect,
+    select: postSelect(),
   });
 
   return mapToPostPayload(result);
@@ -165,17 +185,18 @@ export const removePost = async (options: {
 
 export const fetchUserPosts = async (options: {
   authorId: string;
+  currentUserId?: string;
   skip: number;
   take: number;
 }): Promise<{ items: PostPayload[]; hasMore: boolean }> => {
-  const { authorId, skip, take } = options;
+  const { authorId, currentUserId, skip, take } = options;
 
   const posts = await db.post.findMany({
     where: { authorId },
     skip,
     take: take + 1,
     orderBy: { createdAt: 'desc' },
-    select: postSelect,
+    select: postSelect(currentUserId),
   });
 
   const hasMore = posts.length > take;
@@ -188,16 +209,17 @@ export const fetchUserPosts = async (options: {
 };
 
 export const fetchGeneralTimeline = async (options: {
+  currentUserId?: string;
   skip: number;
   take: number;
 }): Promise<TimelineResult> => {
-  const { skip, take } = options;
+  const { currentUserId, skip, take } = options;
 
   const posts = await db.post.findMany({
     skip,
     take: take + 1,
     orderBy: { createdAt: 'desc' },
-    select: postSelect,
+    select: postSelect(currentUserId),
   });
 
   const hasMore = posts.length > take;
@@ -235,7 +257,7 @@ export const fetchPersonalTimeline = async (options: {
     skip,
     take: take + 1,
     orderBy: { createdAt: 'desc' },
-    select: postSelect,
+    select: postSelect(currentUserId),
   });
 
   const hasMore = posts.length > take;
