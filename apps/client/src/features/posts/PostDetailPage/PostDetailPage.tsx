@@ -23,7 +23,6 @@ export const PostDetailPage: FC = () => {
     initialData.initialComments.pagination,
   );
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [isLikedLocally, setIsLikedLocally] = useState(false);
   const nextPageRef = useRef(initialData.initialComments.pagination.page + 1);
   const hasMoreRef = useRef(initialData.initialComments.pagination.hasMore);
 
@@ -33,7 +32,6 @@ export const PostDetailPage: FC = () => {
     setPagination(initialData.initialComments.pagination);
     nextPageRef.current = initialData.initialComments.pagination.page + 1;
     hasMoreRef.current = initialData.initialComments.pagination.hasMore;
-    setIsLikedLocally(false);
   }, [initialData]);
 
   useEffect(() => {
@@ -113,15 +111,14 @@ export const PostDetailPage: FC = () => {
       if (response.ok) {
         const body = await response.json();
         const { likeCount, liked } = body.data;
-
         setParentPost((prev) => ({
           ...prev,
+          isLiked: liked,
           stats: {
             ...prev.stats,
             likes: likeCount,
           },
         }));
-        setIsLikedLocally(liked);
       }
     } catch (error) {
       console.error(
@@ -138,11 +135,15 @@ export const PostDetailPage: FC = () => {
       <div className={styles.actionControlRow}>
         <button
           type="button"
-          className={`${styles.likeCtaButton} ${isLikedLocally ? styles.likeCtaActive : ''}`}
+          className={`${styles.likeCtaButton} ${parentPost.isLiked ? styles.likeCtaActive : ''}`}
           onClick={handleLikeToggle}
         >
-          <Heart size={16} fill={isLikedLocally ? 'currentColor' : 'none'} />
-          <span>{isLikedLocally ? 'Liked' : 'Like'}</span>
+          <Heart
+            size={16}
+            fill={parentPost.isLiked ? 'var(--color-error-base)' : 'none'}
+            className={parentPost.isLiked ? styles.heartActive : ''}
+          />
+          <span>{parentPost.isLiked ? 'Liked' : 'Like'}</span>
         </button>
 
         <button
@@ -161,10 +162,7 @@ export const PostDetailPage: FC = () => {
         <div className={styles.commentsStack}>
           {comments.length === 0 ? (
             <div className={styles.emptyCommentsState}>
-              <p>
-                No answers have been recorded yet. Be the first to share your
-                thoughts!
-              </p>
+              <p>No comments yet. Be the first to share your thoughts!</p>
             </div>
           ) : (
             comments.map((comment) => {
