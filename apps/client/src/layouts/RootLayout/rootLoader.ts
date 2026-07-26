@@ -2,26 +2,35 @@ import { useAuthStore } from '../../store/authStore.js';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
-export const rootLoader = async (): Promise<null> => {
-  if (useAuthStore.getState().accessToken) {
-    return null;
-  }
+let initializationPromise: Promise<void> | null = null;
 
-  try {
-    const response = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    });
+export const ensureAuthHydrated = async (): Promise<void> => {
+  if (useAuthStore.getState().accessToken) return;
+  if (initializationPromise) return initializationPromise;
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.accessToken && data.user) {
-        useAuthStore.getState().setAuthData(data.accessToken, data.user);
-        return null;
+  initializationPromise = (async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.accessToken && data.user) {
+          useAuthStore.getState().setAuthData(data.accessToken, data.user);
+          return;
+        }
       }
-    }
-  } catch {}
+    } catch {}
 
-  useAuthStore.getState().clearAuth();
+    useAuthStore.getState().clearAuth();
+  })();
+
+  return initializationPromise;
+};
+
+export const rootLoader = async (): Promise<null> => {
+  await ensureAuthHydrated();
   return null;
 };

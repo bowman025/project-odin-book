@@ -1,4 +1,5 @@
 import type { LoaderFunctionArgs } from 'react-router';
+import { ensureAuthHydrated } from '../../../layouts/RootLayout/rootLoader.js';
 import { apiFetch } from '../../../lib/api.js';
 
 export type DirectoryUser = {
@@ -22,6 +23,8 @@ export type ExploreLoaderResult = {
 export const exploreLoader = async ({
   request,
 }: LoaderFunctionArgs): Promise<ExploreLoaderResult> => {
+  await ensureAuthHydrated();
+
   const url = new URL(request.url);
   const page = url.searchParams.get('page') || '1';
   const limit = url.searchParams.get('limit') || '12';

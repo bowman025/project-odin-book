@@ -1,4 +1,5 @@
 import type { LoaderFunctionArgs } from 'react-router';
+import { ensureAuthHydrated } from '../../../layouts/RootLayout/rootLoader.js';
 import { apiFetch } from '../../../lib/api.js';
 
 export type TimelinePost = {
@@ -32,6 +33,8 @@ export type TimelineLoaderResult = {
 export const timelineLoader = async ({
   request,
 }: LoaderFunctionArgs): Promise<TimelineLoaderResult> => {
+  await ensureAuthHydrated();
+
   const url = new URL(request.url);
   const page = url.searchParams.get('page') || '1';
   const limit = url.searchParams.get('limit') || '10';

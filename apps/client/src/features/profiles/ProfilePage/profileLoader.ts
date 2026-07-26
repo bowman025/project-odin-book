@@ -1,5 +1,6 @@
 import { UsernameParamSchema } from '@project-odin-book/validation';
 import type { LoaderFunctionArgs } from 'react-router';
+import { ensureAuthHydrated } from '../../../layouts/RootLayout/rootLoader.js';
 import { apiFetch } from '../../../lib/api.js';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
 
@@ -32,8 +33,9 @@ export const profileLoader = async ({
   params,
   request,
 }: LoaderFunctionArgs): Promise<ProfileLoaderResult> => {
-  const paramResult = UsernameParamSchema.safeParse(params);
+  await ensureAuthHydrated();
 
+  const paramResult = UsernameParamSchema.safeParse(params);
   if (!paramResult.success) {
     const validationMessage =
       paramResult.error.issues[0]?.message || 'Username is required';

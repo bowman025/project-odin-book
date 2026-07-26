@@ -1,5 +1,6 @@
 import { PostIdParamSchema } from '@project-odin-book/validation';
 import type { LoaderFunctionArgs } from 'react-router';
+import { ensureAuthHydrated } from '../../../layouts/RootLayout/rootLoader.js';
 import { apiFetch } from '../../../lib/api.js';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 
@@ -32,8 +33,9 @@ export const postDetailLoader = async ({
   params,
   request,
 }: LoaderFunctionArgs): Promise<PostDetailLoaderResult> => {
-  const paramResult = PostIdParamSchema.safeParse(params);
+  await ensureAuthHydrated();
 
+  const paramResult = PostIdParamSchema.safeParse(params);
   if (!paramResult.success) {
     const validationMessage =
       paramResult.error.issues?.[0]?.message ||
