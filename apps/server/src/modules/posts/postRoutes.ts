@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { apiLimiter } from '../../shared/config/rateLimiter.js';
-import { authenticate } from '../../shared/middleware/authenticate.js';
+import {
+  authenticate,
+  optionalAuthenticate,
+} from '../../shared/middleware/authenticate.js';
 import { commentRouter } from '../comments/commentRoutes.js';
 import { likeRouter } from '../likes/likeRoutes.js';
 import {
@@ -16,7 +19,7 @@ const router = Router();
 
 router.use(apiLimiter);
 
-router.get('/', getGeneralTimeline);
+router.get('/', optionalAuthenticate, getGeneralTimeline);
 router.get('/following', authenticate, getPersonalTimeline);
 
 router.use('/:postId/comments', commentRouter);
@@ -26,7 +29,7 @@ router.post('/', authenticate, createPost);
 
 router
   .route('/:postId')
-  .get(getPost)
+  .get(optionalAuthenticate, getPost)
   .patch(authenticate, updatePost)
   .delete(authenticate, deletePost);
 

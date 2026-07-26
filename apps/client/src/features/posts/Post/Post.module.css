@@ -186,6 +186,15 @@
   font-weight: 500;
 }
 
+.heartActive,
+.heartActive svg {
+  color: var(--color-error-base);
+}
+
+.interactionBtn.heartActive:hover {
+  background-color: var(--color-error-bg);
+}
+
 .interactionBtn {
   display: flex;
   align-items: center;

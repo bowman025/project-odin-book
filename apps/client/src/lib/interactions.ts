@@ -16,13 +16,14 @@ export const handleLikeToggleNetwork = async (
     }
 
     const body = await response.json();
-    const { likeCount } = body.data;
+    const { likeCount, liked } = body.data;
 
     setPostsState((prevPosts) =>
       prevPosts.map((post) => {
         if (post.id !== postId) return post;
         return {
           ...post,
+          isLiked: liked,
           stats: {
             ...post.stats,
             likes: likeCount,

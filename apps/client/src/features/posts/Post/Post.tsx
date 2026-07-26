@@ -2,7 +2,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Heart, MessageCircle } from 'lucide-react';
 import type { FC } from 'react';
 import { Link } from 'react-router';
-import type { TimelinePost } from '../TimelinePage/timelineLoader';
+import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './Post.module.css';
 
 type PostProps = {
@@ -26,10 +26,12 @@ export const Post: FC<PostProps> = ({
     post.updatedAt &&
     new Date(post.updatedAt).getTime() - new Date(post.createdAt).getTime() >
       1000;
+
   const shouldTruncate = !isDetailView && post.content.length > 200;
   const displayedContent = shouldTruncate
     ? `${post.content.slice(0, 200)}...`
     : post.content;
+
   const cardClassName = `${styles.postCard} ${isDetailView ? styles.postCardDetail : ''}`;
 
   const handleLikeClick = (e: React.MouseEvent) => {
@@ -61,6 +63,7 @@ export const Post: FC<PostProps> = ({
             <div className={styles.avatarFallback}>{authorInitial}</div>
           )}
         </Link>
+
         <div className={styles.meta}>
           <div className={styles.metaTopRow}>
             <Link
@@ -70,6 +73,7 @@ export const Post: FC<PostProps> = ({
               <span className={styles.username}>{post.author.username}</span>
             </Link>
             <span className={styles.timestamp}>{timeAgo}</span>
+
             {isEdited && (
               <span
                 className={styles.editedBadge}
@@ -81,6 +85,7 @@ export const Post: FC<PostProps> = ({
           </div>
         </div>
       </header>
+
       <div className={styles.postBody}>
         {!isDetailView && (
           <Link
@@ -99,14 +104,6 @@ export const Post: FC<PostProps> = ({
           )}
         </p>
 
-        {post.imageUrl && (
-          <img
-            src={post.imageUrl}
-            alt="Chronicle media context"
-            className={styles.postImage}
-          />
-        )}
-
         {post.tags && post.tags.length > 0 && (
           <div className={styles.tagsContainer}>
             {post.tags.map((tag) => (
@@ -116,37 +113,44 @@ export const Post: FC<PostProps> = ({
             ))}
           </div>
         )}
+
+        {post.imageUrl && (
+          <img
+            src={post.imageUrl}
+            alt="Chronicle media context"
+            className={styles.postImage}
+          />
+        )}
       </div>
 
       <footer className={styles.postFooter}>
         {isDetailView ? (
           <>
-            <button
-              type="button"
-              className={`${styles.interactionBtn} ${styles.btnDetail}`}
-              onClick={handleLikeClick}
-            >
-              <Heart size={18} />
+            <div className={styles.interactionBtn}>
+              <Heart
+                size={18}
+                fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
+                className={post.isLiked ? styles.heartActive : ''}
+              />
               <span>{post.stats.likes} likes</span>
-            </button>
+            </div>
 
-            <button
-              type="button"
-              className={`${styles.interactionBtn} ${styles.btnDetail}`}
-              onClick={handleCommentTrigger}
-            >
+            <div className={styles.interactionBtn}>
               <MessageCircle size={18} />
               <span>{post.stats.comments} comments</span>
-            </button>
+            </div>
           </>
         ) : (
           <>
             <button
               type="button"
-              className={styles.interactionBtn}
+              className={`${styles.interactionBtn} ${post.isLiked ? styles.heartActive : ''}`}
               onClick={handleLikeClick}
             >
-              <Heart size={18} />
+              <Heart
+                size={18}
+                fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
+              />
               <span>{post.stats.likes}</span>
             </button>
 

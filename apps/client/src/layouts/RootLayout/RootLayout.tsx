@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { Outlet, ScrollRestoration } from 'react-router';
-import { LoadingScreen } from '../../components/LoadingScreen/LoadingScreen.js';
+import { LoadingScreen } from '../../components/LoadingScreen/LoadingScreen';
 import { ToastContainer } from '../../components/ToastContainer/ToastContainer';
 import { useAuthStore } from '../../store/authStore.js';
 

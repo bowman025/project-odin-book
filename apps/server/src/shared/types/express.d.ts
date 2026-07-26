@@ -6,7 +6,7 @@ declare global {
       id: string;
       username: string;
       email: string;
-      profilePicture: string | null;
+      profilePicture?: string | null;
     }
 
     interface Request {

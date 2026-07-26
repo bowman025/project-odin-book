@@ -6,10 +6,10 @@ import { apiFetch } from '../../../lib/api.js';
 import { handleLikeToggleNetwork } from '../../../lib/interactions.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
-import { Post } from '../../posts/Post/Post.jsx';
+import { Post } from '../../posts/Post/Post';
 import type { PostComment } from '../../posts/PostDetailPage/postDetailLoader.js';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
-import { ProfileHeader } from '../ProfileHeader/ProfileHeader.jsx';
+import { ProfileHeader } from '../ProfileHeader/ProfileHeader';
 import styles from './ProfilePage.module.css';
 import type { ProfileLoaderResult, UserProfile } from './profileLoader.js';
 

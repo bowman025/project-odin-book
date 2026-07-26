@@ -17,6 +17,7 @@ export type TimelinePost = {
     likes: number;
     comments: number;
   };
+  isLiked: boolean;
 };
 
 export type TimelineLoaderResult = {

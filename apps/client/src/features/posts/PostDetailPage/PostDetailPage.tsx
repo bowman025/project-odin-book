@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useUIStore } from '../../../store/uiStore.js';
-import { Post } from '../Post/Post.jsx';
+import { Post } from '../Post/Post';
 import styles from './PostDetailPage.module.css';
 import type {
   PostComment,
@@ -151,7 +151,7 @@ export const PostDetailPage: FC = () => {
           onClick={() => openCommentModal(parentPost.id)}
         >
           <MessageSquare size={16} />
-          <span>Join the conversation...</span>
+          <span>Comment</span>
         </button>
       </div>
 

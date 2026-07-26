@@ -6,11 +6,11 @@ import { ExplorePage } from '../features/follows/ExplorePage/ExplorePage';
 import { exploreLoader } from '../features/follows/ExplorePage/exploreLoader.js';
 import { PostDetailPage } from '../features/posts/PostDetailPage/PostDetailPage';
 import { postDetailLoader } from '../features/posts/PostDetailPage/postDetailLoader.js';
-import { TimelinePage } from '../features/posts/TimelinePage/TimelinePage.js';
-import { timelineLoader } from '../features/posts/TimelinePage/timelineLoader';
-import { ProfilePage } from '../features/profiles/ProfilePage/ProfilePage.js';
+import { TimelinePage } from '../features/posts/TimelinePage/TimelinePage';
+import { timelineLoader } from '../features/posts/TimelinePage/timelineLoader.js';
+import { ProfilePage } from '../features/profiles/ProfilePage/ProfilePage';
 import { profileLoader } from '../features/profiles/ProfilePage/profileLoader.js';
-import { ProtectedLayout } from '../layouts/ProtectedLayout/ProtectedLayout.js';
+import { ProtectedLayout } from '../layouts/ProtectedLayout/ProtectedLayout';
 import { RootLayout } from '../layouts/RootLayout/RootLayout';
 import { rootLoader } from '../layouts/RootLayout/rootLoader.js';
 
