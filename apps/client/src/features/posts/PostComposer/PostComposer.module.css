@@ -112,6 +112,51 @@
   font-size: 0.8125rem;
 }
 
+.hiddenFileInput {
+  display: none;
+}
+
+.previewContainer {
+  position: relative;
+  margin-top: 12px;
+  max-width: 100%;
+  width: fit-content;
+  display: flex;
+}
+
+.imagePreview {
+  max-height: 240px;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.removePreviewBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--transition-fast);
+}
+
+.removePreviewBtn:hover {
+  opacity: 0.9;
+}
+
+.removePreviewBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .publishBtn {
   display: flex;
   align-items: center;
