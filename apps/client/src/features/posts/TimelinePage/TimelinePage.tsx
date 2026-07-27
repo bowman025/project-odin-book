@@ -116,6 +116,16 @@ export const TimelinePage: FC = () => {
     setPosts((prev) => [newPost, ...prev]);
   };
 
+  const handlePostDeleted = (deletedId: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+  };
+
+  const handlePostUpdated = (updatedPost: TimelinePost) => {
+    setPosts((prev) =>
+      prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)),
+    );
+  };
+
   const handleLikeToggle = (postId: string) => {
     handleLikeToggleNetwork(postId, setPosts);
   };
@@ -163,6 +173,8 @@ export const TimelinePage: FC = () => {
               post={post}
               onLikeToggle={handleLikeToggle}
               onCommentClick={(id) => openCommentModal(id)}
+              onPostDeleted={handlePostDeleted}
+              onPostUpdated={handlePostUpdated}
             />
           ))
         )}

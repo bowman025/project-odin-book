@@ -162,7 +162,7 @@ export const modifyPost = async (options: {
       }),
       ...(isVisualUpdate && { edited: true }),
     },
-    select: postSelect(),
+    select: postSelect(requesterId),
   });
 
   return mapToPostPayload(result);

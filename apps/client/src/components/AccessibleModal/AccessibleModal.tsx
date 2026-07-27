@@ -65,10 +65,22 @@ export const AccessibleModal = ({
       }
     };
 
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (modalEl && !modalEl.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
 
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleOutsideClick);
+    }, 0);
+
     return () => {
+      clearTimeout(timeoutId);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('click', handleOutsideClick);
       lastFocusedElement.current?.focus();
     };
   }, [isOpen, onClose]);
@@ -89,11 +101,7 @@ export const AccessibleModal = ({
 
   return createPortal(
     <>
-      <div
-        className="modalBackdrop"
-        onClick={onClose}
-      />
-
+      <div className="modalBackdrop" aria-hidden="true" />
       <div
         ref={modalRef}
         role="dialog"

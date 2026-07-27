@@ -26,9 +26,11 @@
 }
 
 .postHeader {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .avatarLink,
@@ -248,4 +250,208 @@
 .readMoreLink {
   position: relative;
   z-index: 2;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menuContainer {
+  position: relative;
+  z-index: 10;
+}
+
+.menuTriggerBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.menuTriggerBtn:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  min-width: 130px;
+}
+
+.menuItem {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-fast);
+  width: 100%;
+}
+
+.menuItem:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.itemDelete {
+  color: var(--color-error-base);
+}
+
+.itemDelete:hover {
+  background-color: var(--color-error-bg);
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.editTextarea {
+  width: 100%;
+  min-height: 80px;
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+
+.editTextarea:focus {
+  border-color: var(--color-accent-primary);
+}
+
+.editActionRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancelBtn,
+.saveBtn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: none;
+}
+
+.cancelBtn {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.cancelBtn:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.saveBtn {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+}
+
+.saveBtn:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fieldError {
+  font-size: 0.75rem;
+  color: var(--color-error-base);
+  font-weight: 500;
+}
+
+.deleteDialogContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.deleteWarningText {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.deleteModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.keepBtn {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-subtle);
+  transition: background-color var(--transition-fast);
+}
+
+.keepBtn:hover {
+  background-color: var(--color-border-subtle);
+}
+
+.confirmDeleteBtn {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background-color: var(--color-error-base);
+  color: var(--color-text-inverse);
+  border: none;
+  transition: opacity var(--transition-fast);
+}
+
+.confirmDeleteBtn:hover {
+  opacity: 0.9;
 }

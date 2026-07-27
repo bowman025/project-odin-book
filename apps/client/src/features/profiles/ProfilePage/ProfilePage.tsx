@@ -109,6 +109,16 @@ export const ProfilePage: FC = () => {
 
   const isOwnProfile = currentLoggedInUser?.id === profile.id;
 
+  const handlePostUpdated = (updatedPost: TimelinePost) => {
+    setPosts((prev) =>
+      prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)),
+    );
+  };
+
+  const handlePostDeleted = (deletedId: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+  };
+
   const handleLikeToggle = (postId: string) => {
     handleLikeToggleNetwork(postId, setPosts);
   };
@@ -132,6 +142,8 @@ export const ProfilePage: FC = () => {
                 post={post}
                 onLikeToggle={handleLikeToggle}
                 onCommentClick={(id) => openCommentModal(id)}
+                onPostUpdated={handlePostUpdated}
+                onPostDeleted={handlePostDeleted}
               />
             ))
           )}

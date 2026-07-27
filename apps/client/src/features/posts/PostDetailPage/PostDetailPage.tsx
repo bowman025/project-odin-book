@@ -2,10 +2,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { Heart, Loader2, MessageSquare } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useLoaderData } from 'react-router';
+import { Link, useLoaderData, useNavigate } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { Post } from '../Post/Post';
+import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './PostDetailPage.module.css';
 import type {
   PostComment,
@@ -15,6 +16,7 @@ import type {
 export const PostDetailPage: FC = () => {
   const initialData = useLoaderData() as PostDetailLoaderResult;
   const openCommentModal = useUIStore((state) => state.openCommentModal);
+  const navigate = useNavigate();
   const [parentPost, setParentPost] = useState(initialData.post);
   const [comments, setComments] = useState<PostComment[]>(
     initialData.initialComments.items,
@@ -128,9 +130,22 @@ export const PostDetailPage: FC = () => {
     }
   };
 
+  const handleDetailPostDeleted = () => {
+    navigate('/', { replace: true });
+  };
+
+  const handleDetailPostUpdated = (updatedPost: TimelinePost) => {
+    setParentPost(updatedPost);
+  };
+
   return (
     <div className={styles.container}>
-      <Post post={parentPost} isDetailView={true} />
+      <Post
+        post={parentPost}
+        isDetailView={true}
+        onPostDeleted={handleDetailPostDeleted}
+        onPostUpdated={handleDetailPostUpdated}
+      />
 
       <div className={styles.actionControlRow}>
         <button
