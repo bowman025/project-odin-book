@@ -8,6 +8,7 @@ export type PostComment = {
   id: string;
   content: string;
   createdAt: string;
+  edited: boolean;
   author: {
     id: string;
     username: string;

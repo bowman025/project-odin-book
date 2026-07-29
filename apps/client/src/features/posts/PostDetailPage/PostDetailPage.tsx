@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useUIStore } from '../../../store/uiStore.js';
+import { Comment } from '../../comments/Comment/Comment';
 import { Post } from '../Post/Post.jsx';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './PostDetailPage.module.css';
@@ -26,6 +27,7 @@ export const PostDetailPage: FC = () => {
     initialData.initialComments.pagination,
   );
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+
   const nextPageRef = useRef(initialData.initialComments.pagination.page + 1);
   const hasMoreRef = useRef(initialData.initialComments.pagination.hasMore);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -37,11 +39,6 @@ export const PostDetailPage: FC = () => {
     nextPageRef.current = initialData.initialComments.pagination.page + 1;
     hasMoreRef.current = initialData.initialComments.pagination.hasMore;
   }, [initialData]);
-
-  useEffect(() => {
-    nextPageRef.current = pagination.page + 1;
-    hasMoreRef.current = pagination.hasMore;
-  }, [pagination]);
 
   useEffect(() => {
     const handleGlobalComment = (e: Event) => {
@@ -64,6 +61,11 @@ export const PostDetailPage: FC = () => {
         handleGlobalComment,
       );
   }, [parentPost.id]);
+
+  useEffect(() => {
+    nextPageRef.current = pagination.page + 1;
+    hasMoreRef.current = pagination.hasMore;
+  }, [pagination]);
 
   const loadMoreComments = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
@@ -90,7 +92,6 @@ export const PostDetailPage: FC = () => {
         observerRef.current.disconnect();
         observerRef.current = null;
       }
-
       if (isFetchingMore) return;
 
       const observer = new IntersectionObserver((entries) => {
@@ -151,6 +152,38 @@ export const PostDetailPage: FC = () => {
     }
   };
 
+  const handleCommentDeleted = async (commentId: string) => {
+    try {
+      const response = await apiFetch(
+        `/posts/${parentPost.id}/comments/${commentId}`,
+        {
+          method: 'DELETE',
+        },
+      );
+      if (response.ok) {
+        addToast('Comment successfully deleted from thread.', 'success');
+        setComments((prev) => prev.filter((c) => c.id !== commentId));
+        setParentPost((prev) => ({
+          ...prev,
+          stats: {
+            ...prev.stats,
+            comments: Math.max(0, prev.stats.comments - 1),
+          },
+        }));
+      } else {
+        addToast('Server rejected comment deletion.', 'error');
+      }
+    } catch {
+      addToast('Network link connection failure.', 'error');
+    }
+  };
+
+  const handleCommentUpdated = (updatedComment: PostComment) => {
+    setComments((prev) =>
+      prev.map((c) => (c.id === updatedComment.id ? updatedComment : c)),
+    );
+  };
+
   return (
     <div className={styles.container}>
       <Post
@@ -194,18 +227,18 @@ export const PostDetailPage: FC = () => {
             </div>
           ) : (
             comments.map((comment) => (
-              <Post
+              <Comment
                 key={comment.id}
-                post={comment as TimelinePost}
-                variant="comment"
-                onLikeToggle={() => {}}
-                onPostUpdated={() => {}}
-                onPostDeleted={() => {}}
+                postId={parentPost.id}
+                comment={comment}
+                onCommentDeleted={handleCommentDeleted}
+                onCommentUpdated={handleCommentUpdated}
               />
             ))
           )}
         </div>
       </section>
+
       <div ref={sentinelRef} className={styles.infiniteTrigger}>
         {isFetchingMore && (
           <div className={styles.scrollLoader}>

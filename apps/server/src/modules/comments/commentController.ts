@@ -6,13 +6,13 @@ import {
   UpdateCommentSchema,
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
+import { AppError } from '../../shared/errors/AppError.js';
 import {
   fetchComments,
   insertComment,
   modifyComment,
   removeComment,
 } from './commentService.js';
-import { AppError } from '../../shared/errors/AppError.js';
 
 export const createComment = async (
   req: Request,

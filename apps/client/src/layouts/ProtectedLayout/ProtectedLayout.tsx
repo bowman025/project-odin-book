@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { Navigate, Outlet } from 'react-router';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { CommentComposer } from '../../features/comments/CommentComposer';
+import { CommentComposer } from '../../features/comments/CommentComposer/CommentComposer';
 import type { PostComment } from '../../features/posts/PostDetailPage/postDetailLoader.js';
 import { useIsAuthenticated } from '../../store/authStore.js';
 import styles from './ProtectedLayout.module.css';

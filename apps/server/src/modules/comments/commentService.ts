@@ -8,7 +8,7 @@ export type CommentAuthor = Pick<User, 'id' | 'username' | 'profilePicture'>;
 
 export type CommentPayload = Pick<
   Comment,
-  'id' | 'postId' | 'content' | 'createdAt'
+  'id' | 'postId' | 'content' | 'createdAt' | 'edited'
 > & {
   author: CommentAuthor;
 };
@@ -40,6 +40,7 @@ const commentSelect = {
   postId: true,
   content: true,
   createdAt: true,
+  edited: true,
   author: {
     select: commentAuthorSelect,
   },

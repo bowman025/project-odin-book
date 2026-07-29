@@ -5,10 +5,10 @@ import { Loader2, Send, X } from 'lucide-react';
 import type { FC } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { AccessibleModal } from '../../components/AccessibleModal/AccessibleModal';
-import { apiFetch } from '../../lib/api.js';
-import { useUIStore } from '../../store/uiStore.js';
-import type { PostComment } from '../posts/PostDetailPage/postDetailLoader.js';
+import { AccessibleModal } from '../../../components/AccessibleModal/AccessibleModal';
+import { apiFetch } from '../../../lib/api.js';
+import { useUIStore } from '../../../store/uiStore.js';
+import type { PostComment } from '../../posts/PostDetailPage/postDetailLoader.js';
 import styles from './CommentComposer.module.css';
 
 export const CommentComposer: FC<{
@@ -71,6 +71,7 @@ export const CommentComposer: FC<{
         id: body.data.comment.id,
         content: body.data.comment.content,
         createdAt: body.data.comment.createdAt,
+        edited: body.data.comment.edited,
         author: {
           id: body.data.comment.author?.id || '',
           username: body.data.comment.author?.username || 'user',

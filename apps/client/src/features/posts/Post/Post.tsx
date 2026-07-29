@@ -9,16 +9,15 @@ import {
 import type { FC } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { AccessibleModal } from '../../../components/AccessibleModal/AccessibleModal';
+import { AccessibleModal } from '../../../components/AccessibleModal/AccessibleModal.jsx';
 import { useAuthStore } from '../../../store/authStore.js';
-import { PostEditor } from '../PostEditor/PostEditor';
+import { PostEditor } from '../PostEditor/PostEditor.jsx';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './Post.module.css';
 
 type PostProps = {
   post: TimelinePost;
   isDetailView?: boolean;
-  variant?: 'default' | 'comment';
   onLikeToggle: (postId: string) => void;
   onCommentClick?: (postId: string) => void;
   onPostDeleted: (postId: string) => void;
@@ -28,7 +27,6 @@ type PostProps = {
 export const Post: FC<PostProps> = ({
   post,
   isDetailView = false,
-  variant = 'default',
   onLikeToggle,
   onCommentClick,
   onPostDeleted,
@@ -53,19 +51,12 @@ export const Post: FC<PostProps> = ({
       1000;
 
   const shouldTruncate =
-    !isDetailView &&
-    variant !== 'comment' &&
-    post.content.length > 200 &&
-    !isEditing;
+    !isDetailView && post.content.length > 200 && !isEditing;
   const displayedContent = shouldTruncate
     ? `${post.content.slice(0, 200)}...`
     : post.content;
 
-  const cardClassName = `
-    ${styles.postCard} 
-    ${isDetailView ? styles.postCardDetail : ''} 
-    ${variant === 'comment' ? styles.postCardComment : ''}
-  `.trim();
+  const cardClassName = `${styles.postCard} ${isDetailView ? styles.postCardDetail : ''}`;
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -126,7 +117,7 @@ export const Post: FC<PostProps> = ({
           </div>
         </div>
 
-        {isOwner && !isEditing && variant !== 'comment' && (
+        {isOwner && !isEditing && (
           <div className={styles.menuContainer} ref={menuRef}>
             <button
               type="button"
@@ -168,7 +159,7 @@ export const Post: FC<PostProps> = ({
       </header>
 
       <div className={styles.postBody}>
-        {!isDetailView && !isEditing && variant !== 'comment' && (
+        {!isDetailView && !isEditing && (
           <Link
             to={`/posts/${post.id}`}
             className={styles.stretchedCardLink}
@@ -215,56 +206,54 @@ export const Post: FC<PostProps> = ({
         )}
       </div>
 
-      {variant !== 'comment' && (
-        <footer className={styles.postFooter}>
-          {isDetailView ? (
-            <>
-              <div className={styles.interactionBtn}>
-                <Heart
-                  size={18}
-                  fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
-                  className={post.isLiked ? styles.heartActive : ''}
-                />
-                <span>{post.stats.likes} likes</span>
-              </div>
-              <div className={styles.interactionBtn}>
-                <MessageCircle size={18} />
-                <span>{post.stats.comments} comments</span>
-              </div>
-            </>
-          ) : (
-            <>
+      <footer className={styles.postFooter}>
+        {isDetailView ? (
+          <>
+            <div className={styles.interactionBtn}>
+              <Heart
+                size={18}
+                fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
+                className={post.isLiked ? styles.heartActive : ''}
+              />
+              <span>{post.stats.likes} likes</span>
+            </div>
+            <div className={styles.interactionBtn}>
+              <MessageCircle size={18} />
+              <span>{post.stats.comments} comments</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className={`${styles.interactionBtn} ${post.isLiked ? styles.heartActive : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                onLikeToggle(post.id);
+              }}
+            >
+              <Heart
+                size={18}
+                fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
+              />
+              <span>{post.stats.likes}</span>
+            </button>
+            {onCommentClick && (
               <button
                 type="button"
-                className={`${styles.interactionBtn} ${post.isLiked ? styles.heartActive : ''}`}
+                className={styles.interactionBtn}
                 onClick={(e) => {
                   e.preventDefault();
-                  onLikeToggle(post.id);
+                  onCommentClick(post.id);
                 }}
               >
-                <Heart
-                  size={18}
-                  fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
-                />
-                <span>{post.stats.likes}</span>
+                <MessageCircle size={18} />
+                <span>{post.stats.comments}</span>
               </button>
-              {onCommentClick && (
-                <button
-                  type="button"
-                  className={styles.interactionBtn}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onCommentClick(post.id);
-                  }}
-                >
-                  <MessageCircle size={18} />
-                  <span>{post.stats.comments}</span>
-                </button>
-              )}
-            </>
-          )}
-        </footer>
-      )}
+            )}
+          </>
+        )}
+      </footer>
 
       <AccessibleModal
         isOpen={isDeleteModalOpen}
