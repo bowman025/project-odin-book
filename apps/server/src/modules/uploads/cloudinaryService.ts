@@ -21,14 +21,13 @@ export const generateUploadSignature = (options: {
 }): UploadSignaturePayload => {
   const { userId, folderName } = options;
   const timestamp = Math.round(Date.now() / 1000);
-  const folder = `odin-book/${folderName}`;
+  const folder = `odinum/${folderName}`;
   const publicId = `user_${userId}_${timestamp}`;
 
   const paramsToSign: Record<string, string | number> = {
     allowed_formats: allowedFormats,
     folder,
     public_id: publicId,
-    resource_type: 'image',
     timestamp,
   };
 
