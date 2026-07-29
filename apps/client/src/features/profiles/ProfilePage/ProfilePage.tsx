@@ -6,10 +6,10 @@ import { apiFetch } from '../../../lib/api.js';
 import { handleLikeToggleNetwork } from '../../../lib/interactions.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
-import { Post } from '../../posts/Post/Post';
+import { Post } from '../../posts/Post/Post.jsx';
 import type { PostComment } from '../../posts/PostDetailPage/postDetailLoader.js';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
-import { ProfileHeader } from '../ProfileHeader/ProfileHeader';
+import { ProfileHeader } from '../ProfileHeader/ProfileHeader.jsx';
 import styles from './ProfilePage.module.css';
 import type { ProfileLoaderResult, UserProfile } from './profileLoader.js';
 
@@ -17,6 +17,8 @@ export const ProfilePage: FC = () => {
   const initialData = useLoaderData() as ProfileLoaderResult;
   const currentLoggedInUser = useAuthStore((state) => state.user);
   const openCommentModal = useUIStore((state) => state.openCommentModal);
+  const addToast = useUIStore((state) => state.addToast);
+
   const [profile, setProfile] = useState<UserProfile>(initialData.profile);
   const [posts, setPosts] = useState<TimelinePost[]>(
     initialData.initialPosts.items,
@@ -25,8 +27,10 @@ export const ProfilePage: FC = () => {
     initialData.initialPosts.pagination,
   );
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+
   const nextPageRef = useRef(initialData.initialPosts.pagination.page + 1);
   const hasMoreRef = useRef(initialData.initialPosts.pagination.hasMore);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     setProfile(initialData.profile);
@@ -54,22 +58,18 @@ export const ProfilePage: FC = () => {
           if (post.id !== postId) return post;
           return {
             ...post,
-            stats: {
-              ...post.stats,
-              comments: post.stats.comments + 1,
-            },
+            stats: { ...post.stats, comments: post.stats.comments + 1 },
           };
         }),
       );
     };
 
     window.addEventListener('odinum_global_comment_added', handleGlobalComment);
-    return () => {
+    return () =>
       window.removeEventListener(
         'odinum_global_comment_added',
         handleGlobalComment,
       );
-    };
   }, []);
 
   const loadMorePosts = useCallback(async () => {
@@ -94,6 +94,11 @@ export const ProfilePage: FC = () => {
 
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+
       if (isFetchingMore) return;
 
       const observer = new IntersectionObserver((entries) => {
@@ -101,13 +106,19 @@ export const ProfilePage: FC = () => {
           loadMorePosts();
         }
       });
-
-      if (node) observer.observe(node);
+      if (node) {
+        observer.observe(node);
+        observerRef.current = observer;
+      }
     },
     [isFetchingMore, loadMorePosts],
   );
 
   const isOwnProfile = currentLoggedInUser?.id === profile.id;
+
+  const handleLikeToggle = (postId: string) => {
+    handleLikeToggleNetwork(postId, setPosts);
+  };
 
   const handlePostUpdated = (updatedPost: TimelinePost) => {
     setPosts((prev) =>
@@ -115,25 +126,34 @@ export const ProfilePage: FC = () => {
     );
   };
 
-  const handlePostDeleted = (deletedId: string) => {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
-  };
-
-  const handleLikeToggle = (postId: string) => {
-    handleLikeToggleNetwork(postId, setPosts);
+  const handlePostDeleted = async (deletedId: string) => {
+    try {
+      const response = await apiFetch(`/posts/${deletedId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        addToast(
+          'Chronicle successfully removed from the archives.',
+          'success',
+        );
+        setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+      } else {
+        addToast('Failed to delete chronicle.', 'error');
+      }
+    } catch {
+      addToast('Network transmission failure.', 'error');
+    }
   };
 
   return (
     <div className={styles.container}>
       <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
-
       <section className={styles.postsSection}>
         <h3 className={styles.sectionTitle}>Recent Chronicles</h3>
-
         <div className={styles.feedStack}>
           {posts.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>This citizen has not written any chronicles yet.</p>
+              <p>This citizen has not broadcast any records yet.</p>
             </div>
           ) : (
             posts.map((post) => (
@@ -149,7 +169,6 @@ export const ProfilePage: FC = () => {
           )}
         </div>
       </section>
-
       <div ref={sentinelRef} className={styles.infiniteTrigger}>
         {isFetchingMore && (
           <div className={styles.scrollLoader}>

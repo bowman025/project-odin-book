@@ -15,6 +15,7 @@ export const ExplorePage: FC = () => {
 
   const nextPageRef = useRef(initialData.pagination.page + 1);
   const hasMoreRef = useRef(initialData.pagination.hasMore);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     nextPageRef.current = pagination.page + 1;
@@ -43,19 +44,24 @@ export const ExplorePage: FC = () => {
     }
   }, [isFetchingMore]);
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
-      if (isFetchingMore) return;
-      if (observerRef.current) observerRef.current.disconnect();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
 
-      observerRef.current = new IntersectionObserver((entries) => {
+      if (isFetchingMore) return;
+
+      const observer = new IntersectionObserver((entries) => {
         if (entries?.at(0)?.isIntersecting && hasMoreRef.current) {
           loadMoreUsers();
         }
       });
-
-      if (node) observerRef.current.observe(node);
+      if (node) {
+        observer.observe(node);
+        observerRef.current = observer;
+      }
     },
     [isFetchingMore, loadMoreUsers],
   );

@@ -15,12 +15,17 @@ export const TimelinePage: FC = () => {
   const initialData = useLoaderData() as TimelineLoaderResult;
   const [searchParams, setSearchParams] = useSearchParams();
   const activeFeed = searchParams.get('feed') || 'general';
+
   const openCommentModal = useUIStore((state) => state.openCommentModal);
+  const addToast = useUIStore((state) => state.addToast);
+
   const [posts, setPosts] = useState<TimelinePost[]>(initialData.items);
   const [pagination, setPagination] = useState(initialData.pagination);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+
   const nextPageRef = useRef(initialData.pagination.page + 1);
   const hasMoreRef = useRef(initialData.pagination.hasMore);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     setPosts(initialData.items);
@@ -47,22 +52,18 @@ export const TimelinePage: FC = () => {
           if (post.id !== postId) return post;
           return {
             ...post,
-            stats: {
-              ...post.stats,
-              comments: post.stats.comments + 1,
-            },
+            stats: { ...post.stats, comments: post.stats.comments + 1 },
           };
         }),
       );
     };
 
     window.addEventListener('odinum_global_comment_added', handleGlobalComment);
-    return () => {
+    return () =>
       window.removeEventListener(
         'odinum_global_comment_added',
         handleGlobalComment,
       );
-    };
   }, []);
 
   const loadMorePosts = useCallback(async () => {
@@ -76,11 +77,9 @@ export const TimelinePage: FC = () => {
           : `/posts?page=${nextPageRef.current}&limit=10`;
 
       const response = await apiFetch(apiPath);
-
       if (response.ok) {
         const payload = await response.json();
         const data: TimelineLoaderResult = payload.data;
-
         setPosts((prev) => [...prev, ...data.items]);
         setPagination(data.pagination);
       }
@@ -91,19 +90,24 @@ export const TimelinePage: FC = () => {
     }
   }, [isFetchingMore, activeFeed]);
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
-      if (isFetchingMore) return;
-      if (observerRef.current) observerRef.current.disconnect();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
 
-      observerRef.current = new IntersectionObserver((entries) => {
+      if (isFetchingMore) return;
+
+      const observer = new IntersectionObserver((entries) => {
         if (entries?.at(0)?.isIntersecting && hasMoreRef.current) {
           loadMorePosts();
         }
       });
-
-      if (node) observerRef.current.observe(node);
+      if (node) {
+        observer.observe(node);
+        observerRef.current = observer;
+      }
     },
     [isFetchingMore, loadMorePosts],
   );
@@ -116,8 +120,8 @@ export const TimelinePage: FC = () => {
     setPosts((prev) => [newPost, ...prev]);
   };
 
-  const handlePostDeleted = (deletedId: string) => {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+  const handleLikeToggle = (postId: string) => {
+    handleLikeToggleNetwork(postId, setPosts);
   };
 
   const handlePostUpdated = (updatedPost: TimelinePost) => {
@@ -126,15 +130,29 @@ export const TimelinePage: FC = () => {
     );
   };
 
-  const handleLikeToggle = (postId: string) => {
-    handleLikeToggleNetwork(postId, setPosts);
+  const handlePostDeleted = async (deletedId: string) => {
+    try {
+      const response = await apiFetch(`/posts/${deletedId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        addToast(
+          'Chronicle successfully removed from the archives.',
+          'success',
+        );
+        setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+      } else {
+        addToast('Failed to remove chronicle.', 'error');
+      }
+    } catch {
+      addToast('Network link transmission failure.', 'error');
+    }
   };
 
   return (
     <div className={styles.container}>
       <header className={styles.feedHeader}>
         <h2 className={styles.title}>Home Feed</h2>
-
         <div className={styles.tabsContainer}>
           <button
             type="button"
@@ -150,10 +168,9 @@ export const TimelinePage: FC = () => {
             onClick={() => handleFeedToggle('following')}
           >
             <Users size={16} />
-            <span>Personal Realm</span>
+            <span>Following Updates</span>
           </button>
         </div>
-
         <PostComposer onPostCreated={handlePostCreated} />
       </header>
 
@@ -162,8 +179,8 @@ export const TimelinePage: FC = () => {
           <div className={styles.emptyState}>
             <p>
               {activeFeed === 'following'
-                ? 'Your connections have no recent posts. Explore the Global Realm to follow more creators!'
-                : 'The realm is completely quiet. Be the first to publish a post!'}
+                ? 'Your connections haven’t posted recently.'
+                : 'The realm is completely quiet.'}
             </p>
           </div>
         ) : (
@@ -173,8 +190,8 @@ export const TimelinePage: FC = () => {
               post={post}
               onLikeToggle={handleLikeToggle}
               onCommentClick={(id) => openCommentModal(id)}
-              onPostDeleted={handlePostDeleted}
               onPostUpdated={handlePostUpdated}
+              onPostDeleted={handlePostDeleted}
             />
           ))
         )}

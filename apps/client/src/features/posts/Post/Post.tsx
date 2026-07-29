@@ -10,9 +10,7 @@ import type { FC } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { AccessibleModal } from '../../../components/AccessibleModal/AccessibleModal';
-import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
-import { useUIStore } from '../../../store/uiStore.js';
 import { PostEditor } from '../PostEditor/PostEditor';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './Post.module.css';
@@ -20,25 +18,28 @@ import styles from './Post.module.css';
 type PostProps = {
   post: TimelinePost;
   isDetailView?: boolean;
-  onLikeToggle?: (postId: string) => void;
+  variant?: 'default' | 'comment';
+  onLikeToggle: (postId: string) => void;
   onCommentClick?: (postId: string) => void;
-  onPostDeleted?: (postId: string) => void;
-  onPostUpdated?: (updatedPost: TimelinePost) => void;
+  onPostDeleted: (postId: string) => void;
+  onPostUpdated: (updatedPost: TimelinePost) => void;
 };
 
 export const Post: FC<PostProps> = ({
   post,
   isDetailView = false,
+  variant = 'default',
   onLikeToggle,
   onCommentClick,
   onPostDeleted,
   onPostUpdated,
 }) => {
   const currentUserId = useAuthStore((state) => state.user?.id);
-  const addToast = useUIStore((state) => state.addToast);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const isOwner = currentUserId === post.author.id;
@@ -50,12 +51,21 @@ export const Post: FC<PostProps> = ({
     post.updatedAt &&
     new Date(post.updatedAt).getTime() - new Date(post.createdAt).getTime() >
       1000;
+
   const shouldTruncate =
-    !isDetailView && post.content.length > 200 && !isEditing;
+    !isDetailView &&
+    variant !== 'comment' &&
+    post.content.length > 200 &&
+    !isEditing;
   const displayedContent = shouldTruncate
     ? `${post.content.slice(0, 200)}...`
     : post.content;
-  const cardClassName = `${styles.postCard} ${isDetailView ? styles.postCardDetail : ''}`;
+
+  const cardClassName = `
+    ${styles.postCard} 
+    ${isDetailView ? styles.postCardDetail : ''} 
+    ${variant === 'comment' ? styles.postCardComment : ''}
+  `.trim();
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -68,41 +78,11 @@ export const Post: FC<PostProps> = ({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [isMenuOpen]);
 
-  const handleLikeClick = (e: React.MouseEvent) => {
-    if (!onLikeToggle) return;
-    e.preventDefault();
-    onLikeToggle(post.id);
-  };
-
-  const handleCommentTrigger = (e: React.MouseEvent) => {
-    if (!onCommentClick) return;
-    e.preventDefault();
-    onCommentClick(post.id);
-  };
-
-  const handleConfirmedDelete = async () => {
+  const handleConfirmedDelete = () => {
     setIsDeleteModalOpen(false);
-    try {
-      const response = await apiFetch(`/posts/${post.id}`, {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        addToast(
-          'Chronicle successfully removed from the archives.',
-          'success',
-        );
-        if (onPostDeleted) onPostDeleted(post.id);
-      } else {
-        addToast('Failed to delete chronicle.', 'error');
-      }
-    } catch {
-      addToast('Network transmission error during deletion.', 'error');
+    if (onPostDeleted) {
+      onPostDeleted(post.id);
     }
-  };
-
-  const handleEditorSuccess = (updatedPost: TimelinePost) => {
-    setIsEditing(false);
-    if (onPostUpdated) onPostUpdated(updatedPost);
   };
 
   return (
@@ -146,7 +126,7 @@ export const Post: FC<PostProps> = ({
           </div>
         </div>
 
-        {isOwner && !isEditing && (
+        {isOwner && !isEditing && variant !== 'comment' && (
           <div className={styles.menuContainer} ref={menuRef}>
             <button
               type="button"
@@ -188,7 +168,7 @@ export const Post: FC<PostProps> = ({
       </header>
 
       <div className={styles.postBody}>
-        {!isDetailView && !isEditing && (
+        {!isDetailView && !isEditing && variant !== 'comment' && (
           <Link
             to={`/posts/${post.id}`}
             className={styles.stretchedCardLink}
@@ -200,7 +180,10 @@ export const Post: FC<PostProps> = ({
           <PostEditor
             post={post}
             onCancel={() => setIsEditing(false)}
-            onPostUpdated={handleEditorSuccess}
+            onPostUpdated={(updated) => {
+              setIsEditing(false);
+              onPostUpdated(updated);
+            }}
           />
         ) : (
           <p className={styles.content}>
@@ -232,46 +215,56 @@ export const Post: FC<PostProps> = ({
         )}
       </div>
 
-      <footer className={styles.postFooter}>
-        {isDetailView ? (
-          <>
-            <div className={styles.interactionBtn}>
-              <Heart
-                size={18}
-                fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
-                className={post.isLiked ? styles.heartActive : ''}
-              />
-              <span>{post.stats.likes} likes</span>
-            </div>
-            <div className={styles.interactionBtn}>
-              <MessageCircle size={18} />
-              <span>{post.stats.comments} comments</span>
-            </div>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              className={`${styles.interactionBtn} ${post.isLiked ? styles.heartActive : ''}`}
-              onClick={handleLikeClick}
-            >
-              <Heart
-                size={18}
-                fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
-              />
-              <span>{post.stats.likes}</span>
-            </button>
-            <button
-              type="button"
-              className={styles.interactionBtn}
-              onClick={handleCommentTrigger}
-            >
-              <MessageCircle size={18} />
-              <span>{post.stats.comments}</span>
-            </button>
-          </>
-        )}
-      </footer>
+      {variant !== 'comment' && (
+        <footer className={styles.postFooter}>
+          {isDetailView ? (
+            <>
+              <div className={styles.interactionBtn}>
+                <Heart
+                  size={18}
+                  fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
+                  className={post.isLiked ? styles.heartActive : ''}
+                />
+                <span>{post.stats.likes} likes</span>
+              </div>
+              <div className={styles.interactionBtn}>
+                <MessageCircle size={18} />
+                <span>{post.stats.comments} comments</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={`${styles.interactionBtn} ${post.isLiked ? styles.heartActive : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onLikeToggle(post.id);
+                }}
+              >
+                <Heart
+                  size={18}
+                  fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
+                />
+                <span>{post.stats.likes}</span>
+              </button>
+              {onCommentClick && (
+                <button
+                  type="button"
+                  className={styles.interactionBtn}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onCommentClick(post.id);
+                  }}
+                >
+                  <MessageCircle size={18} />
+                  <span>{post.stats.comments}</span>
+                </button>
+              )}
+            </>
+          )}
+        </footer>
+      )}
 
       <AccessibleModal
         isOpen={isDeleteModalOpen}
