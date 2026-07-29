@@ -1,0 +1,146 @@
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.editTextarea {
+  width: 100%;
+  min-height: 80px;
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+
+.editTextarea:focus {
+  border-color: var(--color-accent-primary);
+}
+
+.editImageSection {
+  position: relative;
+  margin-top: 8px;
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+}
+
+.editImagePreview {
+  max-height: 200px;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.removePreviewBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--transition-fast);
+}
+
+.removePreviewBtn:hover {
+  opacity: 0.9;
+}
+
+.removePreviewBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.editWorkspaceTray {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.workspaceMediaBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.workspaceMediaBtn:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-accent-primary);
+}
+
+.editActionRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancelBtn,
+.saveBtn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: none;
+}
+
+.cancelBtn {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.cancelBtn:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.saveBtn {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+}
+
+.saveBtn:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fieldError {
+  font-size: 0.75rem;
+  color: var(--color-error-base);
+  font-weight: 500;
+}

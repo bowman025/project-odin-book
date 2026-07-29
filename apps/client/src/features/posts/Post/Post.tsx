@@ -1,6 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import type { UpdatePostInput } from '@project-odin-book/validation';
-import { UpdatePostSchema } from '@project-odin-book/validation';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   Edit2,
@@ -11,14 +8,13 @@ import {
 } from 'lucide-react';
 import type { FC } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { AccessibleModal } from '../../../components/AccessibleModal/AccessibleModal';
 import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
+import { PostEditor } from '../PostEditor/PostEditor';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
-
 import styles from './Post.module.css';
 
 type PostProps = {
@@ -42,9 +38,9 @@ export const Post: FC<PostProps> = ({
   const addToast = useUIStore((state) => state.addToast);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
   const isOwner = currentUserId === post.author.id;
   const authorInitial = post.author.username.charAt(0);
   const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
@@ -60,19 +56,6 @@ export const Post: FC<PostProps> = ({
     ? `${post.content.slice(0, 200)}...`
     : post.content;
   const cardClassName = `${styles.postCard} ${isDetailView ? styles.postCardDetail : ''}`;
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<UpdatePostInput>({
-    resolver: zodResolver(UpdatePostSchema),
-    defaultValues: { content: post.content },
-  });
-
-  useEffect(() => {
-    reset({ content: post.content });
-  }, [post.content, reset]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -97,8 +80,8 @@ export const Post: FC<PostProps> = ({
     onCommentClick(post.id);
   };
 
-  const handleDeleteAction = async () => {
-    setIsMenuOpen(false);
+  const handleConfirmedDelete = async () => {
+    setIsDeleteModalOpen(false);
     try {
       const response = await apiFetch(`/posts/${post.id}`, {
         method: 'DELETE',
@@ -117,30 +100,10 @@ export const Post: FC<PostProps> = ({
     }
   };
 
-  const handleEditSubmit = async (payload: UpdatePostInput) => {
-    setIsSubmittingEdit(true);
-    try {
-      const response = await apiFetch(`/posts/${post.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const body = await response.json();
-        addToast('Chronicle log updated.', 'success');
-        setIsEditing(false);
-        if (onPostUpdated) onPostUpdated(body.data.post);
-      } else {
-        addToast('Server rejected modifications.', 'error');
-      }
-    } catch {
-      addToast('Network link connection failure.', 'error');
-    } finally {
-      setIsSubmittingEdit(false);
-    }
+  const handleEditorSuccess = (updatedPost: TimelinePost) => {
+    setIsEditing(false);
+    if (onPostUpdated) onPostUpdated(updatedPost);
   };
-
-  const contentField = register('content');
 
   return (
     <article className={cardClassName}>
@@ -202,7 +165,6 @@ export const Post: FC<PostProps> = ({
                   onClick={() => {
                     setIsEditing(true);
                     setIsMenuOpen(false);
-                    reset();
                   }}
                 >
                   <Edit2 size={14} />
@@ -235,42 +197,11 @@ export const Post: FC<PostProps> = ({
         )}
 
         {isEditing ? (
-          <form
-            onSubmit={handleSubmit(handleEditSubmit)}
-            className={styles.editForm}
-          >
-            <textarea
-              className={styles.editTextarea}
-              disabled={isSubmittingEdit}
-              {...contentField}
-              ref={(el) => {
-                contentField.ref(el);
-              }}
-            />
-            {errors.content && (
-              <span className={styles.fieldError}>
-                {errors.content.message}
-              </span>
-            )}
-
-            <div className={styles.editActionRow}>
-              <button
-                type="button"
-                className={styles.cancelBtn}
-                onClick={() => setIsEditing(false)}
-                disabled={isSubmittingEdit}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className={styles.saveBtn}
-                disabled={isSubmittingEdit}
-              >
-                Save Changes
-              </button>
-            </div>
-          </form>
+          <PostEditor
+            post={post}
+            onCancel={() => setIsEditing(false)}
+            onPostUpdated={handleEditorSuccess}
+          />
         ) : (
           <p className={styles.content}>
             {displayedContent}
@@ -341,6 +272,7 @@ export const Post: FC<PostProps> = ({
           </>
         )}
       </footer>
+
       <AccessibleModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
@@ -370,7 +302,7 @@ export const Post: FC<PostProps> = ({
             <button
               type="button"
               className={styles.confirmDeleteBtn}
-              onClick={handleDeleteAction}
+              onClick={handleConfirmedDelete}
             >
               Confirm Delete
             </button>
