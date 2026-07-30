@@ -28,7 +28,7 @@ export const uploadImageToCloudinary = async (
   if (!validationResult.success) {
     throw new Error(
       validationResult.error.issues[0]?.message ||
-        'Invalid upload folder parameter target.',
+        'Invalid upload folder selected.',
     );
   }
 
@@ -40,7 +40,7 @@ export const uploadImageToCloudinary = async (
 
   if (!signatureResponse.ok) {
     throw new Error(
-      'Failed to retrieve secure upload signature context parameters from server.',
+      'Could not set up secure upload session. Please try again.',
     );
   }
 
@@ -48,8 +48,9 @@ export const uploadImageToCloudinary = async (
   const config = body.data.uploadConfig;
 
   if (file.size > config.maxFileSize) {
+    const maxMb = config.maxFileSize / 1_000_000;
     throw new Error(
-      `File asset exceeds maximum allowable threshold limits of ${config.maxFileSize / 1_000_000}MB.`,
+      `This file is too large. The maximum size allowed is ${maxMb}MB.`,
     );
   }
 
@@ -72,11 +73,10 @@ export const uploadImageToCloudinary = async (
     const errorBody = await uploadResponse.json().catch(() => ({}));
     throw new Error(
       errorBody.error?.message ||
-        'Cloudinary endpoint rejected file binary payload package.',
+        'Failed to upload image. Please try a different file.',
     );
   }
 
   const result = await uploadResponse.json();
-
   return result.secure_url;
 };
