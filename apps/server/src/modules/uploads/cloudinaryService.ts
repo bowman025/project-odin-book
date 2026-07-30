@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { cloudinary } from '../../shared/config/cloudinary.js';
 import { env } from '../../shared/config/env.js';
 
 export type UploadSignaturePayload = {
@@ -51,4 +52,29 @@ export const generateUploadSignature = (options: {
     allowedFormats: allowedFormatsList,
     maxFileSize: 5_000_000,
   };
+};
+
+export const deleteCloudinaryImageByUrl = async (
+  imageUrl: string | null | undefined,
+): Promise<void> => {
+  if (!imageUrl) return;
+
+  try {
+    const matches = imageUrl.match(/(odinum\/(?:posts|profiles)\/[^.]+)/);
+
+    if (matches?.[1]) {
+      const publicId = matches[1];
+
+      cloudinary.uploader
+        .destroy(publicId)
+        .catch((err) =>
+          console.error('Cloudinary background cleanup error:', err),
+        );
+    }
+  } catch (error) {
+    console.error(
+      'Failed to parse or process Cloudinary asset link for unmounting:',
+      error,
+    );
+  }
 };

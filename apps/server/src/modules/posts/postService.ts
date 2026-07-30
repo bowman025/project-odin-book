@@ -3,6 +3,7 @@ import type {
   CreatePostInput,
   UpdatePostInput,
 } from '@project-odin-book/validation';
+import { deleteCloudinaryImageByUrl } from '../uploads/cloudinaryService.js';
 
 type PostAuthor = Pick<User, 'id' | 'username' | 'profilePicture'>;
 
@@ -140,32 +141,38 @@ export const modifyPost = async (options: {
   data: UpdatePostInput;
 }): Promise<PostPayload | null> => {
   const { id, requesterId, data } = options;
-  const existing = await db.post.findUnique({
-    where: { id },
-    select: { authorId: true },
-  });
-
-  if (!existing || existing.authorId !== requesterId) return null;
-
   const { content, imageUrl, tags } = data;
   const isVisualUpdate = content !== undefined || imageUrl !== undefined;
-  const result = await db.post.update({
+
+  const existing = await db.post.findUnique({
+    where: { id },
+    select: { authorId: true, imageUrl: true },
+  });
+
+  if (!existing || existing.authorId !== requesterId) {
+    return null;
+  }
+
+  const updated = await db.post.update({
     where: { id },
     data: {
       ...(content !== undefined && { content }),
       ...(imageUrl !== undefined && { imageUrl }),
-      ...(tags !== undefined && {
-        tags: {
-          set: [],
-          ...normalizeTags(tags),
-        },
-      }),
+      ...(tags !== undefined && { tags: { set: [], ...normalizeTags(tags) } }),
       ...(isVisualUpdate && { edited: true }),
     },
     select: postSelect(requesterId),
   });
 
-  return mapToPostPayload(result);
+  if (
+    imageUrl !== undefined &&
+    existing.imageUrl &&
+    existing.imageUrl !== imageUrl
+  ) {
+    void deleteCloudinaryImageByUrl(existing.imageUrl);
+  }
+
+  return mapToPostPayload(updated);
 };
 
 export const removePost = async (options: {
@@ -173,14 +180,23 @@ export const removePost = async (options: {
   requesterId: string;
 }): Promise<boolean> => {
   const { id, requesterId } = options;
-  const result = await db.post.deleteMany({
-    where: {
-      id,
-      authorId: requesterId,
-    },
+
+  const existing = await db.post.findUnique({
+    where: { id },
+    select: { authorId: true, imageUrl: true },
   });
 
-  return result.count > 0;
+  if (!existing || existing.authorId !== requesterId) {
+    return false;
+  }
+
+  await db.post.delete({ where: { id } });
+
+  if (existing.imageUrl) {
+    void deleteCloudinaryImageByUrl(existing.imageUrl);
+  }
+
+  return true;
 };
 
 export const fetchUserPosts = async (options: {
