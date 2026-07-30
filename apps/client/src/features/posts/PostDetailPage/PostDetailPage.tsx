@@ -184,6 +184,8 @@ export const PostDetailPage: FC = () => {
     );
   };
 
+  if (!parentPost) return null;
+
   return (
     <div className={styles.container}>
       <Post
