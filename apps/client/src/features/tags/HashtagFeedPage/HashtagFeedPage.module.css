@@ -160,6 +160,73 @@
   font-size: 0.9375rem;
 }
 
+.emptyPrompt {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 24px;
+}
+
+.popularTagsSection {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.popularTagsTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.popularTagsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 480px;
+}
+
+.popularTagBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.popularTagBadge:hover {
+  background-color: var(--color-accent-muted);
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+}
+
+.badgeHashIcon {
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.popularTagBadge:hover .badgeHashIcon {
+  color: var(--color-accent-primary);
+}
+
 .centerLoader {
   display: flex;
   flex-direction: column;

@@ -259,7 +259,38 @@ export const HashtagFeedPage: FC = () => {
         <div className={styles.postsFeed}>
           {!activeSearchTerm.trim() ? (
             <div className={styles.emptyState}>
-              <p>Type a hashtag keyword above to query Odinum archives.</p>
+              <p className={styles.emptyPrompt}>
+                Type a hashtag keyword above to query Odinum archives.
+              </p>
+              <div className={styles.popularTagsSection}>
+                <h4 className={styles.popularTagsTitle}>
+                  Explore Popular Realms
+                </h4>
+                <div className={styles.popularTagsGrid}>
+                  {[
+                    'tech',
+                    'gaming',
+                    'philosophy',
+                    'travel',
+                    'fitness',
+                    'cooking',
+                    'art',
+                    'music',
+                    'science',
+                    'nature',
+                  ].map((tagName) => (
+                    <button
+                      key={`popular-realm-tag-${tagName}`}
+                      type="button"
+                      className={styles.popularTagBadge}
+                      onClick={() => executeHashtagSearch(tagName)}
+                    >
+                      <Hash size={12} className={styles.badgeHashIcon} />
+                      <span>{tagName}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : posts.length === 0 ? (
             <div className={styles.emptyState}>

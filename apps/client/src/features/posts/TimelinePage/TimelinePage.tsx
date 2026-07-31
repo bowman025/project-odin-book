@@ -168,7 +168,7 @@ export const TimelinePage: FC = () => {
             onClick={() => handleFeedToggle('following')}
           >
             <Users size={16} />
-            <span>Following Updates</span>
+            <span>Personal Realm</span>
           </button>
         </div>
         <PostComposer onPostCreated={handlePostCreated} />
