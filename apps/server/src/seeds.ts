@@ -6,6 +6,18 @@ import bcrypt from 'bcryptjs';
 
 async function main() {
   console.log('Initiating database seeding sequence...');
+
+  console.log('Clearing existing archives and database records...');
+  await db.$transaction([
+    db.comment.deleteMany(),
+    db.like.deleteMany(),
+    db.post.deleteMany(),
+    db.tag.deleteMany(),
+    db.follow.deleteMany(),
+    db.user.deleteMany(),
+  ]);
+  console.log('Database successfully wiped clean.');
+
   console.log(
     'Note: Generating 200 crypto hashes will take up to 20 seconds. Please hold...',
   );
@@ -105,7 +117,7 @@ async function main() {
 
       const entireUserPool = [guestUser.id, ...userIds];
 
-      console.log('Pre-seeding platform taxonomies and tag registries...');
+      console.log('Pre-seeding tags...');
       const tagNames = [
         'tech',
         'gaming',
@@ -149,13 +161,22 @@ async function main() {
 
         const wantsTags = Math.random() < 0.6;
         const randomTagNames = wantsTags
-          ? faker.helpers.arrayElements(tagNames, { min: 1, max: 5 })
+          ? faker.helpers.arrayElements(tagNames, { min: 1, max: 4 })
           : [];
+
+        const baseParagraph = faker.lorem.paragraph({ min: 1, max: 2 });
+        const hashtagString = randomTagNames
+          .map((name) => `#${name}`)
+          .join(' ');
+        const finalContentText =
+          randomTagNames.length > 0
+            ? `${baseParagraph} ${hashtagString}`
+            : baseParagraph;
 
         const post = await tx.post.create({
           data: {
             authorId,
-            content: faker.lorem.paragraph({ min: 1, max: 4 }),
+            content: finalContentText,
             imageUrl,
             createdAt,
             updatedAt,
@@ -209,7 +230,7 @@ async function main() {
       console.log('Transaction complete! Database successfully seeded!');
     },
     {
-      timeout: 45000,
+      timeout: 60000,
     },
   );
 }
