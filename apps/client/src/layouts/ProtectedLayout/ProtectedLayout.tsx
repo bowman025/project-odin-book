@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Navigate, Outlet } from 'react-router';
+import { Header } from '../../components/Header/Header';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { CommentComposer } from '../../features/comments/CommentComposer/CommentComposer';
 import type { PostComment } from '../../features/posts/PostDetailPage/postDetailLoader.js';
@@ -25,6 +26,7 @@ export const ProtectedLayout: FC = () => {
 
   return (
     <div className={styles.container}>
+      <Header />
       <Sidebar />
       <main className={styles.mainContent}>
         <Outlet />

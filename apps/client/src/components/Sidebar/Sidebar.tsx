@@ -2,11 +2,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Compass,
+  Hash,
   Home,
   LogOut,
   MessageSquare,
   Moon,
   Sun,
+  User as UserIcon,
 } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
@@ -78,6 +80,10 @@ export const Sidebar: FC = () => {
           <Home size={20} />
           <span className={styles.linkLabel}>Timeline</span>
         </Link>
+        <Link to="/tags" className={getLinkClass('/tags')} title="Hashtags">
+          <Hash size={20} />
+          <span className={styles.linkLabel}>Hashtags</span>
+        </Link>
         <Link
           to="/conversations"
           className={getLinkClass('/conversations')}
@@ -89,6 +95,14 @@ export const Sidebar: FC = () => {
         <Link to="/users" className={getLinkClass('/users')} title="Directory">
           <Compass size={20} />
           <span className={styles.linkLabel}>Directory</span>
+        </Link>
+        <Link
+          to={`/users/${user.username}`}
+          className={`${getLinkClass(`/users/${user.username}`)} ${styles.mobileOnlyLink}`}
+          title="My Profile"
+        >
+          <UserIcon size={20} />
+          <span className={styles.linkLabel}>Profile</span>
         </Link>
       </nav>
 
@@ -116,7 +130,11 @@ export const Sidebar: FC = () => {
         </button>
       </div>
 
-      <footer className={styles.profileFooter}>
+      <Link
+        to={`/users/${user.username}`}
+        className={styles.profileFooter}
+        title="View your profile page"
+      >
         {user.profilePicture ? (
           <img
             src={user.profilePicture}
@@ -129,7 +147,7 @@ export const Sidebar: FC = () => {
         <div className={styles.profileDetails}>
           <span className={styles.username}>{user.username}</span>
         </div>
-      </footer>
+      </Link>
     </aside>
   );
 };
