@@ -86,9 +86,9 @@ export const Sidebar: FC = () => {
           <MessageSquare size={20} />
           <span className={styles.linkLabel}>Messages</span>
         </Link>
-        <Link to="/users" className={getLinkClass('/users')} title="Explore">
+        <Link to="/users" className={getLinkClass('/users')} title="Directory">
           <Compass size={20} />
-          <span className={styles.linkLabel}>Explore</span>
+          <span className={styles.linkLabel}>Directory</span>
         </Link>
       </nav>
 

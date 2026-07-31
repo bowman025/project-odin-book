@@ -2,8 +2,8 @@ import { createBrowserRouter } from 'react-router';
 import { ErrorPage } from '../components/ErrorPage/ErrorPage';
 import { LoginPage } from '../features/auth/LoginPage/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage/RegisterPage';
-import { ExplorePage } from '../features/follows/ExplorePage/ExplorePage';
-import { exploreLoader } from '../features/follows/ExplorePage/exploreLoader.js';
+import { DirectoryPage } from '../features/follows/DirectoryPage/DirectoryPage.js';
+import { directoryLoader } from '../features/follows/DirectoryPage/directoryLoader.js';
 import { PostDetailPage } from '../features/posts/PostDetailPage/PostDetailPage';
 import { postDetailLoader } from '../features/posts/PostDetailPage/postDetailLoader.js';
 import { TimelinePage } from '../features/posts/TimelinePage/TimelinePage';
@@ -44,8 +44,8 @@ export const router = createBrowserRouter([
           },
           {
             path: 'users',
-            element: <ExplorePage />,
-            loader: exploreLoader,
+            element: <DirectoryPage />,
+            loader: directoryLoader,
           },
           {
             path: 'users/:username',

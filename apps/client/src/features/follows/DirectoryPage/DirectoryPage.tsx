@@ -3,11 +3,14 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
-import styles from './ExplorePage.module.css';
-import type { DirectoryUser, ExploreLoaderResult } from './exploreLoader.js';
+import styles from './DirectoryPage.module.css';
+import type {
+  DirectoryLoaderResult,
+  DirectoryUser,
+} from './directoryLoader.js';
 
-export const ExplorePage: FC = () => {
-  const initialData = useLoaderData() as ExploreLoaderResult;
+export const DirectoryPage: FC = () => {
+  const initialData = useLoaderData() as DirectoryLoaderResult;
 
   const [users, setUsers] = useState<DirectoryUser[]>(initialData.items);
   const [pagination, setPagination] = useState(initialData.pagination);
@@ -32,13 +35,13 @@ export const ExplorePage: FC = () => {
       );
       if (response.ok) {
         const payload = await response.json();
-        const data: ExploreLoaderResult = payload.data;
+        const data: DirectoryLoaderResult = payload.data;
 
         setUsers((prev) => [...prev, ...data.items]);
         setPagination(data.pagination);
       }
     } catch (error) {
-      console.error('Failed to load explore directory batch:', error);
+      console.error('Failed to load user directory batch:', error);
     } finally {
       setIsFetchingMore(false);
     }
@@ -69,7 +72,7 @@ export const ExplorePage: FC = () => {
   return (
     <div className={styles.container}>
       <header className={styles.pageHeader}>
-        <h2 className={styles.title}>Explore Realm</h2>
+        <h2 className={styles.title}>User Realm</h2>
         <p className={styles.subtitle}>
           Discover and view profiles across Odinum
         </p>

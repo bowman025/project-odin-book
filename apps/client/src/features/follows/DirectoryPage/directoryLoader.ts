@@ -11,7 +11,7 @@ export type DirectoryUser = {
   isSender?: boolean;
 };
 
-export type ExploreLoaderResult = {
+export type DirectoryLoaderResult = {
   items: DirectoryUser[];
   pagination: {
     page: number;
@@ -20,9 +20,9 @@ export type ExploreLoaderResult = {
   };
 };
 
-export const exploreLoader = async ({
+export const directoryLoader = async ({
   request,
-}: LoaderFunctionArgs): Promise<ExploreLoaderResult> => {
+}: LoaderFunctionArgs): Promise<DirectoryLoaderResult> => {
   await ensureAuthHydrated();
 
   const url = new URL(request.url);
