@@ -178,23 +178,39 @@ export const Post: FC<PostProps> = ({
           />
         ) : (
           <p className={styles.content}>
-            {displayedContent}
+            {(() => {
+              let textNodePointer = 0;
+
+              return displayedContent.split(/(\s+)/).map((word) => {
+                textNodePointer += 1;
+
+                if (word.startsWith('#') && word.length > 1) {
+                  const cleanTagName = word
+                    .replace(/[^a-zA-Z0-9]/g, '')
+                    .toLowerCase();
+
+                  if (!cleanTagName) return word;
+
+                  return (
+                    <Link
+                      key={`ht-anchor-${post.id}-${cleanTagName}-${textNodePointer}`}
+                      to={`/explore?search=${cleanTagName}`}
+                      className={styles.textHashtagLink}
+                    >
+                      {`#${cleanTagName}`}
+                    </Link>
+                  );
+                }
+                return word;
+              });
+            })()}
+
             {shouldTruncate && (
               <Link to={`/posts/${post.id}`} className={styles.readMoreLink}>
                 Read More
               </Link>
             )}
           </p>
-        )}
-
-        {!isEditing && post.tags && post.tags.length > 0 && (
-          <div className={styles.tagsContainer}>
-            {post.tags.map((tag) => (
-              <span key={tag} className={styles.tagBadge}>
-                #{tag}
-              </span>
-            ))}
-          </div>
         )}
 
         {!isEditing && post.imageUrl && (

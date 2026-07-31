@@ -218,27 +218,17 @@
   text-decoration: underline;
 }
 
-.tagsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-  margin-bottom: 4px;
-}
-
-.tagBadge {
-  font-size: 0.8125rem;
-  font-weight: 600;
+.textHashtagLink {
   color: var(--color-accent-primary);
-  background-color: var(--color-accent-muted);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  transition: opacity var(--transition-fast);
-  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  z-index: 2;
 }
 
-.tagBadge:hover {
-  opacity: 0.8;
+.textHashtagLink:hover {
+  text-decoration: underline;
+  color: var(--color-accent-hover);
 }
 
 .postImage {

@@ -45,7 +45,7 @@ describe('Uploads Module: End-to-End API Integration Suites', () => {
             timestamp: expect.any(Number),
             apiKey: expect.any(String),
             cloudName: expect.any(String),
-            folder: `odin-book/profiles`,
+            folder: `odinum/profiles`,
             publicId: expect.stringContaining(`user_${activeUser.id}_`),
             allowedFormats: ['gif', 'jpeg', 'jpg', 'png', 'webp'],
             maxFileSize: 5_000_000,

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { apiFetch } from '../../../lib/api.js';
 import { uploadImageToCloudinary } from '../../../lib/cloudinary.js';
+import { extractHashtags } from '../../../lib/tags.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './PostEditor.module.css';
@@ -92,9 +93,12 @@ export const PostEditor: FC<PostEditorProps> = ({
         }
       }
 
+      const automaticTags = extractHashtags(payload.content || '');
+
       const submissionData = {
         ...payload,
         imageUrl: finalImageUrl,
+        tags: automaticTags,
       };
 
       const response = await apiFetch(`/posts/${post.id}`, {

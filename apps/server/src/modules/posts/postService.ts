@@ -87,19 +87,29 @@ const mapToPostPayload = (post: PostRecord): PostPayload => ({
   isLiked: Array.isArray(post.likes) && post.likes.length > 0,
 });
 
-const normalizeTags = (tags?: string[]) => {
-  if (!tags || tags.length === 0) return undefined;
+export const normalizeTags = (tags: string[] | string) => {
+  let cleanTagsArray: string[] = [];
 
-  const unique = [
-    ...new Set(tags.map((t) => t.toLowerCase().trim()).filter(Boolean)),
-  ];
-
-  if (unique.length === 0) return undefined;
+  if (Array.isArray(tags)) {
+    cleanTagsArray = tags.map((t) =>
+      t.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(),
+    );
+  } else if (typeof tags === 'string') {
+    const matches = tags.matchAll(/#(\w+)/g);
+    const tagsSet = new Set<string>();
+    for (const match of matches) {
+      if (match[1]) {
+        const cleanName = match[1].replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        if (cleanName) tagsSet.add(cleanName);
+      }
+    }
+    cleanTagsArray = Array.from(tagsSet);
+  }
 
   return {
-    connectOrCreate: unique.map((name) => ({
-      where: { name },
-      create: { name },
+    connectOrCreate: cleanTagsArray.map((tagName) => ({
+      where: { name: tagName },
+      create: { name: tagName },
     })),
   };
 };
@@ -114,7 +124,7 @@ export const insertPost = async (
       authorId,
       content,
       imageUrl: imageUrl ?? null,
-      tags: normalizeTags(tags),
+      tags: normalizeTags(tags ?? []),
     },
     select: postSelect(),
   });
