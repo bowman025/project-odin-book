@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
-import styles from './RegisterPage.module.css';
+import styles from '../auth.module.css';
 
 export const RegisterPage: FC = () => {
   const navigate = useNavigate();
