@@ -33,6 +33,7 @@ export const ProfilePage: FC = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     setProfile(initialData.profile);
     setPosts(initialData.initialPosts.items);
     setPagination(initialData.initialPosts.pagination);

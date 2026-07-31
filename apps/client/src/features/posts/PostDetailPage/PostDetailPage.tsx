@@ -33,6 +33,7 @@ export const PostDetailPage: FC = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     setParentPost(initialData.post);
     setComments(initialData.initialComments.items);
     setPagination(initialData.initialComments.pagination);
