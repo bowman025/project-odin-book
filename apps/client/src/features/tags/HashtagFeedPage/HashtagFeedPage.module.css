@@ -1,0 +1,203 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.searchBarContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 44px 12px 42px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.searchInput:focus {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-bg-input);
+}
+
+.inputLoader {
+  position: absolute;
+  right: 44px;
+  color: var(--color-text-muted);
+}
+
+.clearBtn {
+  position: absolute;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.clearBtn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-hover);
+}
+
+.suggestionsDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  list-style: none;
+  z-index: 100;
+}
+
+.suggestionItem {
+  width: 100%;
+}
+
+.suggestionBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.suggestionBtn:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-accent-primary);
+}
+
+.itemHashIcon {
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.suggestionBtn:hover .itemHashIcon {
+  color: var(--color-accent-primary);
+}
+
+.postsFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resultsHeading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  padding: 4px 4px;
+}
+
+.resultsHeading strong {
+  color: var(--color-accent-primary);
+}
+
+.emptyState {
+  padding: 48px 24px;
+  text-align: center;
+  background-color: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+}
+
+.centerLoader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 0;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.accentSpinner {
+  color: var(--color-accent-primary);
+}
+
+.infiniteTrigger {
+  min-height: 40px;
+  width: 100%;
+}
+
+.scrollLoader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.spinner {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

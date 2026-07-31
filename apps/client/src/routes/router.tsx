@@ -10,6 +10,8 @@ import { TimelinePage } from '../features/posts/TimelinePage/TimelinePage';
 import { timelineLoader } from '../features/posts/TimelinePage/timelineLoader.js';
 import { ProfilePage } from '../features/profiles/ProfilePage/ProfilePage';
 import { profileLoader } from '../features/profiles/ProfilePage/profileLoader.js';
+import { HashtagFeedPage } from '../features/tags/HashtagFeedPage/HashtagFeedPage';
+import { hashtagFeedLoader } from '../features/tags/HashtagFeedPage/hashtagFeedLoader.js';
 import { ProtectedLayout } from '../layouts/ProtectedLayout/ProtectedLayout';
 import { RootLayout } from '../layouts/RootLayout/RootLayout';
 import { rootLoader } from '../layouts/RootLayout/rootLoader.js';
@@ -51,6 +53,11 @@ export const router = createBrowserRouter([
             path: 'users/:username',
             element: <ProfilePage />,
             loader: profileLoader,
+          },
+          {
+            path: 'tags',
+            element: <HashtagFeedPage />,
+            loader: hashtagFeedLoader,
           },
         ],
       },

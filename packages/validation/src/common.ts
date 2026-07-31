@@ -30,3 +30,9 @@ export const PaginationQuerySchema = z.object({
 });
 
 export type PaginationQueryInput = z.infer<typeof PaginationQuerySchema>;
+
+export const TagSuggestionQuerySchema = z.object({
+  q: z.string().trim().min(1, 'Query string cannot be empty').max(30),
+});
+
+export type TagSuggestionQueryInput = z.infer<typeof TagSuggestionQuerySchema>;

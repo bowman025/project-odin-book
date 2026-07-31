@@ -9,6 +9,7 @@ import { authRouter } from './modules/auth/authRoutes.js';
 import { conversationRouter } from './modules/conversations/conversationRoutes.js';
 import { followRouter } from './modules/follows/followRoutes.js';
 import { postRouter } from './modules/posts/postRoutes.js';
+import { tagRouter } from './modules/tags/tagRoutes.js';
 import { cloudinaryRouter } from './modules/uploads/cloudinaryRoutes.js';
 import { userRouter } from './modules/users/userRoutes.js';
 import { env, isProduction } from './shared/config/env.js';
@@ -43,6 +44,7 @@ app.use('/posts', postRouter);
 app.use('/follows', followRouter);
 app.use('/conversations', conversationRouter);
 app.use('/uploads', cloudinaryRouter);
+app.use('/tags', tagRouter);
 
 app.get('/status', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });

@@ -238,10 +238,22 @@ export const fetchGeneralTimeline = async (options: {
   currentUserId?: string;
   skip: number;
   take: number;
+  search?: string;
 }): Promise<TimelineResult> => {
-  const { currentUserId, skip, take } = options;
+  const { currentUserId, skip, take, search } = options;
+
+  const whereClause = search?.trim()
+    ? {
+        tags: {
+          some: {
+            name: search.trim().toLowerCase(),
+          },
+        },
+      }
+    : {};
 
   const posts = await db.post.findMany({
+    where: whereClause,
     skip,
     take: take + 1,
     orderBy: { createdAt: 'desc' },

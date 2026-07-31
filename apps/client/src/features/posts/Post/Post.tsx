@@ -194,7 +194,7 @@ export const Post: FC<PostProps> = ({
                   return (
                     <Link
                       key={`ht-anchor-${post.id}-${cleanTagName}-${textNodePointer}`}
-                      to={`/explore?search=${cleanTagName}`}
+                      to={`/tags?search=${cleanTagName}`}
                       className={styles.textHashtagLink}
                     >
                       {`#${cleanTagName}`}

@@ -215,11 +215,13 @@ export const getGeneralTimeline = async (
   try {
     const { page, limit } = queryResult.data;
     const skip = (page - 1) * limit;
-    const currentUserId = req.user?.id; 
+    const currentUserId = req.user?.id;
+    const searchParam = req.query.search ? String(req.query.search) : undefined;
     const { items, hasMore } = await fetchGeneralTimeline({
       currentUserId,
       skip,
       take: limit,
+      search: searchParam,
     });
 
     return res.status(200).json({
