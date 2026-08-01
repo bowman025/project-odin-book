@@ -7,6 +7,7 @@ import {
 } from '@project-odin-book/validation';
 import bcrypt from 'bcryptjs';
 import { AppError } from '../../shared/errors/AppError.js';
+import { deleteCloudinaryImageByUrl } from '../uploads/cloudinaryService.js';
 
 type CreateUserInput = Pick<User, 'username' | 'email' | 'passwordHash'>;
 
@@ -194,11 +195,26 @@ export const updateUserProfile = async (options: {
   data: UpdateProfileInput;
 }): Promise<UserProfile> => {
   const { id, data } = options;
+  const { profilePicture } = data;
+
+  const existing = await db.user.findUnique({
+    where: { id },
+    select: { profilePicture: true },
+  });
+
   const user = await db.user.update({
     where: { id },
     data,
     select: userProfileSelect,
   });
+
+  if (
+    profilePicture !== undefined &&
+    existing?.profilePicture &&
+    existing.profilePicture !== profilePicture
+  ) {
+    void deleteCloudinaryImageByUrl(existing.profilePicture);
+  }
 
   return mapToUserProfile(user);
 };

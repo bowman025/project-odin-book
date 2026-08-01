@@ -75,11 +75,44 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex-grow: 1;
+}
+
+.actionButtonsRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.removeAvatarBtn {
+  background: transparent;
+  border: 1px solid var(--color-error-base);
+  color: var(--color-error-base);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.removeAvatarBtn:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-error-hover);
+  color: var(--color-error-hover);
+}
+
+.removeAvatarBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .fileInputLabel {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 8px 14px;
   background-color: var(--color-bg-surface);
@@ -222,5 +255,35 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 480px) {
+  .avatarUploadGroup {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .actionButtonsRow {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .fileInputLabel,
+  .removeAvatarBtn {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .uploadInstructionText {
+    display: block;
+    text-align: center;
+    margin-top: 4px;
   }
 }

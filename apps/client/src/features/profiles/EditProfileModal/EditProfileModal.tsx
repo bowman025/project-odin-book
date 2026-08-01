@@ -3,7 +3,7 @@ import type { UpdateProfileInput } from '@project-odin-book/validation';
 import { UpdateProfileSchema } from '@project-odin-book/validation';
 import { Camera, Loader2 } from 'lucide-react';
 import type { FC } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AccessibleModal } from '../../../components/AccessibleModal/AccessibleModal';
 import { apiFetch } from '../../../lib/api.js';
@@ -33,11 +33,13 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const [isAvatarRemoved, setIsAvatarRemoved] = useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<UpdateProfileInput>({
     resolver: zodResolver(UpdateProfileSchema),
@@ -47,40 +49,89 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
     },
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedFile(null);
+      setLocalPreviewUrl(null);
+      setIsAvatarRemoved(false);
+      setValue('profilePicture', currentProfile.profilePicture || undefined);
+      setValue('bio', currentProfile.bio || '');
+    }
+  }, [isOpen, currentProfile, setValue]);
+
   const bioWatchValue = watch('bio') || '';
   const currentInitial = currentProfile.username.charAt(0);
+  const profilePictureWatchValue = watch('profilePicture');
+
+  const RenderStagedPreview = localPreviewUrl ? (
+    <img
+      src={localPreviewUrl}
+      alt="Staging preview"
+      className={styles.previewAvatar}
+    />
+  ) : null;
+
+  const RenderDatabaseAvatar = profilePictureWatchValue ? (
+    <img
+      src={profilePictureWatchValue}
+      alt={currentProfile.username}
+      className={styles.previewAvatar}
+    />
+  ) : null;
+
+  const RenderDefaultFallback = (
+    <div className={styles.previewAvatarFallback}>{currentInitial}</div>
+  );
+
+  const showStaged = !!localPreviewUrl;
+  const showDatabase =
+    !localPreviewUrl &&
+    profilePictureWatchValue !== null &&
+    profilePictureWatchValue !== undefined;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setSelectedFile(file);
+    setIsAvatarRemoved(false);
     const objectUrl = URL.createObjectURL(file);
     setLocalPreviewUrl(objectUrl);
   };
 
+  const handleRemoveAvatarClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setSelectedFile(null);
+    setLocalPreviewUrl(null);
+    setIsAvatarRemoved(true);
+    setValue('profilePicture', null);
+  };
+
   const handleFormSubmission = async (values: UpdateProfileInput) => {
     setIsSubmitting(true);
+
     let uploadedImageUrl = currentProfile.profilePicture;
 
-    try {
-      if (selectedFile) {
-        try {
-          uploadedImageUrl = await uploadImageToCloudinary(
-            selectedFile,
-            'profiles',
-          );
-        } catch (uploadError) {
-          const errMsg =
-            uploadError instanceof Error
-              ? uploadError.message
-              : 'Image upload failed';
-          addToast(errMsg, 'error');
-          setIsSubmitting(false);
-          return;
-        }
+    if (isAvatarRemoved) {
+      uploadedImageUrl = null;
+    } else if (selectedFile) {
+      try {
+        uploadedImageUrl = await uploadImageToCloudinary(
+          selectedFile,
+          'profiles',
+        );
+      } catch (uploadError) {
+        const errMsg =
+          uploadError instanceof Error
+            ? uploadError.message
+            : 'Image upload failed';
+        addToast(errMsg, 'error');
+        setIsSubmitting(false);
+        return;
       }
+    }
 
+    try {
       const patchPayload: UpdateProfileInput = {
         bio: values.bio === '' ? null : values.bio,
         profilePicture: uploadedImageUrl,
@@ -95,10 +146,9 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
         const payload = await response.json();
         const updated: UserProfile = payload.data.profile;
 
-        addToast('Your Odinum identity was successfully updated.', 'success');
+        addToast('Your Odinum profile was successfully updated.', 'success');
 
         const existingUser = useAuthStore.getState().user;
-
         if (currentAccessToken && existingUser) {
           setAuthData(currentAccessToken, {
             id: updated.id,
@@ -119,6 +169,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
   return (
     <AccessibleModal
       isOpen={isOpen}
@@ -142,37 +193,33 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
         >
           <div className={styles.avatarUploadGroup}>
             <div className={styles.previewWrapper}>
-              {localPreviewUrl && (
-                <img
-                  src={localPreviewUrl}
-                  alt="Staging preview"
-                  className={styles.previewAvatar}
-                />
-              )}
-
-              {!localPreviewUrl && currentProfile.profilePicture && (
-                <img
-                  src={currentProfile.profilePicture || undefined}
-                  alt={currentProfile.username}
-                  className={styles.previewAvatar}
-                />
-              )}
-
-              {!localPreviewUrl && !currentProfile.profilePicture && (
-                <div className={styles.previewAvatarFallback}>
-                  {currentInitial}
-                </div>
-              )}
+              {showStaged && RenderStagedPreview}
+              {!showStaged && showDatabase && RenderDatabaseAvatar}
+              {!showStaged && !showDatabase && RenderDefaultFallback}
             </div>
 
             <div className={styles.uploadActionsContainer}>
-              <label
-                htmlFor="avatar-file-input"
-                className={styles.fileInputLabel}
-              >
-                <Camera size={14} />
-                <span>Choose Avatar Picture</span>
-              </label>
+              <div className={styles.actionButtonsRow}>
+                <label
+                  htmlFor="avatar-file-input"
+                  className={styles.fileInputLabel}
+                >
+                  <Camera size={14} />
+                  <span>Choose Image</span>
+                </label>
+
+                {(localPreviewUrl || showDatabase) && (
+                  <button
+                    type="button"
+                    className={styles.removeAvatarBtn}
+                    onClick={(e) => handleRemoveAvatarClick(e)}
+                    disabled={isSubmitting}
+                  >
+                    Remove Image
+                  </button>
+                )}
+              </div>
+
               <input
                 id="avatar-file-input"
                 type="file"
