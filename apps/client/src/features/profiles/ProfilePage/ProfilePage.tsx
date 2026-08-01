@@ -9,6 +9,7 @@ import { useUIStore } from '../../../store/uiStore.js';
 import { Post } from '../../posts/Post/Post.jsx';
 import type { PostComment } from '../../posts/PostDetailPage/postDetailLoader.js';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
+import { EditProfileModal } from '../EditProfileModal/EditProfileModal';
 import { ProfileHeader } from '../ProfileHeader/ProfileHeader.jsx';
 import styles from './ProfilePage.module.css';
 import type { ProfileLoaderResult, UserProfile } from './profileLoader.js';
@@ -20,6 +21,9 @@ export const ProfilePage: FC = () => {
   const addToast = useUIStore((state) => state.addToast);
 
   const [profile, setProfile] = useState<UserProfile>(initialData.profile);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   const [posts, setPosts] = useState<TimelinePost[]>(
     initialData.initialPosts.items,
   );
@@ -117,6 +121,10 @@ export const ProfilePage: FC = () => {
 
   const isOwnProfile = currentLoggedInUser?.id === profile.id;
 
+  const handleProfileUpdateSuccess = (updatedProfile: UserProfile) => {
+    setProfile(updatedProfile);
+  };
+
   const handleLikeToggle = (postId: string) => {
     handleLikeToggleNetwork(postId, setPosts);
   };
@@ -148,13 +156,17 @@ export const ProfilePage: FC = () => {
 
   return (
     <div className={styles.container}>
-      <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
+      <ProfileHeader
+        profile={profile}
+        isOwnProfile={isOwnProfile}
+        onEditClick={() => setIsEditModalOpen(true)}
+      />
       <section className={styles.postsSection}>
         <h3 className={styles.sectionTitle}>Recent Chronicles</h3>
         <div className={styles.feedStack}>
           {posts.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>This citizen has not broadcast any records yet.</p>
+              <p>This citizen has not written any chronicles yet.</p>
             </div>
           ) : (
             posts.map((post) => (
@@ -178,6 +190,12 @@ export const ProfilePage: FC = () => {
           </div>
         )}
       </div>
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        currentProfile={profile}
+        onProfileUpdated={handleProfileUpdateSuccess}
+      />
     </div>
   );
 };

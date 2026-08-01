@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Calendar } from 'lucide-react';
+import { Calendar, Settings } from 'lucide-react';
 import type { FC } from 'react';
 import styles from '../ProfilePage/ProfilePage.module.css';
 import type { UserProfile } from '../ProfilePage/profileLoader.js';
@@ -7,11 +7,13 @@ import type { UserProfile } from '../ProfilePage/profileLoader.js';
 type ProfileHeaderProps = {
   profile: UserProfile;
   isOwnProfile: boolean;
+  onEditClick: () => void;
 };
 
 export const ProfileHeader: FC<ProfileHeaderProps> = ({
   profile,
   isOwnProfile,
+  onEditClick,
 }) => {
   const initialChar = profile.username.charAt(0);
   const joinDateLabel = format(new Date(profile.createdAt), 'MMMM yyyy');
@@ -29,9 +31,16 @@ export const ProfileHeader: FC<ProfileHeaderProps> = ({
           <div className={styles.largeAvatarFallback}>{initialChar}</div>
         )}
 
-        {isOwnProfile && (
-          <span className={styles.ownProfileBadge}>Your Profile</span>
-        )}
+        {isOwnProfile ? (
+          <button
+            type="button"
+            className={styles.editProfileTriggerCta}
+            onClick={onEditClick}
+          >
+            <Settings size={14} />
+            <span>Edit Profile</span>
+          </button>
+        ) : null}
       </div>
 
       <h2 className={styles.usernameTitle}>@{profile.username}</h2>
