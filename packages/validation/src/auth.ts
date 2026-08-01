@@ -17,7 +17,7 @@ const basePasswordSchema = z
     error: 'Password must contain at least one special character',
   });
 
-export const RegisterSchema = z
+export const RegisterInputSchema = z
   .object({
     username: z
       .string()
@@ -33,9 +33,6 @@ export const RegisterSchema = z
       .toLowerCase(),
 
     password: basePasswordSchema,
-    confirmPassword: z
-      .string()
-      .min(1, { error: 'Please confirm your password' }),
   })
   .refine(
     (data) => {
@@ -54,17 +51,20 @@ export const RegisterSchema = z
       return true;
     },
     {
-      error: 'Password cannot contain your username or parts of your email',
+      message: 'Password cannot contain your username or parts of your email',
       path: ['password'],
     },
-  )
-  .refine((data) => data.password === data.confirmPassword, {
-    error: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
+  );
+
+export const RegisterSchema = RegisterInputSchema.extend({
+  confirmPassword: z.string().min(1, { error: 'Please confirm your password' }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
 
 export type RegisterDTO = z.infer<typeof RegisterSchema>;
-export type RegisterInput = Omit<RegisterDTO, 'confirmPassword'>;
+export type RegisterInput = z.infer<typeof RegisterInputSchema>;
 
 export const LoginSchema = z.object({
   username: z

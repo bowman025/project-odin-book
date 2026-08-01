@@ -5,7 +5,7 @@ import {
   ChangePasswordSchema,
   DeleteAccountSchema,
   LoginSchema,
-  RegisterSchema,
+  RegisterInputSchema,
 } from '@project-odin-book/validation';
 import bcrypt from 'bcryptjs';
 import type { NextFunction, Request, Response } from 'express';
@@ -57,7 +57,7 @@ export const register = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const result = RegisterSchema.safeParse(req.body);
+  const result = RegisterInputSchema.safeParse(req.body);
 
   if (!result.success) {
     return next(result.error);
