@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router';
 import { ErrorPage } from '../components/ErrorPage/ErrorPage';
+import { LoadingScreen } from '../components/LoadingScreen/LoadingScreen.js';
 import { LoginPage } from '../features/auth/LoginPage/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage/RegisterPage';
 import { DirectoryPage } from '../features/follows/DirectoryPage/DirectoryPage.js';
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     loader: rootLoader,
     errorElement: <ErrorPage />,
+    hydrateFallbackElement: <LoadingScreen />,
     children: [
       {
         path: 'login',
