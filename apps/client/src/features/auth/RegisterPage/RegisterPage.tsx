@@ -10,11 +10,13 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useAuthStore } from '../../../store/authStore.js';
+import { useUIStore } from '../../../store/uiStore.js';
 import styles from '../auth.module.css';
 
 export const RegisterPage: FC = () => {
   const navigate = useNavigate();
   const setAuthData = useAuthStore((state) => state.setAuthData);
+  const addToast = useUIStore((state) => state.addToast);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,6 +51,11 @@ export const RegisterPage: FC = () => {
       }
 
       setAuthData(body.accessToken, body.user);
+      addToast(
+        `Welcome to the realm, @${body.user.username}! Your profile has been forged.`,
+        'success',
+      );
+
       navigate('/', { replace: true });
     } catch {
       setGlobalError(

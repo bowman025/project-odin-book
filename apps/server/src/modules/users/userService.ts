@@ -26,7 +26,10 @@ export type AuthLookupUser = Pick<
   User,
   'id' | 'username' | 'email' | 'passwordHash'
 >;
-export type CreatedUser = Pick<User, 'id' | 'username' | 'email' | 'createdAt'>;
+export type CreatedUser = Pick<
+  User,
+  'id' | 'username' | 'email' | 'profilePicture' | 'createdAt'
+>;
 
 export type UserProfile = {
   id: string;
@@ -69,6 +72,7 @@ const createdUserSelect = {
   id: true,
   username: true,
   email: true,
+  profilePicture: true,
   createdAt: true,
 } as const;
 

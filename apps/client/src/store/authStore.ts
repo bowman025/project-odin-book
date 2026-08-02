@@ -4,7 +4,7 @@ export type AuthUser = {
   id: string;
   username: string;
   email: string;
-  profilePicture?: string | null;
+  profilePicture: string | null;
 };
 
 type AuthState = {

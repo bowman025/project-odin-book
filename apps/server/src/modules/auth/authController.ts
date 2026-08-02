@@ -31,8 +31,11 @@ type PassportInfo = {
 };
 
 type BaseUserIdentity = Pick<User, 'id' | 'username' | 'email'>;
-
 type MainUserIdentity = Pick<User, 'id' | 'username' | 'profilePicture'>;
+type FullUserIdentity = Pick<
+  User,
+  'id' | 'username' | 'email' | 'profilePicture'
+>;
 
 const hashToken = (token: string): string =>
   crypto.createHash('sha256').update(token).digest('hex');
@@ -51,6 +54,31 @@ const buildTokenPayload = (user: BaseUserIdentity): BaseTokenPayload => ({
   username: user.username,
   email: user.email,
 });
+
+const issueSession = async (
+  res: Response,
+  user: FullUserIdentity,
+): Promise<{ accessToken: string; user: MainUserIdentity }> => {
+  const tokenPayload = buildTokenPayload(user);
+  const accessToken = signAccessToken(tokenPayload);
+  const refreshToken = signRefreshToken(tokenPayload);
+  const hashedRefreshToken = hashToken(refreshToken);
+
+  await updateRefreshToken({
+    id: user.id,
+    hashedToken: hashedRefreshToken,
+  });
+
+  res.cookie('refreshToken', refreshToken, refreshCookieOptions);
+
+  const userResponse: MainUserIdentity = {
+    id: user.id,
+    username: user.username,
+    profilePicture: user.profilePicture,
+  };
+
+  return { accessToken, user: userResponse };
+};
 
 export const register = async (
   req: Request,
@@ -74,10 +102,13 @@ export const register = async (
       passwordHash,
     });
 
+    const { accessToken, user } = await issueSession(res, newUser);
+
     return res.status(201).json({
       status: 'success',
       message: 'Account registered successfully',
-      user: newUser,
+      accessToken,
+      user,
     });
   } catch (error) {
     return next(error);
@@ -110,23 +141,10 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
           );
         }
 
-        const tokenPayload = buildTokenPayload(user);
-        const accessToken = signAccessToken(tokenPayload);
-        const refreshToken = signRefreshToken(tokenPayload);
-        const hashedRefreshToken = hashToken(refreshToken);
-
-        await updateRefreshToken({
-          id: user.id,
-          hashedToken: hashedRefreshToken,
-        });
-
-        res.cookie('refreshToken', refreshToken, refreshCookieOptions);
-
-        const userResponse: MainUserIdentity = {
-          id: user.id,
-          username: user.username,
-          profilePicture: user.profilePicture,
-        };
+        const { accessToken, user: userResponse } = await issueSession(
+          res,
+          user,
+        );
 
         return res.status(200).json({
           status: 'success',
