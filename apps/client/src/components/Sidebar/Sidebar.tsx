@@ -7,6 +7,7 @@ import {
   LogOut,
   MessageSquare,
   Moon,
+  Settings,
   Sun,
   User as UserIcon,
 } from 'lucide-react';
@@ -95,6 +96,14 @@ export const Sidebar: FC = () => {
         <Link to="/users" className={getLinkClass('/users')} title="Directory">
           <Compass size={20} />
           <span className={styles.linkLabel}>Directory</span>
+        </Link>
+        <Link
+          to="/settings"
+          className={getLinkClass('/settings')}
+          title="Settings"
+        >
+          <Settings size={20} />
+          <span className={styles.linkLabel}>Settings</span>
         </Link>
         <Link
           to={`/users/${user.username}`}

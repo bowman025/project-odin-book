@@ -252,12 +252,15 @@
     justify-content: space-around;
   }
 
-  aside.sidebar .headerContainer,
-  aside.sidebarCollapsed .headerContainer,
-  aside.sidebar .controlPanel,
-  aside.sidebarCollapsed .controlPanel,
-  aside.sidebar .profileFooter,
-  aside.sidebarCollapsed .profileFooter {
+  :is(.sidebar, .sidebarCollapsed)
+    :is(
+      .headerContainer,
+      .controlPanel,
+      .profileFooter,
+      .brand,
+      .linkLabel,
+      .toggleBtn
+    ) {
     display: none;
   }
 
@@ -284,17 +287,6 @@
   aside.sidebarCollapsed .navLinkActive {
     background-color: transparent;
     color: var(--color-accent-primary);
-  }
-
-  aside.sidebar .brand,
-  aside.sidebarCollapsed .brand,
-  aside.sidebar .linkLabel,
-  aside.sidebarCollapsed .linkLabel,
-  aside.sidebar .profileDetails,
-  aside.sidebarCollapsed .profileDetails,
-  aside.sidebar .toggleBtn,
-  aside.sidebarCollapsed .toggleBtn {
-    display: none;
   }
 
   aside.sidebar .mobileOnlyLink {
