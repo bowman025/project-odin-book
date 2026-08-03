@@ -38,13 +38,13 @@ if (!isProduction) {
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser(env.COOKIE_SECRET));
 
-app.use('/auth', authRouter);
-app.use('/users', userRouter);
-app.use('/posts', postRouter);
-app.use('/follows', followRouter);
-app.use('/conversations', conversationRouter);
-app.use('/uploads', cloudinaryRouter);
-app.use('/tags', tagRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
+app.use('/api/posts', postRouter);
+app.use('/api/follows', followRouter);
+app.use('/api/conversations', conversationRouter);
+app.use('/api/uploads', cloudinaryRouter);
+app.use('/api/tags', tagRouter);
 
 app.get('/status', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });

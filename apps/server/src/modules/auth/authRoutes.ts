@@ -4,6 +4,7 @@ import { authenticate } from '../../shared/middleware/authenticate.js';
 import {
   changePassword,
   deleteAccount,
+  getAuthDetails,
   guestLogin,
   login,
   logout,
@@ -22,5 +23,6 @@ router.post('/logout', logout);
 router.post('/guest', guestLogin);
 router.patch('/change-password', authenticate, changePassword);
 router.delete('/delete-account', authenticate, deleteAccount);
+router.get('/me/details', authenticate, getAuthDetails);
 
 export { router as authRouter };

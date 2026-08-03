@@ -21,6 +21,7 @@ import {
   createOrUpdateGuestUser,
   createUser,
   destroyUserAccount,
+  fetchUserAuthDetails,
   fetchUserSessionById,
   updateUserPassword,
 } from '../users/userService.js';
@@ -378,6 +379,29 @@ export const guestLogin = async (
       message: 'Authenticated successfully as a guest',
       accessToken,
       user: guestUser,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getAuthDetails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
+    const authDetails = await fetchUserAuthDetails(currentUserId);
+
+    return res.status(200).json({
+      status: 'success',
+      data: authDetails,
     });
   } catch (error) {
     return next(error);

@@ -31,6 +31,10 @@ export type CreatedUser = Pick<
   'id' | 'username' | 'email' | 'profilePicture' | 'createdAt'
 >;
 
+export type UserAuthDetails = {
+  hasPassword: boolean;
+};
+
 export type UserProfile = {
   id: string;
   username: string;
@@ -181,6 +185,26 @@ export const fetchUserForAuth = async (
     },
     select: sessionAuthLookupSelect,
   });
+};
+
+export const fetchUserAuthDetails = async (
+  id: string,
+): Promise<UserAuthDetails> => {
+  const user = await db.user.findUnique({
+    where: { id },
+    select: { passwordHash: true },
+  });
+
+  if (!user) {
+    throw new AppError(
+      'User account context not found in the realm registries',
+      404,
+    );
+  }
+
+  return {
+    hasPassword: user.passwordHash !== null && user.passwordHash !== undefined,
+  };
 };
 
 export const fetchUserProfileByUsername = async (
