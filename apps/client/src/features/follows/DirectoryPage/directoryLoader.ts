@@ -1,13 +1,14 @@
 import type { LoaderFunctionArgs } from 'react-router';
 import { ensureAuthHydrated } from '../../../layouts/RootLayout/rootLoader.js';
 import { apiFetch } from '../../../lib/api.js';
+import type { FollowStatus } from '../../profiles/ProfilePage/profileLoader.js';
 
 export type DirectoryUser = {
   id: string;
   username: string;
   profilePicture: string | null;
   bio: string | null;
-  followStatus: 'NONE' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  followStatus: FollowStatus;
   isSender?: boolean;
 };
 

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import styles from '../ProfilePage/ProfilePage.module.css';
@@ -173,14 +174,18 @@ export const ProfileHeader: FC<ProfileHeaderProps> = ({
           <span className={styles.statCount}>{profile.stats.posts}</span>
           <span className={styles.statLabel}>Chronicles</span>
         </div>
-        <div className={styles.statBox}>
-          <span className={styles.statCount}>{followerCount}</span>
-          <span className={styles.statLabel}>Followers</span>
-        </div>
-        <div className={styles.statBox}>
-          <span className={styles.statCount}>{profile.stats.following}</span>
-          <span className={styles.statLabel}>Following</span>
-        </div>
+        <Link to={`/users/${profile.username}/followers`}>
+          <div className={styles.statBox}>
+            <span className={styles.statCount}>{followerCount}</span>
+            <span className={styles.statLabel}>Followers</span>
+          </div>
+        </Link>
+        <Link to={`/users/${profile.username}/following`}>
+          <div className={styles.statBox}>
+            <span className={styles.statCount}>{profile.stats.following}</span>
+            <span className={styles.statLabel}>Following</span>
+          </div>
+        </Link>
       </div>
     </header>
   );

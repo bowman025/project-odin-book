@@ -129,6 +129,36 @@
   color: var(--color-accent-primary);
 }
 
+.backToProfileBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: max-content;
+  align-self: flex-start;
+  box-sizing: border-box;
+  text-decoration: none;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.backToProfileBtn:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+}
+
 .infiniteTrigger {
   padding: 24px 0 40px;
   display: flex;
@@ -157,5 +187,11 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 480px) {
+  .backToProfileBtn {
+    width: 100%;
   }
 }

@@ -3,8 +3,14 @@ import { ErrorPage } from '../components/ErrorPage/ErrorPage';
 import { LoadingScreen } from '../components/LoadingScreen/LoadingScreen.js';
 import { LoginPage } from '../features/auth/LoginPage/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage/RegisterPage';
+import {
+  followersLoader,
+  followingLoader,
+} from '../features/follows/connectionsLoader.js';
 import { DirectoryPage } from '../features/follows/DirectoryPage/DirectoryPage.js';
 import { directoryLoader } from '../features/follows/DirectoryPage/directoryLoader.js';
+import { FollowersPage } from '../features/follows/FollowersPage.jsx';
+import { FollowingPage } from '../features/follows/FollowingPage.jsx';
 import { PostDetailPage } from '../features/posts/PostDetailPage/PostDetailPage';
 import { postDetailLoader } from '../features/posts/PostDetailPage/postDetailLoader.js';
 import { TimelinePage } from '../features/posts/TimelinePage/TimelinePage';
@@ -57,6 +63,16 @@ export const router = createBrowserRouter([
             path: 'users/:username',
             element: <ProfilePage />,
             loader: profileLoader,
+          },
+          {
+            path: 'users/:username/followers',
+            element: <FollowersPage />,
+            loader: followersLoader,
+          },
+          {
+            path: 'users/:username/following',
+            element: <FollowingPage />,
+            loader: followingLoader,
           },
           {
             path: 'tags',
