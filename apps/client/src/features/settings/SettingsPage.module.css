@@ -227,7 +227,152 @@
 }
 
 .terminateAccountBtn:hover {
-  background-color: var(--color-error-hover, #dc2626);
+  background-color: var(--color-error-hover);
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 440px;
+  padding: 8px 4px;
+}
+
+.modalHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.alertIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: var(--color-error-muted);
+  border-radius: 50%;
+  color: var(--color-error-base);
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.modalSubtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.modalFieldLabel {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.literalHighlight {
+  color: var(--color-error-base);
+  background-color: var(--color-error-muted);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+  font-size: 0.9375rem;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 12px 14px;
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast);
+}
+
+.modalContent .passwordInput {
+  background-color: var(--color-bg-base);
+  border-color: var(--color-border-strong);
+}
+
+.modalInput:focus,
+.modalContent .passwordInput:focus {
+  border-color: var(--color-error-base);
+}
+
+.modalActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.modalCancelBtn,
+.modalDeleteBtn {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.modalCancelBtn {
+  background-color: var(--color-bg-hover);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+
+.modalCancelBtn:hover:not(:disabled) {
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+.modalDeleteBtn {
+  background-color: var(--color-error-base);
+  border: none;
+  color: var(--color-text-inverse);
+}
+
+.modalDeleteBtn:hover:not(:disabled) {
+  background-color: var(--color-error-hover);
+}
+
+.modalCancelBtn:disabled,
+.modalDeleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .spinner {
@@ -253,5 +398,17 @@
   .terminateAccountBtn {
     width: 100%;
     justify-content: center;
+  }
+
+  .modalActionsRow {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .modalCancelBtn,
+  .modalDeleteBtn {
+    width: 100%;
+    padding: 12px;
   }
 }

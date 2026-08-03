@@ -18,7 +18,7 @@
     justify-content: space-between;
     padding: 0 16px;
     z-index: 190;
-    transition: transform var(--transition-normal) ease-in-out;
+    transition: transform var(--transition-normal);
     transform: translateY(0);
   }
 
