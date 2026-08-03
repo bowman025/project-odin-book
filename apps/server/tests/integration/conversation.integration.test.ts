@@ -40,7 +40,7 @@ describe('Conversations & Real-Time Messaging Module Suites', () => {
     });
 
     const loginResponse = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: userA.email, password: defaultPassword });
 
     tokenA = loginResponse.body.accessToken || '';
@@ -49,7 +49,7 @@ describe('Conversations & Real-Time Messaging Module Suites', () => {
   describe('HTTP RESTful Messaging Controller Endpoints', () => {
     it('should initialize a new conversation chat thread context', async () => {
       const response = await request(app)
-        .post(`/conversations/${userB.username}`)
+        .post(`/api/conversations/${userB.username}`)
         .set('Authorization', `Bearer ${tokenA}`);
 
       expect(response.status).toBe(200);
@@ -82,7 +82,7 @@ describe('Conversations & Real-Time Messaging Module Suites', () => {
         },
       });
       const response = await request(app)
-        .post(`/conversations/${conversation.id}/messages`)
+        .post(`/api/conversations/${conversation.id}/messages`)
         .set('Authorization', `Bearer ${tokenA}`)
         .send({
           content: 'Hello, this is an automated live integration chat trace!',

@@ -24,16 +24,16 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
     });
 
     const loginResponse = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: authorUser.email, password: dummyPassword });
 
     authorToken = loginResponse.body.accessToken || '';
   });
 
-  describe('POST /posts - Content Creation Gate', () => {
+  describe('POST /api/posts - Content Creation Gate', () => {
     it('should parse a valid payload, commit a new post row, and return a 201 status', async () => {
       const response = await request(app)
-        .post('/posts')
+        .post('/api/posts')
         .set('Authorization', `Bearer ${authorToken}`)
         .send({
           content: 'This is my first official post on the platform!',
@@ -64,14 +64,14 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
 
     it('should block creation attempts with a 401 status if the Bearer authentication token is missing', async () => {
       const response = await request(app)
-        .post('/posts')
+        .post('/api/posts')
         .send({ content: 'An unauthorized post mutation attempt' });
 
       expect(response.status).toBe(401);
     });
   });
 
-  describe('GET /posts/:postId - Public Post Retrieval Lookup', () => {
+  describe('GET /api/posts/:postId - Public Post Retrieval Lookup', () => {
     it('should locate a post by its identifier and return a 200 status without authentication headers', async () => {
       const newPost = await db.post.create({
         data: {
@@ -79,7 +79,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
           content: 'A public look item record entry',
         },
       });
-      const response = await request(app).get(`/posts/${newPost.id}`);
+      const response = await request(app).get(`/api/posts/${newPost.id}`);
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -96,7 +96,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
     it('should return a 404 response if the targeted post identifier does not exist', async () => {
       const validCuidFormatPlaceholder = 'cld123abc456def789ghi012';
       const response = await request(app).get(
-        `/posts/${validCuidFormatPlaceholder}`,
+        `/api/posts/${validCuidFormatPlaceholder}`,
       );
 
       expect(response.status).toBe(404);
@@ -104,7 +104,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('PATCH /posts/:postId - Partial Content Modification Gate', () => {
+  describe('PATCH /api/posts/:postId - Partial Content Modification Gate', () => {
     it('should edit content text fields and return a updated object wrapper', async () => {
       const initialPost = await db.post.create({
         data: {
@@ -114,7 +114,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .patch(`/posts/${initialPost.id}`)
+        .patch(`/api/posts/${initialPost.id}`)
         .set('Authorization', `Bearer ${authorToken}`)
         .send({
           content: 'Modified and evolved string content',
@@ -133,7 +133,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .patch(`/posts/${initialPost.id}`)
+        .patch(`/api/posts/${initialPost.id}`)
         .set('Authorization', `Bearer ${authorToken}`)
         .send({});
 
@@ -142,7 +142,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('DELETE /posts/:postId - Secure Deletion Destruction Gate', () => {
+  describe('DELETE /api/posts/:postId - Secure Deletion Destruction Gate', () => {
     it('should purge the target post record from disk and return a 204 status', async () => {
       const activePost = await db.post.create({
         data: {
@@ -152,7 +152,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .delete(`/posts/${activePost.id}`)
+        .delete(`/api/posts/${activePost.id}`)
         .set('Authorization', `Bearer ${authorToken}`);
 
       expect(response.status).toBe(204);
@@ -165,7 +165,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('GET /posts - Public Paginated General Timeline Index', () => {
+  describe('GET /api/posts - Public Paginated General Timeline Index', () => {
     it('should return a paginated listing of posts and include explicit data shapes', async () => {
       const seededPost = await db.post.create({
         data: {
@@ -174,7 +174,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
         },
       });
 
-      const response = await request(app).get('/posts?page=1&limit=5');
+      const response = await request(app).get('/api/posts?page=1&limit=5');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -210,7 +210,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('GET /posts/following - Protected Personalized Subscription Feed Index', () => {
+  describe('GET /api/posts/following - Protected Personalized Subscription Feed Index', () => {
     let followedUser: { id: string; username: string; email: string };
     let strangerUser: { id: string; username: string; email: string };
 
@@ -262,7 +262,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
 
     it('should return posts from followed creators while filtering out non-followed accounts', async () => {
       const response = await request(app)
-        .get('/posts/following?page=1&limit=10')
+        .get('/api/posts/following?page=1&limit=10')
         .set('Authorization', `Bearer ${authorToken}`);
 
       expect(response.status).toBe(200);
@@ -297,7 +297,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
 
     it('should intercept the query with a 401 status if the Bearer authentication token is missing', async () => {
       const response = await request(app)
-        .get('/posts/following?page=1&limit=10')
+        .get('/api/posts/following?page=1&limit=10')
         .send();
 
       expect(response.status).toBe(401);

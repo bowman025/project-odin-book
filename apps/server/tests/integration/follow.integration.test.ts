@@ -36,20 +36,20 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
     });
 
     const login1 = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: senderUser.email, password: dummyPassword });
     senderToken = login1.body.accessToken || '';
 
     const login2 = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: receiverUser.email, password: dummyPassword });
     receiverToken = login2.body.accessToken || '';
   });
 
-  describe('POST /follows/:username - Toggle Relationship Link', () => {
+  describe('POST /api/follows/:username - Toggle Relationship Link', () => {
     it('should dispatch a pending follow request to a target profile and return 200', async () => {
       const response = await request(app)
-        .post(`/follows/${receiverUser.username}`)
+        .post(`/api/follows/${receiverUser.username}`)
         .set('Authorization', `Bearer ${senderToken}`);
 
       expect(response.status).toBe(200);
@@ -65,14 +65,14 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
 
     it('should intercept the query with a 401 status if the Bearer authentication token is missing', async () => {
       const response = await request(app)
-        .post(`/follows/${receiverUser.username}`)
+        .post(`/api/follows/${receiverUser.username}`)
         .send();
 
       expect(response.status).toBe(401);
     });
   });
 
-  describe('GET /follows/requests - View Inbound Invites', () => {
+  describe('GET /api/follows/requests - View Inbound Invites', () => {
     it('should fetch paginated inbound pending requests for the authenticated user', async () => {
       const seededFollow = await db.follow.create({
         data: {
@@ -83,7 +83,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .get('/follows/requests?page=1&limit=10')
+        .get('/api/follows/requests?page=1&limit=10')
         .set('Authorization', `Bearer ${receiverToken}`);
 
       expect(response.status).toBe(200);
@@ -118,7 +118,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('PATCH /follows/requests/:requestId/accept - Approve Connection', () => {
+  describe('PATCH /api/follows/requests/:requestId/accept - Approve Connection', () => {
     it('should accept an inbound connection request and update the status code to ACCEPTED', async () => {
       const pendingFollow = await db.follow.create({
         data: {
@@ -129,7 +129,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .patch(`/follows/requests/${pendingFollow.id}/accept`)
+        .patch(`/api/follows/requests/${pendingFollow.id}/accept`)
         .set('Authorization', `Bearer ${receiverToken}`);
 
       expect(response.status).toBe(200);
@@ -143,7 +143,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('PATCH /follows/requests/:requestId/reject - Decline Connection', () => {
+  describe('PATCH /api/follows/requests/:requestId/reject - Decline Connection', () => {
     it('should reject an inbound follow request, changing status elements accordingly', async () => {
       const pendingFollow = await db.follow.create({
         data: {
@@ -154,7 +154,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .patch(`/follows/requests/${pendingFollow.id}/reject`)
+        .patch(`/api/follows/requests/${pendingFollow.id}/reject`)
         .set('Authorization', `Bearer ${receiverToken}`);
 
       expect(response.status).toBe(200);
@@ -162,7 +162,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('PATCH /follows/requests/:requestId/revoke - Revoke Approved Connection', () => {
+  describe('PATCH /api/follows/requests/:requestId/revoke - Revoke Approved Connection', () => {
     it('should revoke a previously approved follow relation and return a 200 response', async () => {
       const approvedFollow = await db.follow.create({
         data: {
@@ -173,7 +173,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .patch(`/follows/requests/${approvedFollow.id}/revoke`)
+        .patch(`/api/follows/requests/${approvedFollow.id}/revoke`)
         .set('Authorization', `Bearer ${receiverToken}`);
 
       expect(response.status).toBe(200);
@@ -193,7 +193,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('GET /follows/:username/followers & following - Public Connection Indexes', () => {
+  describe('GET /api/follows/:username/followers & following - Public Connection Indexes', () => {
     beforeEach(async () => {
       await db.follow.create({
         data: {
@@ -206,7 +206,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
 
     it('should fetch the paginated followers list and enforce a strict public data profile shape', async () => {
       const response = await request(app).get(
-        `/follows/${receiverUser.username}/followers?page=1&limit=10`,
+        `/api/follows/${receiverUser.username}/followers?page=1&limit=10`,
       );
 
       expect(response.status).toBe(200);
@@ -237,7 +237,7 @@ describe('Follows Module: End-to-End API Integration Suites', () => {
 
     it('should fetch the paginated following list and enforce a strict public data profile shape', async () => {
       const response = await request(app).get(
-        `/follows/${senderUser.username}/following?page=1&limit=10`,
+        `/api/follows/${senderUser.username}/following?page=1&limit=10`,
       );
 
       expect(response.status).toBe(200);

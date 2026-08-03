@@ -24,16 +24,16 @@ describe('Uploads Module: End-to-End API Integration Suites', () => {
     });
 
     const loginResponse = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: activeUser.email, password: dummyPassword });
 
     validAccessToken = loginResponse.body.accessToken || '';
   });
 
-  describe('GET /uploads/signature - Secure Token Signing Gate', () => {
+  describe('GET /api/uploads/signature - Secure Token Signing Gate', () => {
     it('should compute a valid Cloudinary signature when provided authentic tokens and a correct folder query string', async () => {
       const response = await request(app)
-        .get('/uploads/signature?folder=profiles')
+        .get('/api/uploads/signature?folder=profiles')
         .set('Authorization', `Bearer ${validAccessToken}`);
 
       expect(response.status).toBe(200);
@@ -59,7 +59,7 @@ describe('Uploads Module: End-to-End API Integration Suites', () => {
 
     it('should catch an invalid or missing folder configuration query parameter, returning 400', async () => {
       const response = await request(app)
-        .get('/uploads/signature?folder=invalid_folder_name_choice')
+        .get('/api/uploads/signature?folder=invalid_folder_name_choice')
         .set('Authorization', `Bearer ${validAccessToken}`);
 
       expect(response.status).toBe(400);
@@ -68,7 +68,7 @@ describe('Uploads Module: End-to-End API Integration Suites', () => {
 
     it('should intercept signature generation with a 401 status if the Bearer authentication token is missing', async () => {
       const response = await request(app)
-        .get('/uploads/signature?folder=posts')
+        .get('/api/uploads/signature?folder=posts')
         .send();
 
       expect(response.status).toBe(401);

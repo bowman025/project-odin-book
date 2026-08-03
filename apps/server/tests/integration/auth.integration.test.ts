@@ -12,10 +12,10 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     confirmPassword: 'SecureTestPassword123!',
   };
 
-  describe('POST /auth/register - User Account Provisioning Gate', () => {
+  describe('POST /api/auth/register - User Account Provisioning Gate', () => {
     it('should parse a valid payload, commit a new user row to disk, and return a 201 status', async () => {
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send(pristineRegistrationPayload);
 
       expect(response.status).toBe(201);
@@ -63,7 +63,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       };
 
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send(flawedPayload);
 
       expect(response.status).toBe(400);
@@ -87,7 +87,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send(pristineRegistrationPayload);
 
       expect(response.status).toBe(409);
@@ -98,7 +98,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('POST /auth/login - Authentication Session Initializer Gate', () => {
+  describe('POST /api/auth/login - Authentication Session Initializer Gate', () => {
     const loginUserPassword = 'SecureTestPassword123!';
     let seededUser: {
       id: string;
@@ -126,7 +126,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should authenticate with a valid email, set a refresh cookie, and return an access token', async () => {
-      const response = await request(app).post('/auth/login').send({
+      const response = await request(app).post('/api/auth/login').send({
         username: seededUser.email,
         password: loginUserPassword,
       });
@@ -160,7 +160,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should accept space-padded username strings via internal identifier normalization logic', async () => {
-      const response = await request(app).post('/auth/login').send({
+      const response = await request(app).post('/api/auth/login').send({
         username: '   test_user   ',
         password: loginUserPassword,
       });
@@ -170,7 +170,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should block incorrect password attempts at the passport strategy firewall and return a 401 status', async () => {
-      const response = await request(app).post('/auth/login').send({
+      const response = await request(app).post('/api/auth/login').send({
         username: seededUser.username,
         password: 'AnIncorrectPasswordAttempt123!',
       });
@@ -185,7 +185,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should trigger the timing-attack shield and reject non-existent profile identifiers with a 401 status', async () => {
-      const response = await request(app).post('/auth/login').send({
+      const response = await request(app).post('/api/auth/login').send({
         username: 'ghost_user_profile',
         password: 'AnyPasswordValue123!',
       });
@@ -200,7 +200,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('POST /auth/refresh - Session Token Rotation Gate', () => {
+  describe('POST /api/auth/refresh - Session Token Rotation Gate', () => {
     const testerPassword = 'SecureRefreshPassword123!';
     let seededUser: {
       id: string;
@@ -221,7 +221,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
         },
         select: { id: true, username: true, email: true, profilePicture: true },
       });
-      const loginResponse = await request(app).post('/auth/login').send({
+      const loginResponse = await request(app).post('/api/auth/login').send({
         username: seededUser.email,
         password: testerPassword,
       });
@@ -238,7 +238,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       vi.advanceTimersByTime(5000);
 
       const response = await request(app)
-        .post('/auth/refresh')
+        .post('/api/auth/refresh')
         .set('Cookie', [`refreshToken=${initialRefreshToken}`]);
 
       vi.useRealTimers();
@@ -273,7 +273,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should reject the request with a 401 status if the refresh cookie is missing', async () => {
-      const response = await request(app).post('/auth/refresh').send();
+      const response = await request(app).post('/api/auth/refresh').send();
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe(
@@ -286,13 +286,13 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       vi.advanceTimersByTime(5000);
 
       await request(app)
-        .post('/auth/refresh')
+        .post('/api/auth/refresh')
         .set('Cookie', [`refreshToken=${initialRefreshToken}`]);
 
       vi.useRealTimers();
 
       const response = await request(app)
-        .post('/auth/refresh')
+        .post('/api/auth/refresh')
         .set('Cookie', [`refreshToken=${initialRefreshToken}`]);
 
       expect(response.status).toBe(401);
@@ -305,7 +305,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('POST /auth/logout - Session Revocation & Sign-Out Gate', () => {
+  describe('POST /api/auth/logout - Session Revocation & Sign-Out Gate', () => {
     const logoutPassword = 'SecureTestPassword123!';
     let seededUser: { id: string; username: string; email: string };
     let activeRefreshToken: string;
@@ -321,7 +321,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
         select: { id: true, username: true, email: true },
       });
 
-      const loginResponse = await request(app).post('/auth/login').send({
+      const loginResponse = await request(app).post('/api/auth/login').send({
         username: seededUser.email,
         password: logoutPassword,
       });
@@ -334,7 +334,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
 
     it('should clear out the database token hash and return a cookie erasure directive', async () => {
       const response = await request(app)
-        .post('/auth/logout')
+        .post('/api/auth/logout')
         .set('Cookie', [`refreshToken=${activeRefreshToken}`]);
 
       expect(response.status).toBe(200);
@@ -355,7 +355,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should respond with a 200 status and clear the cookie even if invoked without any active cookie attached', async () => {
-      const response = await request(app).post('/auth/logout').send();
+      const response = await request(app).post('/api/auth/logout').send();
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
@@ -365,9 +365,9 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('POST /auth/guest - Recruiter Bypass Authentication Gate', () => {
+  describe('POST /api/auth/guest - Recruiter Bypass Authentication Gate', () => {
     it('should provision a guest profile and return an access token with a refresh cookie', async () => {
-      const response = await request(app).post('/auth/guest').send();
+      const response = await request(app).post('/api/auth/guest').send();
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(
@@ -388,7 +388,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('PATCH /auth/change-password - Protected Password Mutation Gate', () => {
+  describe('PATCH /api/auth/change-password - Protected Password Mutation Gate', () => {
     const originalPassword = 'OldSecurePassword123!';
     const brandNewPassword = 'BrandNewSecurePassword123!';
     let seededUser: { id: string; username: string; email: string };
@@ -405,7 +405,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
         select: { id: true, username: true, email: true },
       });
 
-      const loginResponse = await request(app).post('/auth/login').send({
+      const loginResponse = await request(app).post('/api/auth/login').send({
         username: seededUser.email,
         password: originalPassword,
       });
@@ -416,7 +416,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
 
     it('should mutate the user password when provided a valid access token and matching current password', async () => {
       const response = await request(app)
-        .patch('/auth/change-password')
+        .patch('/api/auth/change-password')
         .set('Authorization', `Bearer ${validAccessToken}`)
         .send({
           currentPassword: originalPassword,
@@ -449,11 +449,13 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should intercept the request with a 401 status if the Bearer authentication token is missing', async () => {
-      const response = await request(app).patch('/auth/change-password').send({
-        currentPassword: originalPassword,
-        newPassword: brandNewPassword,
-        confirmNewPassword: brandNewPassword,
-      });
+      const response = await request(app)
+        .patch('/api/auth/change-password')
+        .send({
+          currentPassword: originalPassword,
+          newPassword: brandNewPassword,
+          confirmNewPassword: brandNewPassword,
+        });
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe(
@@ -463,7 +465,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
 
     it('should catch a wrong current password at your user service layer and return a 400 status', async () => {
       const response = await request(app)
-        .patch('/auth/change-password')
+        .patch('/api/auth/change-password')
         .set('Authorization', `Bearer ${validAccessToken}`)
         .send({
           currentPassword: 'ACompletelyWrongCurrentPasswordAttempt123!',
@@ -476,7 +478,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('DELETE /auth/delete-account - Protected Account Destruction Gate', () => {
+  describe('DELETE /api/auth/delete-account - Protected Account Destruction Gate', () => {
     const deletePassword = 'SecureDeleteUserPassword123!';
     let seededUser: { id: string; username: string; email: string };
     let validAccessToken: string;
@@ -492,7 +494,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
         select: { id: true, username: true, email: true },
       });
 
-      const loginResponse = await request(app).post('/auth/login').send({
+      const loginResponse = await request(app).post('/api/auth/login').send({
         username: seededUser.email,
         password: deletePassword,
       });
@@ -502,7 +504,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
 
     it('should purge the user profile from disk and clear the cookie returning a 204 status', async () => {
       const response = await request(app)
-        .delete('/auth/delete-account')
+        .delete('/api/auth/delete-account')
         .set('Authorization', `Bearer ${validAccessToken}`)
         .send({
           password: deletePassword,
@@ -521,9 +523,11 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should reject the deletion block with a 401 status if the Bearer authentication token is missing', async () => {
-      const response = await request(app).delete('/auth/delete-account').send({
-        password: deletePassword,
-      });
+      const response = await request(app)
+        .delete('/api/auth/delete-account')
+        .send({
+          password: deletePassword,
+        });
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe(

@@ -25,7 +25,7 @@ describe('Likes Module: End-to-End API Integration Suites', () => {
     });
 
     const loginResponse = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: activeUser.email, password: dummyPassword });
 
     validAccessToken = loginResponse.body.accessToken || '';
@@ -39,10 +39,10 @@ describe('Likes Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('POST /posts/:postId/likes - Toggle Engagement Link Gate', () => {
+  describe('POST /api/posts/:postId/likes - Toggle Engagement Link Gate', () => {
     it('should add a like to a post on the first call and increment the count', async () => {
       const response = await request(app)
-        .post(`/posts/${targetPost.id}/likes`)
+        .post(`/api/posts/${targetPost.id}/likes`)
         .set('Authorization', `Bearer ${validAccessToken}`);
 
       expect(response.status).toBe(200);
@@ -75,7 +75,7 @@ describe('Likes Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .post(`/posts/${targetPost.id}/likes`)
+        .post(`/api/posts/${targetPost.id}/likes`)
         .set('Authorization', `Bearer ${validAccessToken}`);
 
       expect(response.status).toBe(200);
@@ -101,7 +101,7 @@ describe('Likes Module: End-to-End API Integration Suites', () => {
 
     it('should intercept toggles with a 401 status if the Bearer authentication token is missing', async () => {
       const response = await request(app)
-        .post(`/posts/${targetPost.id}/likes`)
+        .post(`/api/posts/${targetPost.id}/likes`)
         .send();
 
       expect(response.status).toBe(401);
@@ -110,7 +110,7 @@ describe('Likes Module: End-to-End API Integration Suites', () => {
     it('should catch an invalid postId identifier and return a 400 status', async () => {
       const faultyCuidId = 'invalid_id_format_trace';
       const response = await request(app)
-        .post(`/posts/${faultyCuidId}/likes`)
+        .post(`/api/posts/${faultyCuidId}/likes`)
         .set('Authorization', `Bearer ${validAccessToken}`);
 
       expect(response.status).toBe(400);

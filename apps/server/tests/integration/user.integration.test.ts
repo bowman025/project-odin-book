@@ -24,15 +24,17 @@ describe('Users Module: End-to-End API Integration Suites', () => {
     });
 
     const loginResponse = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: primaryUser.email, password: dummyPassword });
 
     primaryToken = loginResponse.body.accessToken || '';
   });
 
-  describe('GET /users/:username - Public User Profile Details View', () => {
+  describe('GET /api/users/:username - Public User Profile Details View', () => {
     it('should locate an existing user by username and return a 200 status with profile', async () => {
-      const response = await request(app).get(`/users/${primaryUser.username}`);
+      const response = await request(app).get(
+        `/api/users/${primaryUser.username}`,
+      );
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -47,7 +49,9 @@ describe('Users Module: End-to-End API Integration Suites', () => {
     });
 
     it('should return a 404 status if the target username does not exist', async () => {
-      const response = await request(app).get('/users/non_existent_username');
+      const response = await request(app).get(
+        '/api/users/non_existent_username',
+      );
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual(
@@ -59,10 +63,10 @@ describe('Users Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('PATCH /users/me - Protected Profile Mutation Gate', () => {
+  describe('PATCH /api/users/me - Protected Profile Mutation Gate', () => {
     it('should update partial profile parameters and return the modified object', async () => {
       const response = await request(app)
-        .patch('/users/me')
+        .patch('/api/users/me')
         .set('Authorization', `Bearer ${primaryToken}`)
         .send({
           bio: 'Exploring the digital realms of project odin-book.',
@@ -86,7 +90,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
 
     it('should return a 400 status if the update request body is empty', async () => {
       const response = await request(app)
-        .patch('/users/me')
+        .patch('/api/users/me')
         .set('Authorization', `Bearer ${primaryToken}`)
         .send({});
 
@@ -96,14 +100,14 @@ describe('Users Module: End-to-End API Integration Suites', () => {
 
     it('should block the profile update request with a 401 status if the Bearer authentication token is missing', async () => {
       const response = await request(app)
-        .patch('/users/me')
+        .patch('/api/users/me')
         .send({ bio: 'An unauthorized bio change attempt' });
 
       expect(response.status).toBe(401);
     });
   });
 
-  describe('GET /users - Protected Paginated User Directory Index', () => {
+  describe('GET /api/users - Protected Paginated User Directory Index', () => {
     it('should return a paginated listing of directory profiles without the current user', async () => {
       const secondaryUser = await db.user.create({
         data: {
@@ -114,7 +118,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .get('/users?page=1&limit=10')
+        .get('/api/users?page=1&limit=10')
         .set('Authorization', `Bearer ${primaryToken}`);
 
       expect(response.status).toBe(200);
@@ -149,7 +153,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('GET /users/:username/posts - Public Paginated User Posts Feed', () => {
+  describe('GET /api/users/:username/posts - Public Paginated User Posts Feed', () => {
     beforeEach(async () => {
       await db.post.deleteMany();
       await db.post.createMany({
@@ -175,7 +179,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
 
     it('should return a paginated collection of posts matching the target username sorted newest first', async () => {
       const response = await request(app).get(
-        `/users/${primaryUser.username}/posts?page=1&limit=2`,
+        `/api/users/${primaryUser.username}/posts?page=1&limit=2`,
       );
 
       expect(response.status).toBe(200);
@@ -209,7 +213,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
 
     it('should correctly evaluate hasMore as false when hitting the final page layer boundary', async () => {
       const response = await request(app).get(
-        `/users/${primaryUser.username}/posts?page=2&limit=2`,
+        `/api/users/${primaryUser.username}/posts?page=2&limit=2`,
       );
 
       expect(response.status).toBe(200);
@@ -226,7 +230,7 @@ describe('Users Module: End-to-End API Integration Suites', () => {
 
     it('should respond with a 404 status code if the username slug parameter is non-existent', async () => {
       const response = await request(app).get(
-        '/users/non_existent_username_slug/posts?page=1&limit=10',
+        '/api/users/non_existent_username_slug/posts?page=1&limit=10',
       );
 
       expect(response.status).toBe(404);

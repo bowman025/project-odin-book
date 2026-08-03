@@ -25,7 +25,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
     });
 
     const loginResponse = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: authorUser.email, password: dummyPassword });
 
     authorToken = loginResponse.body.accessToken || '';
@@ -39,10 +39,10 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('POST /posts/:postId/comments - Comment Creation Gate', () => {
+  describe('POST /api/posts/:postId/comments - Comment Creation Gate', () => {
     it('should append a new comment to a post and return a 201 status', async () => {
       const response = await request(app)
-        .post(`/posts/${testPost.id}/comments`)
+        .post(`/api/posts/${testPost.id}/comments`)
         .set('Authorization', `Bearer ${authorToken}`)
         .send({
           content: 'This is a test comment.',
@@ -69,14 +69,14 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
 
     it('should block comment creation with a 401 status if the authorization header is absent', async () => {
       const response = await request(app)
-        .post(`/posts/${testPost.id}/comments`)
+        .post(`/api/posts/${testPost.id}/comments`)
         .send({ content: 'Unauthorized comment' });
 
       expect(response.status).toBe(401);
     });
   });
 
-  describe('GET /posts/:postId/comments - Public Feed Index Lookup', () => {
+  describe('GET /api/posts/:postId/comments - Public Feed Index Lookup', () => {
     it('should return a paginated listing of comments matching the parent post identifier', async () => {
       const seededComment = await db.comment.create({
         data: {
@@ -87,7 +87,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app).get(
-        `/posts/${testPost.id}/comments?page=1&limit=5`,
+        `/api/posts/${testPost.id}/comments?page=1&limit=5`,
       );
 
       expect(response.status).toBe(200);
@@ -119,7 +119,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('PATCH /posts/:postId/comments/:commentId - Text Content Modification', () => {
+  describe('PATCH /api/posts/:postId/comments/:commentId - Text Content Modification', () => {
     it('should edit comment string values and return a 200 status', async () => {
       const targetComment = await db.comment.create({
         data: {
@@ -130,7 +130,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .patch(`/posts/${testPost.id}/comments/${targetComment.id}`)
+        .patch(`/api/posts/${testPost.id}/comments/${targetComment.id}`)
         .set('Authorization', `Bearer ${authorToken}`)
         .send({
           content: 'Updated comment text',
@@ -151,7 +151,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .patch(`/posts/${testPost.id}/comments/${targetComment.id}`)
+        .patch(`/api/posts/${testPost.id}/comments/${targetComment.id}`)
         .set('Authorization', `Bearer ${authorToken}`)
         .send({});
 
@@ -160,7 +160,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
     });
   });
 
-  describe('DELETE /posts/:postId/comments/:commentId - Destruction Gate', () => {
+  describe('DELETE /api/posts/:postId/comments/:commentId - Destruction Gate', () => {
     it('should remove the comment row from the database and return a 204 status', async () => {
       const targetComment = await db.comment.create({
         data: {
@@ -171,7 +171,7 @@ describe('Comments Module: End-to-End API Integration Suites', () => {
       });
 
       const response = await request(app)
-        .delete(`/posts/${testPost.id}/comments/${targetComment.id}`)
+        .delete(`/api/posts/${testPost.id}/comments/${targetComment.id}`)
         .set('Authorization', `Bearer ${authorToken}`);
 
       expect(response.status).toBe(204);
