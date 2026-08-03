@@ -1,10 +1,11 @@
 import { LogOut, Moon, Sun } from 'lucide-react';
 import type { FC } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { apiFetch } from '../../lib/api.js';
 import { useAuthStore } from '../../store/authStore.js';
 import { useThemeStore } from '../../store/themeStore.js';
+import { useUIStore } from '../../store/uiStore.js';
 import styles from './Header.module.css';
 
 export const Header: FC = () => {
@@ -14,7 +15,8 @@ export const Header: FC = () => {
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
   const navigate = useNavigate();
 
-  const [isVisible, setIsVisible] = useState(true);
+  const isVisible = useUIStore((state) => state.isScrollingUp);
+  const setScrollingUp = useUIStore((state) => state.setScrollingUp);
   const lastScrollYRef = useRef(0);
 
   useEffect(() => {
@@ -24,15 +26,15 @@ export const Header: FC = () => {
       const currentScrollY = window.scrollY;
 
       if (currentScrollY < 10) {
-        setIsVisible(true);
+        setScrollingUp(true);
         lastScrollYRef.current = currentScrollY;
         return;
       }
 
       if (currentScrollY > lastScrollYRef.current) {
-        setIsVisible(false);
+        setScrollingUp(false);
       } else {
-        setIsVisible(true);
+        setScrollingUp(true);
       }
 
       lastScrollYRef.current = currentScrollY;
@@ -40,7 +42,7 @@ export const Header: FC = () => {
 
     window.addEventListener('scroll', handleScrollTracking, { passive: true });
     return () => window.removeEventListener('scroll', handleScrollTracking);
-  }, [user]);
+  }, [user, setScrollingUp]);
 
   const handleLogout = async () => {
     try {
@@ -66,7 +68,6 @@ export const Header: FC = () => {
           type="button"
           className={styles.headerControlBtn}
           onClick={toggleTheme}
-          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
@@ -75,7 +76,6 @@ export const Header: FC = () => {
           type="button"
           className={styles.headerControlBtn}
           onClick={handleLogout}
-          title="Log Out"
         >
           <LogOut size={20} />
         </button>

@@ -17,6 +17,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { apiFetch } from '../../lib/api.js';
 import { useAuthStore } from '../../store/authStore.js';
 import { useThemeStore } from '../../store/themeStore.js';
+import { useUIStore } from '../../store/uiStore.js';
 import styles from './Sidebar.module.css';
 
 const SIDEBAR_COLLAPSED_KEY = 'odinum_sidebar_collapsed';
@@ -27,6 +28,8 @@ export const Sidebar: FC = () => {
 
   const theme = useThemeStore((state) => state.theme);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
+
+  const isNavVisible = useUIStore((state) => state.isScrollingUp);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -60,7 +63,9 @@ export const Sidebar: FC = () => {
   };
 
   const avatarFallbackChar = user.username.charAt(0);
-  const sidebarClassName = `${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ''}`;
+  const sidebarClassName = `
+  ${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ''} 
+  ${!isNavVisible ? styles.sidebarHidden : ''}`;
 
   return (
     <aside className={sidebarClassName}>

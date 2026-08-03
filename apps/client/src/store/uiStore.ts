@@ -15,13 +15,17 @@ type UIState = {
   toasts: ToastMessage[];
   addToast: (message: string, type?: ToastType) => void;
   removeToast: (id: string) => void;
+  isScrollingUp: boolean;
+  setScrollingUp: (isScrollingUp: boolean) => void;
 };
 
 export const useUIStore = create<UIState>((set, get) => ({
   activeCommentPostId: null,
   toasts: [],
+  isScrollingUp: true,
   openCommentModal: (postId) => set({ activeCommentPostId: postId }),
   closeCommentModal: () => set({ activeCommentPostId: null }),
+  setScrollingUp: (isScrollingUp) => set({ isScrollingUp }),
 
   addToast: (message, type = 'success') => {
     const id = crypto.randomUUID();

@@ -8,7 +8,9 @@
   position: sticky;
   top: 0;
   height: 100vh;
-  transition: width var(--transition-fast);
+  transition:
+    width var(--transition-fast),
+    transform var(--transition-normal);
   overflow: hidden;
   z-index: 200;
 }
@@ -250,6 +252,8 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-around;
+    transition: transform var(--transition-normal);
+    transform: translateY(0);
   }
 
   :is(.sidebar, .sidebarCollapsed)
@@ -287,6 +291,11 @@
   aside.sidebarCollapsed .navLinkActive {
     background-color: transparent;
     color: var(--color-accent-primary);
+  }
+
+  aside.sidebarHidden,
+  aside.sidebarCollapsed.sidebarHidden {
+    transform: translateY(100%);
   }
 
   aside.sidebar .mobileOnlyLink {
