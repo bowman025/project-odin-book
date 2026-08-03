@@ -6,6 +6,10 @@ import {
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../../shared/errors/AppError.js';
 import {
+  type FollowStatusAndNone,
+  fetchFollowStatus,
+} from '../follows/followService.js';
+import {
   fetchUserDirectory,
   fetchUserProfileByUsername,
   updateUserProfile,
@@ -24,15 +28,31 @@ export const getProfile = async (
 
   try {
     const { username } = paramResult.data;
+    const currentUserId = req.user?.id;
+
     const profile = await fetchUserProfileByUsername(username);
 
     if (!profile) {
       return next(new AppError(`User '@${username}' not found`, 404));
     }
 
+    let followStatus: FollowStatusAndNone = 'NONE';
+
+    if (currentUserId && currentUserId !== profile.id) {
+      followStatus = await fetchFollowStatus({
+        senderId: currentUserId,
+        receiverId: profile.id,
+      });
+    }
+
     return res.status(200).json({
       status: 'success',
-      data: { profile },
+      data: {
+        profile: {
+          ...profile,
+          followStatus,
+        },
+      },
     });
   } catch (error) {
     return next(error);

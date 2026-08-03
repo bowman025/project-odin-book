@@ -31,6 +31,8 @@ export type FollowActionPayload = {
   status: FollowStatus | 'NONE';
 };
 
+export type FollowStatusAndNone = FollowStatus | 'NONE';
+
 const pendingRequestSelect = {
   id: true,
   createdAt: true,
@@ -137,6 +139,27 @@ export const fetchPendingRequests = async (options: {
     items: pageRequests,
     hasMore,
   };
+};
+
+export const fetchFollowStatus = async (options: {
+  senderId: string;
+  receiverId: string;
+}): Promise<'NONE' | 'PENDING' | 'ACCEPTED' | 'REJECTED'> => {
+  const { senderId, receiverId } = options;
+
+  const relationship = await db.follow.findUnique({
+    where: {
+      senderId_receiverId: {
+        senderId,
+        receiverId,
+      },
+    },
+    select: { status: true },
+  });
+
+  if (!relationship) return 'NONE';
+
+  return relationship.status as FollowStatus;
 };
 
 export const toggleFollowRequest = async (options: {
