@@ -78,6 +78,7 @@ h6 {
   --color-border-strong: #ced1ca;
 
   --color-error-base: #ef4444;
+  --color-error-hover: #f87171;
   --color-error-bg: #fef2f2;
 
   --font-sans:
@@ -108,6 +109,7 @@ h6 {
   --color-border-strong: #2c3636;
 
   --color-error-base: #f87171;
+  --color-error-hover: #ef4444;
   --color-error-bg: #f8717114;
 }
 

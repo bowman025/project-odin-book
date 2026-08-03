@@ -22,12 +22,12 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       expect(response.body).toEqual({
         status: 'success',
         message: 'Account registered successfully',
-        user: expect.objectContaining({
+        accessToken: expect.any(String),
+        user: {
           id: expect.any(String),
           username: pristineRegistrationPayload.username,
-          email: pristineRegistrationPayload.email,
-          createdAt: expect.any(String),
-        }),
+          profilePicture: null,
+        },
       });
 
       const databaseUserRecord = await db.user.findUnique({
@@ -59,7 +59,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     it('should catch an invalid payload at the Zod firewall and return a 400 status', async () => {
       const flawedPayload = {
         ...pristineRegistrationPayload,
-        confirmPassword: 'MismatchedPassword123!',
+        email: 'not-a-valid-email',
       };
 
       const response = await request(app)

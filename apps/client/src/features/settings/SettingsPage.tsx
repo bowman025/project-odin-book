@@ -1,7 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ChangePasswordDTO } from '@project-odin-book/validation';
 import { ChangePasswordSchema } from '@project-odin-book/validation';
-import { Eye, EyeOff, KeyRound, Loader2, ShieldCheck } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  KeyRound,
+  Loader2,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -214,6 +221,29 @@ export const SettingsPage: FC = () => {
             </button>
           </div>
         </form>
+      </div>
+      <div className={styles.dangerCard}>
+        <div className={styles.dangerHeaderRow}>
+          <Trash2 className={styles.dangerIcon} size={20} />
+          <h3 className={styles.dangerTitle}>Danger Zone</h3>
+        </div>
+        <p className={styles.dangerDescriptionText}>
+          Permanently erase your identity, digital footprint, chronicles, follow
+          graphs, and conversation logs from the Odinum database core
+          registries. This action is absolute and cannot be reversed.
+        </p>
+        <div className={styles.dangerActionsRow}>
+          <button
+            type="button"
+            className={styles.terminateAccountBtn}
+            onClick={() => {
+              console.log('Launching deletion gate context overlay...');
+            }}
+          >
+            <Trash2 size={16} />
+            <span>Permanently Terminate Account</span>
+          </button>
+        </div>
       </div>
     </div>
   );

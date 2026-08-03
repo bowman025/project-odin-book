@@ -169,6 +169,67 @@
   cursor: not-allowed;
 }
 
+.dangerCard {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+.dangerHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--color-error-base);
+}
+
+.dangerIcon {
+  color: var(--color-error-base);
+}
+
+.dangerTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-error-base);
+}
+
+.dangerDescriptionText {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  text-align: justify;
+}
+
+.dangerActionsRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.terminateAccountBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: var(--color-error-base);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-inverse);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast) ease;
+}
+
+.terminateAccountBtn:hover {
+  background-color: var(--color-error-hover, #dc2626);
+}
+
 .spinner {
   animation: rotate 1s linear infinite;
 }
@@ -183,11 +244,13 @@
 }
 
 @media (max-width: 480px) {
-  .formActionsRow {
+  .formActionsRow,
+  .dangerActionsRow {
     width: 100%;
   }
 
-  .submitBtn {
+  .submitBtn,
+  .terminateAccountBtn {
     width: 100%;
     justify-content: center;
   }
