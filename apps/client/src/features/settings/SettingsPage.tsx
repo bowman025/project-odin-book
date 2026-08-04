@@ -432,7 +432,7 @@ export const SettingsPage: FC = () => {
                 <span>
                   {isTerminatingAccount
                     ? 'Purging Records...'
-                    : 'Erase My Footprint'}
+                    : 'Delete My Account'}
                 </span>
               </button>
             </div>

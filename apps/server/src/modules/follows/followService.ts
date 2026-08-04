@@ -1,19 +1,30 @@
 import { db, type FollowStatus, type User } from '@project-odin-book/db';
 import { AppError } from '../../shared/errors/AppError.js';
 
-export type PendingRequestSender = Pick<
+export type PendingRequestUser = Pick<
   User,
   'id' | 'username' | 'profilePicture'
 >;
 
-export type PendingRequestPayload = {
+export type PendingReceivedRequestPayload = {
   id: string;
   createdAt: Date;
-  sender: PendingRequestSender;
+  sender: PendingRequestUser;
 };
 
-export type PendingRequestsResult = {
-  items: PendingRequestPayload[];
+export type PendingSentRequestPayload = {
+  id: string;
+  createdAt: Date;
+  receiver: PendingRequestUser;
+};
+
+export type PendingReceivedRequestsResult = {
+  items: PendingReceivedRequestPayload[];
+  hasMore: boolean;
+};
+
+export type PendingSentRequestsResult = {
+  items: PendingSentRequestPayload[];
   hasMore: boolean;
 };
 
@@ -60,7 +71,7 @@ const pendingReceivedRequestSelect = {
 const pendingSentRequestSelect = {
   id: true,
   createdAt: true,
-  sender: {
+  receiver: {
     select: {
       id: true,
       username: true,
@@ -185,7 +196,7 @@ export const fetchPendingRequests = async (options: {
   receiverId: string;
   skip: number;
   take: number;
-}): Promise<PendingRequestsResult> => {
+}): Promise<PendingReceivedRequestsResult> => {
   const { receiverId, skip, take } = options;
 
   const requests = await db.follow.findMany({
@@ -212,7 +223,7 @@ export const fetchSentRequests = async (options: {
   senderId: string;
   skip: number;
   take: number;
-}): Promise<PendingRequestsResult> => {
+}): Promise<PendingSentRequestsResult> => {
   const { senderId, skip, take } = options;
 
   const requests = await db.follow.findMany({

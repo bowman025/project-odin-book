@@ -240,41 +240,44 @@ export const PendingRequestsPage: FC = () => {
               <p>No active outbound requests pending response.</p>
             </div>
           ) : (
-            sentItems.map((item) => (
-              <div key={`sent-${item.id}`} className={styles.requestRowCard}>
-                <Link
-                  to={`/users/${item.receiver.username}`}
-                  className={styles.profileMetaGroup}
-                >
-                  {item.receiver.profilePicture ? (
-                    <img
-                      src={item.receiver.profilePicture}
-                      alt={item.receiver.username}
-                      className={styles.rowAvatar}
-                    />
-                  ) : (
-                    <div className={styles.rowAvatarFallback}>
-                      {item.receiver.username.charAt(0)}
-                    </div>
-                  )}
-                  <span className={styles.rowUsername}>
-                    @{item.receiver.username}
-                  </span>
-                </Link>
-                <div className={styles.rowActionsBlock}>
-                  <button
-                    type="button"
-                    className={styles.cancelRequestBtn}
-                    disabled={processingId === item.id}
-                    onClick={() =>
-                      handleCancelSentRequest(item.receiver.username, item.id)
-                    }
+            sentItems.map((item) => {
+              const targetUser = item.receiver;
+              const letter = targetUser.username.charAt(0);
+
+              return (
+                <div key={`sent-${item.id}`} className={styles.requestRowCard}>
+                  <Link
+                    to={`/users/${targetUser.username}`}
+                    className={styles.profileMetaGroup}
                   >
-                    <span>Retract Request</span>
-                  </button>
+                    {targetUser.profilePicture ? (
+                      <img
+                        src={targetUser.profilePicture}
+                        alt={targetUser.username}
+                        className={styles.rowAvatar}
+                      />
+                    ) : (
+                      <div className={styles.rowAvatarFallback}>{letter}</div>
+                    )}
+                    <span className={styles.rowUsername}>
+                      @{targetUser.username}
+                    </span>
+                  </Link>
+                  <div className={styles.rowActionsBlock}>
+                    <button
+                      type="button"
+                      className={styles.cancelRequestBtn}
+                      disabled={processingId === item.id}
+                      onClick={() =>
+                        handleCancelSentRequest(targetUser.username, item.id)
+                      }
+                    >
+                      <span>Retract Request</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ))}
 
         {activeTab === 'revoke' &&
