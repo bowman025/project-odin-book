@@ -75,7 +75,6 @@ export const FollowersPage: FC = () => {
         <button
           type="button"
           className={styles.backToProfileBtn}
-          style={{ width: 'auto', marginBottom: '8px', gap: '8px' }}
           onClick={() => navigate(-1)}
         >
           <ArrowLeft size={14} />
