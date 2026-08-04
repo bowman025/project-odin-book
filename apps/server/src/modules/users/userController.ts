@@ -5,10 +5,12 @@ import {
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../../shared/errors/AppError.js';
+import { fetchUserComments } from '../comments/commentService.js';
 import {
   type FollowStatusAndNone,
   fetchFollowStatus,
 } from '../follows/followService.js';
+import { fetchUserLikes } from '../likes/likeService.js';
 import {
   fetchUserDirectory,
   fetchUserProfileByUsername,
@@ -119,6 +121,90 @@ export const getUserDirectory = async (
 
     const { items, hasMore } = await fetchUserDirectory({
       currentUserId,
+      skip,
+      take: limit,
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        items,
+        pagination: {
+          page,
+          limit,
+          hasMore,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getUserComments = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramResult = UsernameParamSchema.safeParse(req.params);
+  if (!paramResult.success) {
+    return next(paramResult.error);
+  }
+
+  const queryResult = PaginationQuerySchema.safeParse(req.query);
+  if (!queryResult.success) {
+    return next(queryResult.error);
+  }
+
+  try {
+    const { username } = paramResult.data;
+    const { page, limit } = queryResult.data;
+    const skip = (page - 1) * limit;
+
+    const { items, hasMore } = await fetchUserComments({
+      targetUsername: username,
+      skip,
+      take: limit,
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        items,
+        pagination: {
+          page,
+          limit,
+          hasMore,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getUserLikes = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const paramResult = UsernameParamSchema.safeParse(req.params);
+  if (!paramResult.success) {
+    return next(paramResult.error);
+  }
+
+  const queryResult = PaginationQuerySchema.safeParse(req.query);
+  if (!queryResult.success) {
+    return next(queryResult.error);
+  }
+
+  try {
+    const { username } = paramResult.data;
+    const { page, limit } = queryResult.data;
+    const skip = (page - 1) * limit;
+
+    const { items, hasMore } = await fetchUserLikes({
+      targetUsername: username,
       skip,
       take: limit,
     });

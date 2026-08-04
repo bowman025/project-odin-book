@@ -1,8 +1,53 @@
 import { db } from '@project-odin-book/db';
+import { AppError } from '../../shared/errors/AppError.js';
+import {
+  mapToPostPayload,
+  postSelect,
+  type TimelineResult,
+} from '../posts/postService.js';
 
 type ToggleLikeResult = {
   liked: boolean;
   likeCount: number;
+};
+
+export const fetchUserLikes = async (options: {
+  targetUsername: string;
+  skip: number;
+  take: number;
+}): Promise<TimelineResult> => {
+  const { targetUsername, skip, take } = options;
+
+  const user = await db.user.findUnique({
+    where: { username: targetUsername },
+    select: { id: true },
+  });
+
+  if (!user) {
+    throw new AppError('The requested citizen record was not found', 404);
+  }
+
+  const likes = await db.like.findMany({
+    where: {
+      user: { username: targetUsername },
+    },
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: {
+      post: {
+        select: postSelect(user.id),
+      },
+    },
+  });
+
+  const hasMore = likes.length > take;
+  const pages = hasMore ? likes.slice(0, take) : likes;
+
+  return {
+    items: pages.map((item) => mapToPostPayload(item.post)),
+    hasMore,
+  };
 };
 
 export const togglePostLike = async (options: {

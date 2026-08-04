@@ -3,6 +3,12 @@ import type {
   CreateCommentInput,
   UpdateCommentInput,
 } from '@project-odin-book/validation';
+import { AppError } from '../../shared/errors/AppError.js';
+import {
+  mapToPostPayload,
+  postSelect,
+  type TimelineResult,
+} from '../posts/postService.js';
 
 export type CommentAuthor = Pick<User, 'id' | 'username' | 'profilePicture'>;
 
@@ -45,6 +51,18 @@ const commentSelect = {
     select: commentAuthorSelect,
   },
 } as const;
+
+const userCommentsSelect = (userId: string) => {
+  return {
+    id: true,
+    content: true,
+    createdAt: true,
+    edited: true,
+    post: {
+      select: postSelect(userId),
+    },
+  };
+};
 
 export const insertComment = async (
   data: CreateCommentData,
@@ -117,6 +135,41 @@ export const fetchComments = async (
 
   return {
     items: pageComments,
+    hasMore,
+  };
+};
+
+export const fetchUserComments = async (options: {
+  targetUsername: string;
+  skip: number;
+  take: number;
+}): Promise<TimelineResult> => {
+  const { targetUsername, skip, take } = options;
+
+  const user = await db.user.findUnique({
+    where: { username: targetUsername },
+    select: { id: true },
+  });
+
+  if (!user) {
+    throw new AppError('The requested citizen record was not found', 404);
+  }
+
+  const comments = await db.comment.findMany({
+    where: {
+      author: { username: targetUsername },
+    },
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: userCommentsSelect(user.id),
+  });
+
+  const hasMore = comments.length > take;
+  const pageComments = hasMore ? comments.slice(0, take) : comments;
+
+  return {
+    items: pageComments.map((page) => mapToPostPayload(page.post)),
     hasMore,
   };
 };

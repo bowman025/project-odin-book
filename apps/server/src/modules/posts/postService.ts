@@ -24,7 +24,7 @@ export type PostPayload = {
   isLiked: boolean;
 };
 
-type TimelineResult = {
+export type TimelineResult = {
   items: PostPayload[];
   hasMore: boolean;
 };
@@ -47,7 +47,7 @@ const authorSelect = {
   profilePicture: true,
 } as const;
 
-const postSelect = (currentUserId?: string) =>
+export const postSelect = (currentUserId?: string) =>
   ({
     id: true,
     content: true,
@@ -72,7 +72,7 @@ const postSelect = (currentUserId?: string) =>
     }),
   }) as const;
 
-const mapToPostPayload = (post: PostRecord): PostPayload => ({
+export const mapToPostPayload = (post: PostRecord): PostPayload => ({
   id: post.id,
   content: post.content,
   imageUrl: post.imageUrl,
