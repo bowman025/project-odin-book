@@ -33,7 +33,19 @@ export type FollowActionPayload = {
 
 export type FollowStatusAndNone = FollowStatus | 'NONE';
 
-const pendingRequestSelect = {
+const pendingReceivedRequestSelect = {
+  id: true,
+  createdAt: true,
+  sender: {
+    select: {
+      id: true,
+      username: true,
+      profilePicture: true,
+    },
+  },
+} as const;
+
+const pendingSentRequestSelect = {
   id: true,
   createdAt: true,
   sender: {
@@ -129,7 +141,34 @@ export const fetchPendingRequests = async (options: {
     skip,
     take: take + 1,
     orderBy: { createdAt: 'desc' },
-    select: pendingRequestSelect,
+    select: pendingReceivedRequestSelect,
+  });
+
+  const hasMore = requests.length > take;
+  const pageRequests = hasMore ? requests.slice(0, take) : requests;
+
+  return {
+    items: pageRequests,
+    hasMore,
+  };
+};
+
+export const fetchSentRequests = async (options: {
+  senderId: string;
+  skip: number;
+  take: number;
+}): Promise<PendingRequestsResult> => {
+  const { senderId, skip, take } = options;
+
+  const requests = await db.follow.findMany({
+    where: {
+      senderId,
+      status: 'PENDING',
+    },
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: pendingSentRequestSelect,
   });
 
   const hasMore = requests.length > take;
