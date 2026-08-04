@@ -272,6 +272,11 @@ export const PendingRequestsPage: FC = () => {
                         handleCancelSentRequest(targetUser.username, item.id)
                       }
                     >
+                      {processingId === item.id ? (
+                        <Loader2 size={12} className={styles.spin} />
+                      ) : (
+                        <UserMinus size={12} />
+                      )}
                       <span>Retract Request</span>
                     </button>
                   </div>

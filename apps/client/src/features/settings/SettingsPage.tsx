@@ -167,7 +167,7 @@ export const SettingsPage: FC = () => {
             onClick={() => navigate('/settings/requests')}
           >
             <Users size={16} />
-            <span>Open Connection Requests Inbox</span>
+            <span>Open Inbox</span>
           </button>
         </div>
       </div>
@@ -225,7 +225,7 @@ export const SettingsPage: FC = () => {
                 id="new-pass-field"
                 type={showNewPassword ? 'text' : 'password'}
                 className={styles.passwordInput}
-                placeholder="Compose a strong new access code..."
+                placeholder="Compose a strong new password..."
                 disabled={isChangingPassword}
                 {...passwordForm.register('newPassword')}
               />
@@ -253,7 +253,7 @@ export const SettingsPage: FC = () => {
                 id="confirm-pass-field"
                 type={showConfirmPassword ? 'text' : 'password'}
                 className={styles.passwordInput}
-                placeholder="Re-type your strong new access code..."
+                placeholder="Re-type your new password..."
                 disabled={isChangingPassword}
                 {...passwordForm.register('confirmNewPassword')}
               />
@@ -285,8 +285,8 @@ export const SettingsPage: FC = () => {
               )}
               <span>
                 {isChangingPassword
-                  ? 'Updating Hashing...'
-                  : 'Update Account Password'}
+                  ? 'Updating Password...'
+                  : 'Update Password'}
               </span>
             </button>
           </div>
@@ -312,7 +312,7 @@ export const SettingsPage: FC = () => {
             onClick={() => setIsTerminationModalOpen(true)}
           >
             <Trash2 size={16} />
-            <span>Permanently Terminate Account</span>
+            <span>Terminate Account</span>
           </button>
         </div>
       </div>
@@ -431,7 +431,7 @@ export const SettingsPage: FC = () => {
                 )}
                 <span>
                   {isTerminatingAccount
-                    ? 'Purging Records...'
+                    ? 'Deleting Your Account...'
                     : 'Delete My Account'}
                 </span>
               </button>
