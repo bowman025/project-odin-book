@@ -15,6 +15,7 @@ import {
   Loader2,
   ShieldCheck,
   Trash2,
+  Users,
 } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
@@ -269,6 +270,38 @@ export const SettingsPage: FC = () => {
             </button>
           </div>
         </form>
+      </div>
+
+      <div className={styles.workspaceCard}>
+        <div className={styles.cardHeaderRow}>
+          <Users className={styles.headerIcon} size={20} />
+          <h3 className={styles.cardTitle}>Relationship Management</h3>
+        </div>
+        <p
+          className={styles.dangerDescriptionText}
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          Audit incoming citizen follow requests waiting for your clearance, or
+          manage and retract outbound relationship statuses.
+        </p>
+        <div
+          className={styles.formActionsRow}
+          style={{ justifyContent: 'flex-start' }}
+        >
+          <button
+            type="button"
+            className={styles.submitBtn}
+            style={{
+              backgroundColor: 'var(--color-bg-base)',
+              border: '1px solid var(--color-border-strong)',
+              color: 'var(--color-text-primary)',
+            }}
+            onClick={() => navigate('/settings/requests')}
+          >
+            <Users size={16} />
+            <span>Open Connection Requests Inbox</span>
+          </button>
+        </div>
       </div>
 
       <div className={styles.dangerCard}>

@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 24px;
   width: 100%;
-  max-width: 600px;
+  max-width: 620px;
   margin: 0 auto;
   padding: 24px 16px;
 }
@@ -40,7 +40,7 @@
   width: max-content;
   margin-bottom: 4px;
   padding: 0;
-  transition: color var(--transition-fast) ease;
+  transition: color var(--transition-fast);
 }
 
 .backButton:hover {
@@ -67,7 +67,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-fast) ease;
+  transition: all var(--transition-fast);
 }
 
 .tabBtn:hover {
@@ -101,12 +101,14 @@
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  padding: 14px 20px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   width: 100%;
   box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .rowAvatar {
@@ -114,6 +116,9 @@
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .rowAvatarFallback {
@@ -128,6 +133,27 @@
   font-weight: 700;
   font-size: 0.875rem;
   text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.profileMetaGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: opacity var(--transition-fast);
+}
+
+.profileMetaGroup:hover {
+  opacity: 0.8;
+}
+
+.profileMetaGroup:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-accent-primary);
 }
 
 .rowUsername {
@@ -140,13 +166,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .acceptActionBtn,
-.cancelRequestBtn {
+.cancelRequestBtn,
+.rejectTextActionBtn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 8px 14px;
   border-radius: var(--radius-sm);
@@ -154,7 +182,9 @@
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
+  box-sizing: border-box;
   border: none;
+  white-space: nowrap;
 }
 
 .acceptActionBtn {
@@ -189,13 +219,26 @@
   border: 1px solid var(--color-border-subtle);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast) ease;
+  transition: all var(--transition-fast);
 }
 
 .rejectActionBtn:hover:not(:disabled) {
   background-color: var(--color-bg-hover);
   color: var(--color-text-primary);
   border-color: var(--color-border-strong);
+}
+
+.rejectTextActionBtn {
+  background-color: transparent;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.rejectTextActionBtn:hover:not(:disabled) {
+  background-color: var(--color-error-muted);
+  border-color: var(--color-error-base);
+  color: var(--color-error-base);
 }
 
 .acceptActionBtn:disabled,
@@ -220,14 +263,28 @@
 
 @media (max-width: 480px) {
   .requestRowCard {
-    padding: 12px;
-    gap: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 14px;
   }
 
-  .tabBtn {
-    flex-grow: 1;
+  .profileMetaGroup {
+    width: 100%;
     justify-content: center;
-    padding: 10px 4px;
-    font-size: 0.75rem;
+  }
+
+  .rowActionsBlock {
+    width: 100%;
+    justify-content: stretch;
+    gap: 8px;
+  }
+
+  .acceptActionBtn,
+  .cancelRequestBtn,
+  .rejectTextActionBtn {
+    flex-grow: 1;
+    width: 100%;
+    padding: 10px;
   }
 }

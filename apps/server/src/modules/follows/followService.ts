@@ -33,6 +33,18 @@ export type FollowActionPayload = {
 
 export type FollowStatusAndNone = FollowStatus | 'NONE';
 
+export type ManagementFollowerPayload = {
+  requestId: string;
+  id: string;
+  username: string;
+  profilePicture: string | null;
+};
+
+export type ManagementFollowersResult = {
+  items: ManagementFollowerPayload[];
+  hasMore: boolean;
+};
+
 const pendingReceivedRequestSelect = {
   id: true,
   createdAt: true,
@@ -64,6 +76,17 @@ const connectionProfileSelect = {
   bio: true,
 } as const;
 
+const followersForManagementSelect = {
+  id: true,
+  sender: {
+    select: {
+      id: true,
+      username: true,
+      profilePicture: true,
+    },
+  },
+};
+
 export const fetchUserFollowers = async (options: {
   targetUsername: string;
   skip: number;
@@ -91,6 +114,38 @@ export const fetchUserFollowers = async (options: {
 
   return {
     items: pageConnections.map((row) => row.sender),
+    hasMore,
+  };
+};
+
+export const fetchFollowersForManagement = async (options: {
+  receiverId: string;
+  skip: number;
+  take: number;
+}): Promise<ManagementFollowersResult> => {
+  const { receiverId, skip, take } = options;
+
+  const connections = await db.follow.findMany({
+    where: {
+      receiverId,
+      status: 'ACCEPTED',
+    },
+    skip,
+    take: take + 1,
+    orderBy: { createdAt: 'desc' },
+    select: followersForManagementSelect,
+  });
+
+  const hasMore = connections.length > take;
+  const pageConnections = hasMore ? connections.slice(0, take) : connections;
+
+  return {
+    items: pageConnections.map((row) => ({
+      requestId: row.id,
+      id: row.sender.id,
+      username: row.sender.username,
+      profilePicture: row.sender.profilePicture,
+    })),
     hasMore,
   };
 };

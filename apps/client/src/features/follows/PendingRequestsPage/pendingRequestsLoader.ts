@@ -19,33 +19,44 @@ export type SentRequestPayload = {
   receiver: RequestProfileItem;
 };
 
+export type ApprovedFollowerPayload = {
+  requestId: string;
+  id: string;
+  username: string;
+  profilePicture: string | null;
+};
+
 export type PendingRequestsLoaderResult = {
   initialReceived: { items: ReceivedRequestPayload[]; hasMore: boolean };
   initialSent: { items: SentRequestPayload[]; hasMore: boolean };
+  initialFollowers: { items: ApprovedFollowerPayload[]; hasMore: boolean };
 };
 
 export const pendingRequestsLoader =
   async (): Promise<PendingRequestsLoaderResult> => {
     await ensureAuthHydrated();
 
-    const [receivedRes, sentRes] = await Promise.all([
-      apiFetch('/follows/requests?page=1&limit=10'),
-      apiFetch('/follows/requests/sent?page=1&limit=10'),
+    const [receivedRes, sentRes, followersRes] = await Promise.all([
+      apiFetch('/follows/requests?page=1&limit=20'),
+      apiFetch('/follows/requests/sent?page=1&limit=20'),
+      apiFetch('/follows/requests/management/followers?page=1&limit=50'),
     ]);
 
-    if (!receivedRes.ok || !sentRes.ok) {
+    if (!receivedRes.ok || !sentRes.ok || !followersRes.ok) {
       throw new Response('Failed to synchronize social queue registries.', {
         status: 400,
       });
     }
 
-    const [receivedData, sentData] = await Promise.all([
+    const [receivedData, sentData, followersData] = await Promise.all([
       receivedRes.json(),
       sentRes.json(),
+      followersRes.json(),
     ]);
 
     return {
       initialReceived: receivedData.data,
       initialSent: sentData.data,
+      initialFollowers: followersData.data,
     };
   };

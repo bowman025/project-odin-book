@@ -5,6 +5,7 @@ import {
   acceptFollow,
   getFollowers,
   getFollowing,
+  getManagementFollowers,
   getPendingRequests,
   getSentRequests,
   rejectFollow,
@@ -23,6 +24,7 @@ router.use(authenticate);
 
 router.get('/requests', getPendingRequests);
 router.get('/requests/sent', getSentRequests);
+router.get('/requests/management/followers', getManagementFollowers);
 router.patch('/requests/:requestId/accept', acceptFollow);
 router.patch('/requests/:requestId/reject', rejectFollow);
 router.patch('/requests/:requestId/revoke', revokeFollow);
