@@ -11,6 +11,8 @@ import { DirectoryPage } from '../features/follows/DirectoryPage/DirectoryPage.j
 import { directoryLoader } from '../features/follows/DirectoryPage/directoryLoader.js';
 import { FollowersPage } from '../features/follows/FollowersPage.jsx';
 import { FollowingPage } from '../features/follows/FollowingPage.jsx';
+import { PendingRequestsPage } from '../features/follows/PendingRequestsPage/PendingRequestsPage';
+import { pendingRequestsLoader } from '../features/follows/PendingRequestsPage/pendingRequestsLoader.js';
 import { PostDetailPage } from '../features/posts/PostDetailPage/PostDetailPage';
 import { postDetailLoader } from '../features/posts/PostDetailPage/postDetailLoader.js';
 import { TimelinePage } from '../features/posts/TimelinePage/TimelinePage';
@@ -83,6 +85,11 @@ export const router = createBrowserRouter([
             path: 'settings',
             element: <SettingsPage />,
             loader: settingsLoader,
+          },
+          {
+            path: 'settings/requests',
+            element: <PendingRequestsPage />,
+            loader: pendingRequestsLoader,
           },
         ],
       },
