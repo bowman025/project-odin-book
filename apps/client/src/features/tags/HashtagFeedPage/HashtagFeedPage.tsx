@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useSearchParams } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
-import { handleLikeToggleNetwork } from '../../../lib/interactions.js';
+import { useInteractionStore } from '../../../store/interactionStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { Post } from '../../posts/Post/Post';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
@@ -14,6 +14,12 @@ export const HashtagFeedPage: FC = () => {
   const initialData = useLoaderData() as HashtagFeedLoaderResult;
   const [searchParams, setSearchParams] = useSearchParams();
   const openCommentModal = useUIStore((state) => state.openCommentModal);
+  const addToast = useUIStore((state) => state.addToast);
+
+  const seedPostMeta = useInteractionStore((state) => state.seedPostMeta);
+  const toggleRegistryLike = useInteractionStore(
+    (state) => state.toggleRegistryLike,
+  );
 
   const [inputBuffer, setInputBuffer] = useState(
     initialData.currentQuery || '',
@@ -43,9 +49,10 @@ export const HashtagFeedPage: FC = () => {
     setActiveSearchTerm(linkQueryParam);
     setPosts(initialData.items);
     setPagination(initialData.pagination);
+    seedPostMeta(initialData.items);
     setSuggestions([]);
     setShowDropdown(false);
-  }, [initialData, searchParams]);
+  }, [initialData, searchParams, seedPostMeta]);
 
   useEffect(() => {
     const cleanInput = inputBuffer.trim().replace(/#/g, '');
@@ -113,8 +120,12 @@ export const HashtagFeedPage: FC = () => {
       );
       if (response.ok) {
         const payload = await response.json();
-        setPosts(payload.data.items);
+        const incomingItems = payload.data.items;
+
+        setPosts(incomingItems);
         setPagination(payload.data.pagination);
+
+        seedPostMeta(incomingItems);
       }
     } catch (err) {
       console.error('Failed to retrieve post feed results:', err);
@@ -138,15 +149,19 @@ export const HashtagFeedPage: FC = () => {
       );
       if (response.ok) {
         const payload = await response.json();
-        setPosts((prev) => [...prev, ...payload.data.items]);
+        const incomingItems = payload.data.items;
+
+        setPosts((prev) => [...prev, ...incomingItems]);
         setPagination(payload.data.pagination);
+
+        seedPostMeta(incomingItems);
       }
     } catch (error) {
       console.error('Failed to load more posts for hashtag filter:', error);
     } finally {
       setIsFetchingMore(false);
     }
-  }, [isFetchingMore, activeSearchTerm]);
+  }, [isFetchingMore, activeSearchTerm, seedPostMeta]);
 
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -175,14 +190,43 @@ export const HashtagFeedPage: FC = () => {
     setShowDropdown(false);
   };
 
-  const handleLikeToggle = (postId: string) => {
-    handleLikeToggleNetwork(postId, setPosts);
+  const handleLikeToggle = async (postId: string) => {
+    try {
+      const response = await apiFetch(`/posts/${postId}/likes`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        const body = await response.json();
+        const { likeCount, liked } = body.data;
+
+        toggleRegistryLike(postId, liked, likeCount);
+      }
+    } catch (error) {
+      console.error('Failed toggle like:', error);
+    }
   };
 
   const handlePostUpdated = (updatedPost: TimelinePost) => {
     setPosts((prev) =>
       prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)),
     );
+    seedPostMeta([updatedPost]);
+  };
+
+  const handlePostDeleted = async (deletedId: string) => {
+    try {
+      const response = await apiFetch(`/posts/${deletedId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        addToast('Chronicle removed from the archives.', 'success');
+        setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+      } else {
+        addToast('Failed to remove chronicle.', 'error');
+      }
+    } catch {
+      addToast('Network error.', 'error');
+    }
   };
 
   return (
@@ -315,9 +359,7 @@ export const HashtagFeedPage: FC = () => {
                   onLikeToggle={handleLikeToggle}
                   onCommentClick={(id) => openCommentModal(id)}
                   onPostUpdated={handlePostUpdated}
-                  onPostDeleted={(id) =>
-                    setPosts((prev) => prev.filter((p) => p.id !== id))
-                  }
+                  onPostDeleted={handlePostDeleted}
                 />
               ))}
             </>

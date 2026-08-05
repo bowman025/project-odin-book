@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useSearchParams } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
-import { handleLikeToggleNetwork } from '../../../lib/interactions.js';
+import { useInteractionStore } from '../../../store/interactionStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { Post } from '../Post/Post';
 import { PostComposer } from '../PostComposer/PostComposer';
@@ -19,6 +19,14 @@ export const TimelinePage: FC = () => {
   const openCommentModal = useUIStore((state) => state.openCommentModal);
   const addToast = useUIStore((state) => state.addToast);
 
+  const seedPostMeta = useInteractionStore((state) => state.seedPostMeta);
+  const toggleRegistryLike = useInteractionStore(
+    (state) => state.toggleRegistryLike,
+  );
+  const incrementRegistryCommentCount = useInteractionStore(
+    (state) => state.incrementRegistryCommentCount,
+  );
+
   const [posts, setPosts] = useState<TimelinePost[]>(initialData.items);
   const [pagination, setPagination] = useState(initialData.pagination);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -30,9 +38,12 @@ export const TimelinePage: FC = () => {
   useEffect(() => {
     setPosts(initialData.items);
     setPagination(initialData.pagination);
+
+    seedPostMeta(initialData.items);
+
     nextPageRef.current = initialData.pagination.page + 1;
     hasMoreRef.current = initialData.pagination.hasMore;
-  }, [initialData]);
+  }, [initialData, seedPostMeta]);
 
   useEffect(() => {
     nextPageRef.current = pagination.page + 1;
@@ -45,17 +56,7 @@ export const TimelinePage: FC = () => {
         postId: string;
         comment: PostComment;
       }>;
-      const { postId } = customEvent.detail;
-
-      setPosts((prevPosts) =>
-        prevPosts.map((post) => {
-          if (post.id !== postId) return post;
-          return {
-            ...post,
-            stats: { ...post.stats, comments: post.stats.comments + 1 },
-          };
-        }),
-      );
+      incrementRegistryCommentCount(customEvent.detail.postId);
     };
 
     window.addEventListener('odinum_global_comment_added', handleGlobalComment);
@@ -64,7 +65,7 @@ export const TimelinePage: FC = () => {
         'odinum_global_comment_added',
         handleGlobalComment,
       );
-  }, []);
+  }, [incrementRegistryCommentCount]);
 
   const loadMorePosts = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
@@ -80,15 +81,18 @@ export const TimelinePage: FC = () => {
       if (response.ok) {
         const payload = await response.json();
         const data: TimelineLoaderResult = payload.data;
+
         setPosts((prev) => [...prev, ...data.items]);
         setPagination(data.pagination);
+
+        seedPostMeta(data.items);
       }
     } catch (error) {
       console.error('Failed to load infinite scroll batch:', error);
     } finally {
       setIsFetchingMore(false);
     }
-  }, [isFetchingMore, activeFeed]);
+  }, [isFetchingMore, activeFeed, seedPostMeta]);
 
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -96,7 +100,6 @@ export const TimelinePage: FC = () => {
         observerRef.current.disconnect();
         observerRef.current = null;
       }
-
       if (isFetchingMore) return;
 
       const observer = new IntersectionObserver((entries) => {
@@ -118,16 +121,30 @@ export const TimelinePage: FC = () => {
 
   const handlePostCreated = (newPost: TimelinePost) => {
     setPosts((prev) => [newPost, ...prev]);
+    seedPostMeta([newPost]);
   };
 
-  const handleLikeToggle = (postId: string) => {
-    handleLikeToggleNetwork(postId, setPosts);
+  const handleLikeToggle = async (postId: string) => {
+    try {
+      const response = await apiFetch(`/posts/${postId}/likes`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        const body = await response.json();
+        const { likeCount, liked } = body.data;
+
+        toggleRegistryLike(postId, liked, likeCount);
+      }
+    } catch (error) {
+      console.error('Failed to execute timeline feed like mutation:', error);
+    }
   };
 
   const handlePostUpdated = (updatedPost: TimelinePost) => {
     setPosts((prev) =>
       prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)),
     );
+    seedPostMeta([updatedPost]);
   };
 
   const handlePostDeleted = async (deletedId: string) => {
@@ -136,10 +153,7 @@ export const TimelinePage: FC = () => {
         method: 'DELETE',
       });
       if (response.ok) {
-        addToast(
-          'Chronicle successfully removed from the archives.',
-          'success',
-        );
+        addToast('Chronicle removed from the archives.', 'success');
         setPosts((prev) => prev.filter((p) => p.id !== deletedId));
       } else {
         addToast('Failed to remove chronicle.', 'error');

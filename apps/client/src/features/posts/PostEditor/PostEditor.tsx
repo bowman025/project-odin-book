@@ -84,10 +84,7 @@ export const PostEditor: FC<PostEditorProps> = ({
             uploadErr instanceof Error
               ? uploadErr
               : new Error('Image upload failed');
-          addToast(
-            errorInstance.message || 'Image binary upload rejected.',
-            'error',
-          );
+          addToast(errorInstance.message || 'Image upload rejected.', 'error');
           setIsSubmitting(false);
           return;
         }
@@ -108,7 +105,7 @@ export const PostEditor: FC<PostEditorProps> = ({
 
       if (response.ok) {
         const body = await response.json();
-        addToast('Chronicle log updated successfully.', 'success');
+        addToast('Chronicle updated successfully.', 'success');
         setNewEditFile(null);
         setEditPreviewUrl(null);
         onPostUpdated(body.data.post);
@@ -116,7 +113,7 @@ export const PostEditor: FC<PostEditorProps> = ({
         addToast('Server rejected modifications.', 'error');
       }
     } catch {
-      addToast('Network link connection failure.', 'error');
+      addToast('Network error.', 'error');
     } finally {
       setIsSubmitting(false);
     }

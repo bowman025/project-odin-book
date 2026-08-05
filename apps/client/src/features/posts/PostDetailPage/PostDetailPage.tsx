@@ -3,9 +3,10 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
+import { useInteractionStore } from '../../../store/interactionStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { Comment } from '../../comments/Comment/Comment';
-import { Post } from '../Post/Post.jsx';
+import { Post } from '../Post/Post';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './PostDetailPage.module.css';
 import type {
@@ -18,6 +19,21 @@ export const PostDetailPage: FC = () => {
   const openCommentModal = useUIStore((state) => state.openCommentModal);
   const addToast = useUIStore((state) => state.addToast);
   const navigate = useNavigate();
+
+  const seedPostMeta = useInteractionStore((state) => state.seedPostMeta);
+  const toggleRegistryLike = useInteractionStore(
+    (state) => state.toggleRegistryLike,
+  );
+  const incrementRegistryCommentCount = useInteractionStore(
+    (state) => state.incrementRegistryCommentCount,
+  );
+  const decrementRegistryCommentCount = useInteractionStore(
+    (state) => state.decrementRegistryCommentCount,
+  );
+
+  const meta = useInteractionStore(
+    (state) => state.postRegistry[initialData.post.id],
+  );
 
   const [parentPost, setParentPost] = useState(initialData.post);
   const [comments, setComments] = useState<PostComment[]>(
@@ -32,14 +48,19 @@ export const PostDetailPage: FC = () => {
   const hasMoreRef = useRef(initialData.initialComments.pagination.hasMore);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
+  const isLiked = meta ? meta.isLiked : parentPost.isLiked;
+
   useEffect(() => {
     window.scrollTo(0, 0);
     setParentPost(initialData.post);
     setComments(initialData.initialComments.items);
     setPagination(initialData.initialComments.pagination);
+
+    seedPostMeta([initialData.post]);
+
     nextPageRef.current = initialData.initialComments.pagination.page + 1;
     hasMoreRef.current = initialData.initialComments.pagination.hasMore;
-  }, [initialData]);
+  }, [initialData, seedPostMeta]);
 
   useEffect(() => {
     const handleGlobalComment = (e: Event) => {
@@ -47,12 +68,10 @@ export const PostDetailPage: FC = () => {
         postId: string;
         comment: PostComment;
       }>;
+
       if (customEvent.detail.postId === parentPost.id) {
         setComments((prev) => [customEvent.detail.comment, ...prev]);
-        setParentPost((prev) => ({
-          ...prev,
-          stats: { ...prev.stats, comments: prev.stats.comments + 1 },
-        }));
+        incrementRegistryCommentCount(parentPost.id);
       }
     };
     window.addEventListener('odinum_global_comment_added', handleGlobalComment);
@@ -61,7 +80,7 @@ export const PostDetailPage: FC = () => {
         'odinum_global_comment_added',
         handleGlobalComment,
       );
-  }, [parentPost.id]);
+  }, [parentPost.id, incrementRegistryCommentCount]);
 
   useEffect(() => {
     nextPageRef.current = pagination.page + 1;
@@ -116,11 +135,8 @@ export const PostDetailPage: FC = () => {
       if (response.ok) {
         const body = await response.json();
         const { likeCount, liked } = body.data;
-        setParentPost((prev) => ({
-          ...prev,
-          isLiked: liked,
-          stats: { ...prev.stats, likes: likeCount },
-        }));
+
+        toggleRegistryLike(parentPost.id, liked, likeCount);
       }
     } catch (error) {
       console.error(
@@ -132,6 +148,7 @@ export const PostDetailPage: FC = () => {
 
   const handleDetailPostUpdated = (updatedPost: TimelinePost) => {
     setParentPost(updatedPost);
+    seedPostMeta([updatedPost]);
   };
 
   const handleDetailPostDeleted = async () => {
@@ -140,16 +157,13 @@ export const PostDetailPage: FC = () => {
         method: 'DELETE',
       });
       if (response.ok) {
-        addToast(
-          'Chronicle successfully removed from the archives.',
-          'success',
-        );
+        addToast('Chronicle removed from the archives.', 'success');
         navigate('/', { replace: true });
       } else {
-        addToast('Failed to delete chronicle thread.', 'error');
+        addToast('Failed to delete chronicle.', 'error');
       }
     } catch {
-      addToast('Network error during deletion pass.', 'error');
+      addToast('Network error.', 'error');
     }
   };
 
@@ -164,15 +178,10 @@ export const PostDetailPage: FC = () => {
       if (response.ok) {
         addToast('Comment deleted.', 'success');
         setComments((prev) => prev.filter((c) => c.id !== commentId));
-        setParentPost((prev) => ({
-          ...prev,
-          stats: {
-            ...prev.stats,
-            comments: Math.max(0, prev.stats.comments - 1),
-          },
-        }));
+
+        decrementRegistryCommentCount(parentPost.id);
       } else {
-        addToast('Server rejected comment deletion.', 'error');
+        addToast('Failed to delete comment.', 'error');
       }
     } catch {
       addToast('Network error.', 'error');
@@ -200,15 +209,15 @@ export const PostDetailPage: FC = () => {
       <div className={styles.actionControlRow}>
         <button
           type="button"
-          className={`${styles.likeCtaButton} ${parentPost.isLiked ? styles.likeCtaActive : ''}`}
+          className={`${styles.likeCtaButton} ${isLiked ? styles.likeCtaActive : ''}`}
           onClick={handleLikeToggle}
         >
           <Heart
             size={16}
-            fill={parentPost.isLiked ? 'var(--color-error-base)' : 'none'}
-            className={parentPost.isLiked ? styles.heartActive : ''}
+            fill={isLiked ? 'var(--color-error-base)' : 'none'}
+            className={isLiked ? styles.heartActive : ''}
           />
-          <span>{parentPost.isLiked ? 'Liked' : 'Like'}</span>
+          <span>{isLiked ? 'Liked' : 'Like'}</span>
         </button>
 
         <button

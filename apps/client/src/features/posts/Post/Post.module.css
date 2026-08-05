@@ -295,10 +295,14 @@
 .profileLink,
 .tagBadge,
 .postFooter,
-.readMoreLink,
-.menuContainer {
+.readMoreLink {
   position: relative;
   z-index: 2;
+}
+
+.menuContainer {
+  position: relative;
+  z-index: 4;
 }
 
 .deleteDialogContent {

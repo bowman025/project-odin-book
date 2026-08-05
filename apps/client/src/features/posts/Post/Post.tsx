@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { AccessibleModal } from '../../../components/AccessibleModal/AccessibleModal.jsx';
 import { useAuthStore } from '../../../store/authStore.js';
+import { useInteractionStore } from '../../../store/interactionStore.js';
 import { PostEditor } from '../PostEditor/PostEditor.jsx';
 import type { TimelinePost } from '../TimelinePage/timelineLoader.js';
 import styles from './Post.module.css';
@@ -33,6 +34,8 @@ export const Post: FC<PostProps> = ({
   onPostUpdated,
 }) => {
   const currentUserId = useAuthStore((state) => state.user?.id);
+  const meta = useInteractionStore((state) => state.postRegistry[post.id]);
+  const evictPostMeta = useInteractionStore((state) => state.evictPostMeta);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -42,6 +45,11 @@ export const Post: FC<PostProps> = ({
 
   const isOwner = currentUserId === post.author.id;
   const authorInitial = post.author.username.charAt(0);
+
+  const isLiked = meta ? meta.isLiked : post.isLiked;
+  const likesCount = meta ? meta.likesCount : post.stats.likes;
+  const commentsCount = meta ? meta.commentsCount : post.stats.comments;
+
   const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
     addSuffix: true,
   });
@@ -71,6 +79,8 @@ export const Post: FC<PostProps> = ({
 
   const handleConfirmedDelete = () => {
     setIsDeleteModalOpen(false);
+    evictPostMeta(post.id);
+
     if (onPostDeleted) {
       onPostDeleted(post.id);
     }
@@ -228,21 +238,21 @@ export const Post: FC<PostProps> = ({
             <div className={styles.interactionBtn}>
               <Heart
                 size={18}
-                fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
-                className={post.isLiked ? styles.heartActive : ''}
+                fill={isLiked ? 'var(--color-error-base)' : 'none'}
+                className={isLiked ? styles.heartActive : ''}
               />
-              <span>{post.stats.likes} likes</span>
+              <span>{likesCount} likes</span>
             </div>
             <div className={styles.interactionBtn}>
               <MessageCircle size={18} />
-              <span>{post.stats.comments} comments</span>
+              <span>{commentsCount} comments</span>
             </div>
           </>
         ) : (
           <>
             <button
               type="button"
-              className={`${styles.interactionBtn} ${post.isLiked ? styles.heartActive : ''}`}
+              className={`${styles.interactionBtn} ${isLiked ? styles.heartActive : ''}`}
               onClick={(e) => {
                 e.preventDefault();
                 onLikeToggle(post.id);
@@ -250,9 +260,9 @@ export const Post: FC<PostProps> = ({
             >
               <Heart
                 size={18}
-                fill={post.isLiked ? 'var(--color-error-base)' : 'none'}
+                fill={isLiked ? 'var(--color-error-base)' : 'none'}
               />
-              <span>{post.stats.likes}</span>
+              <span>{likesCount}</span>
             </button>
             {onCommentClick && (
               <button
@@ -264,7 +274,7 @@ export const Post: FC<PostProps> = ({
                 }}
               >
                 <MessageCircle size={18} />
-                <span>{post.stats.comments}</span>
+                <span>{commentsCount}</span>
               </button>
             )}
           </>

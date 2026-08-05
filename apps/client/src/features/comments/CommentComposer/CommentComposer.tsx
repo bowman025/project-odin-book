@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AccessibleModal } from '../../../components/AccessibleModal/AccessibleModal';
 import { apiFetch } from '../../../lib/api.js';
+import { useInteractionStore } from '../../../store/interactionStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import type { PostComment } from '../../posts/PostDetailPage/postDetailLoader.js';
 import styles from './CommentComposer.module.css';
@@ -17,6 +18,10 @@ export const CommentComposer: FC<{
   const activeCommentPostId = useUIStore((s) => s.activeCommentPostId);
   const closeCommentModal = useUIStore((s) => s.closeCommentModal);
   const addToast = useUIStore((s) => s.addToast);
+
+  const incrementRegistryCommentCount = useInteractionStore(
+    (state) => state.incrementRegistryCommentCount,
+  );
 
   const [globalFormError, setGlobalFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +83,8 @@ export const CommentComposer: FC<{
           profilePicture: body.data.comment.author?.profilePicture || null,
         },
       };
+
+      incrementRegistryCommentCount(activeCommentPostId);
 
       onCommentCreated(activeCommentPostId, newComment);
       closeCommentModal();

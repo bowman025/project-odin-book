@@ -1,10 +1,9 @@
-import { Heart, Loader2, MessageSquare } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
-import { handleLikeToggleNetwork } from '../../../lib/interactions.js';
 import { useAuthStore } from '../../../store/authStore.js';
+import { useInteractionStore } from '../../../store/interactionStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { Comment } from '../../comments/Comment/Comment';
 import { Post } from '../../posts/Post/Post';
@@ -23,9 +22,22 @@ type ProfileTab = 'chronicles' | 'comments' | 'likes';
 
 export const ProfilePage: FC = () => {
   const initialData = useLoaderData() as ProfileLoaderResult;
+
   const currentLoggedInUser = useAuthStore((state) => state.user);
+
   const openCommentModal = useUIStore((state) => state.openCommentModal);
   const addToast = useUIStore((state) => state.addToast);
+
+  const seedPostMeta = useInteractionStore((state) => state.seedPostMeta);
+  const toggleRegistryLike = useInteractionStore(
+    (state) => state.toggleRegistryLike,
+  );
+  const incrementRegistryCommentCount = useInteractionStore(
+    (state) => state.incrementRegistryCommentCount,
+  );
+  const decrementRegistryCommentCount = useInteractionStore(
+    (state) => state.decrementRegistryCommentCount,
+  );
 
   const [activeTab, setActiveTab] = useState<ProfileTab>('chronicles');
   const [profile, setProfile] = useState<UserProfile>(initialData.profile);
@@ -54,6 +66,7 @@ export const ProfilePage: FC = () => {
     activeTabRef.current = 'chronicles';
     setProfile(initialData.profile);
     setPosts(initialData.initialPosts.items);
+    seedPostMeta(initialData.initialPosts.items);
     setLikes([]);
     setComments([]);
 
@@ -67,7 +80,7 @@ export const ProfilePage: FC = () => {
       likes: true,
       comments: true,
     };
-  }, [initialData]);
+  }, [initialData, seedPostMeta]);
 
   const fetchNextSegmentChunkBatch = useCallback(
     async (targetType: ProfileTab, isInitialTabLoad = false) => {
@@ -96,14 +109,26 @@ export const ProfilePage: FC = () => {
             setPosts((prev) =>
               isInitialTabLoad ? incomingItems : [...prev, ...incomingItems],
             );
+            seedPostMeta(incomingItems);
           } else if (targetType === 'likes') {
             setLikes((prev) =>
               isInitialTabLoad ? incomingItems : [...prev, ...incomingItems],
             );
+            seedPostMeta(incomingItems);
           } else if (targetType === 'comments') {
+            const incomingComments = incomingItems as UserProfileCommentItem[];
             setComments((prev) =>
-              isInitialTabLoad ? incomingItems : [...prev, ...incomingItems],
+              isInitialTabLoad
+                ? incomingComments
+                : [...prev, ...incomingComments],
             );
+            const embeddedPosts = incomingComments
+              .map((comment) => comment.post)
+              .filter(
+                (post): post is typeof post =>
+                  post !== null && post !== undefined,
+              );
+            seedPostMeta(embeddedPosts);
           }
 
           nextPagesRef.current[targetType] = incomingPagination.page + 1;
@@ -118,7 +143,7 @@ export const ProfilePage: FC = () => {
         setIsFetchingMore(false);
       }
     },
-    [isFetchingMore, profile.username],
+    [isFetchingMore, profile.username, seedPostMeta],
   );
 
   const handleTabSelectionToggle = async (targetTab: ProfileTab) => {
@@ -145,6 +170,7 @@ export const ProfilePage: FC = () => {
         observerRef.current.disconnect();
         observerRef.current = null;
       }
+
       if (isFetchingMore) return;
 
       const observer = new IntersectionObserver((entries) => {
@@ -170,20 +196,7 @@ export const ProfilePage: FC = () => {
         postId: string;
         comment: PostComment;
       }>;
-      const { postId } = customEvent.detail;
-
-      const updateFeedCounters = (prevPosts: TimelinePost[]) =>
-        prevPosts.map((post) =>
-          post.id !== postId
-            ? post
-            : {
-                ...post,
-                stats: { ...post.stats, comments: post.stats.comments + 1 },
-              },
-        );
-
-      setPosts(updateFeedCounters);
-      setLikes(updateFeedCounters);
+      incrementRegistryCommentCount(customEvent.detail.postId);
     };
 
     window.addEventListener('odinum_global_comment_added', handleGlobalComment);
@@ -192,53 +205,25 @@ export const ProfilePage: FC = () => {
         'odinum_global_comment_added',
         handleGlobalComment,
       );
-  }, []);
+  }, [incrementRegistryCommentCount]);
 
   const isOwnProfile = currentLoggedInUser?.id === profile.id;
   const handleProfileUpdateSuccess = (updatedProfile: UserProfile) =>
     setProfile(updatedProfile);
 
   const handleLikeToggle = async (postId: string) => {
-    if (activeTab === 'likes') {
-      await handleLikeToggleNetwork(postId, setLikes);
-
-      setLikes((currentLikes) => {
-        const matchingPost = currentLikes.find((p) => p.id === postId);
-        if (matchingPost) {
-          setPosts((prevPosts) =>
-            prevPosts.map((p) =>
-              p.id === postId
-                ? {
-                    ...p,
-                    isLiked: matchingPost.isLiked,
-                    stats: { ...p.stats, likes: matchingPost.stats.likes },
-                  }
-                : p,
-            ),
-          );
-        }
-        return currentLikes;
+    try {
+      const response = await apiFetch(`/posts/${postId}/likes`, {
+        method: 'POST',
       });
-    } else {
-      await handleLikeToggleNetwork(postId, setPosts);
+      if (response.ok) {
+        const body = await response.json();
+        const { likeCount, liked } = body.data;
 
-      setPosts((currentChronicles) => {
-        const matchingPost = currentChronicles.find((p) => p.id === postId);
-        if (matchingPost) {
-          setLikes((prevLikes) =>
-            prevLikes.map((p) =>
-              p.id === postId
-                ? {
-                    ...p,
-                    isLiked: matchingPost.isLiked,
-                    stats: { ...p.stats, likes: matchingPost.stats.likes },
-                  }
-                : p,
-            ),
-          );
-        }
-        return currentChronicles;
-      });
+        toggleRegistryLike(postId, liked, likeCount);
+      }
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
     }
   };
 
@@ -255,17 +240,14 @@ export const ProfilePage: FC = () => {
         method: 'DELETE',
       });
       if (response.ok) {
-        addToast(
-          'Chronicle successfully removed from the archives.',
-          'success',
-        );
+        addToast('Chronicle removed from the archives.', 'success');
         setPosts((prev) => prev.filter((p) => p.id !== deletedId));
         setLikes((prev) => prev.filter((p) => p.id !== deletedId));
       } else {
         addToast('Failed to delete chronicle.', 'error');
       }
     } catch {
-      addToast('Network transmission failure.', 'error');
+      addToast('Network error.', 'error');
     }
   };
 
@@ -273,7 +255,12 @@ export const ProfilePage: FC = () => {
     setComments((prev) =>
       prev.map((c) =>
         c.id === updatedComment.id
-          ? { ...c, content: updatedComment.content, edited: true }
+          ? {
+              ...c,
+              content: updatedComment.content,
+              edited: true,
+              post: c.post,
+            }
           : c,
       ),
     );
@@ -286,16 +273,12 @@ export const ProfilePage: FC = () => {
     try {
       const response = await apiFetch(
         `/posts/${postId}/comments/${commentId}`,
-        {
-          method: 'DELETE',
-        },
+        { method: 'DELETE' },
       );
-
       if (response.ok) {
-        addToast('Comment deleted.', 'success');
+        addToast('Comment removed from the archives.', 'success');
         setComments((prev) => prev.filter((c) => c.id !== commentId));
-      } else {
-        addToast('Server rejected comment deletion.', 'error');
+        decrementRegistryCommentCount(postId);
       }
     } catch {
       addToast('Network error.', 'error');
@@ -316,7 +299,6 @@ export const ProfilePage: FC = () => {
           className={`${styles.profileTabBtn} ${activeTab === 'chronicles' ? styles.profileTabActive : ''}`}
           onClick={() => handleTabSelectionToggle('chronicles')}
         >
-          <MessageSquare size={16} />
           <span>Chronicles</span>
         </button>
         <button
@@ -324,7 +306,6 @@ export const ProfilePage: FC = () => {
           className={`${styles.profileTabBtn} ${activeTab === 'comments' ? styles.profileTabActive : ''}`}
           onClick={() => handleTabSelectionToggle('comments')}
         >
-          <MessageSquare size={16} style={{ transform: 'scaleX(-1)' }} />
           <span>Comments</span>
         </button>
         <button
@@ -332,7 +313,6 @@ export const ProfilePage: FC = () => {
           className={`${styles.profileTabBtn} ${activeTab === 'likes' ? styles.profileTabActive : ''}`}
           onClick={() => handleTabSelectionToggle('likes')}
         >
-          <Heart size={16} />
           <span>Likes</span>
         </button>
       </div>
@@ -347,7 +327,7 @@ export const ProfilePage: FC = () => {
             ) : (
               posts.map((post) => (
                 <Post
-                  key={`profile-chronicle-${post.id}-${post.isLiked}`}
+                  key={`profile-chronicle-${post.id}`}
                   post={post}
                   onLikeToggle={handleLikeToggle}
                   onCommentClick={(id) => openCommentModal(id)}
@@ -416,7 +396,7 @@ export const ProfilePage: FC = () => {
             ) : (
               likes.map((post) => (
                 <Post
-                  key={`profile-liked-${post.id}-${post.isLiked}`}
+                  key={`profile-liked-${post.id}`}
                   post={post}
                   onLikeToggle={handleLikeToggle}
                   onCommentClick={(id) => openCommentModal(id)}
@@ -431,7 +411,6 @@ export const ProfilePage: FC = () => {
       <div ref={sentinelRef} className={styles.infiniteTrigger}>
         {isFetchingMore && (
           <div className={styles.scrollLoader}>
-            <Loader2 className={styles.spinner} size={24} />
             <span>Retrieving additional content segments...</span>
           </div>
         )}
