@@ -13,12 +13,20 @@ const isValidTheme = (value: string | null): value is Theme =>
   value === 'light' || value === 'dark';
 
 const getStoredTheme = (): Theme => {
-  const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  return isValidTheme(stored) ? stored : 'dark';
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    return isValidTheme(stored) ? stored : 'dark';
+  } catch {
+    return 'dark';
+  }
 };
 
 const applyTheme = (theme: Theme) => {
-  document.documentElement.setAttribute('data-theme', theme);
+  try {
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (error) {
+    console.warn('DOM data-theme unavailable:', error);
+  }
 };
 
 const initialTheme = getStoredTheme();
@@ -28,7 +36,13 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   theme: initialTheme,
   toggleTheme: () => {
     const nextTheme: Theme = get().theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch {
+      console.warn('LocalStorage mutation restricted.');
+    }
+
     applyTheme(nextTheme);
     set({ theme: nextTheme });
   },
