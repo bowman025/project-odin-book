@@ -4,6 +4,14 @@ import { ensureAuthHydrated } from '../../../layouts/RootLayout/rootLoader.js';
 import { apiFetch } from '../../../lib/api.js';
 import type { TimelinePost } from '../../posts/TimelinePage/timelineLoader.js';
 
+export type UserProfileCommentItem = {
+  id: string;
+  content: string;
+  createdAt: string;
+  edited: boolean;
+  post: TimelinePost;
+};
+
 export type FollowStatus = 'NONE' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
 
 export type UserProfile = {
@@ -39,10 +47,9 @@ export const profileLoader = async ({
   await ensureAuthHydrated();
 
   const paramResult = UsernameParamSchema.safeParse(params);
-
   if (!paramResult.success) {
     const validationMessage =
-      paramResult.error.issues[0]?.message || 'Username is required';
+      paramResult.error.issues?.at(0)?.message || 'Username is required';
     throw new Error(validationMessage);
   }
 
@@ -63,7 +70,6 @@ export const profileLoader = async ({
   const postsRes = await apiFetch(
     `/users/${profile.username}/posts?page=${page}&limit=10`,
   );
-
   if (!postsRes.ok) {
     throw new Response('Failed to load user chronicles', {
       status: postsRes.status,

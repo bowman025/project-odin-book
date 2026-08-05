@@ -6,8 +6,8 @@ import type {
 import { AppError } from '../../shared/errors/AppError.js';
 import {
   mapToPostPayload,
+  type PostPayload,
   postSelect,
-  type TimelineResult,
 } from '../posts/postService.js';
 
 export type CommentAuthor = Pick<User, 'id' | 'username' | 'profilePicture'>;
@@ -32,6 +32,19 @@ type FetchCommentOptions = {
 
 export type CommentResult = {
   items: CommentPayload[];
+  hasMore: boolean;
+};
+
+export type UserCommentActivityPayload = {
+  id: string;
+  content: string;
+  createdAt: Date;
+  edited: boolean;
+  post: PostPayload;
+};
+
+export type UserCommentsResult = {
+  items: UserCommentActivityPayload[];
   hasMore: boolean;
 };
 
@@ -143,7 +156,7 @@ export const fetchUserComments = async (options: {
   targetUsername: string;
   skip: number;
   take: number;
-}): Promise<TimelineResult> => {
+}): Promise<UserCommentsResult> => {
   const { targetUsername, skip, take } = options;
 
   const user = await db.user.findUnique({
@@ -169,7 +182,13 @@ export const fetchUserComments = async (options: {
   const pageComments = hasMore ? comments.slice(0, take) : comments;
 
   return {
-    items: pageComments.map((page) => mapToPostPayload(page.post)),
+    items: pageComments.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      edited: comment.edited,
+      post: mapToPostPayload(comment.post),
+    })),
     hasMore,
   };
 };

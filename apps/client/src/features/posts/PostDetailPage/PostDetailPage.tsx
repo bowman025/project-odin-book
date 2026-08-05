@@ -162,7 +162,7 @@ export const PostDetailPage: FC = () => {
         },
       );
       if (response.ok) {
-        addToast('Comment successfully deleted from thread.', 'success');
+        addToast('Comment deleted.', 'success');
         setComments((prev) => prev.filter((c) => c.id !== commentId));
         setParentPost((prev) => ({
           ...prev,
@@ -175,7 +175,7 @@ export const PostDetailPage: FC = () => {
         addToast('Server rejected comment deletion.', 'error');
       }
     } catch {
-      addToast('Network link connection failure.', 'error');
+      addToast('Network error.', 'error');
     }
   };
 
