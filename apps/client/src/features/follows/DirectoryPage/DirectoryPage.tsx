@@ -22,12 +22,10 @@ export const DirectoryPage: FC = () => {
   const initialData = useLoaderData() as DirectoryLoaderResult;
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // 🔌 URL AS SINGLE SOURCE OF TRUTH: Derive parameter coordinates natively
   const activeQ = searchParams.get('q') || '';
   const activeSort = searchParams.get('sortBy') || 'alphabetical';
   const activeLetter = searchParams.get('letter') || '';
 
-  // Local state is used ONLY to hold the active rendering array chunk stack
   const [users, setUsers] = useState<DirectoryUser[]>(initialData.items);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [inputBuffer, setInputBuffer] = useState(activeQ);
@@ -36,8 +34,6 @@ export const DirectoryPage: FC = () => {
   const hasMoreRef = useRef(initialData.pagination.hasMore);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // 💡 THE SYNC RESOLUTION: Whenever url query params change, reset states completely!
-  // This instantly wipes out old tab records and removes duplication leaks permanently.
   useEffect(() => {
     setUsers(initialData.items);
     setInputBuffer(activeQ);
@@ -45,7 +41,6 @@ export const DirectoryPage: FC = () => {
     hasMoreRef.current = initialData.pagination.hasMore;
   }, [initialData, activeQ]);
 
-  // Unified single search parameter mutation state dispatch link
   const updateUrlParams = useCallback(
     (mods: {
       q?: string;
@@ -54,14 +49,14 @@ export const DirectoryPage: FC = () => {
       clearSearch?: boolean;
     }) => {
       const nextParams = new URLSearchParams(searchParams);
-      nextParams.set('page', '1'); // Any filter modification resets scroll index back to page 1
+      nextParams.set('page', '1');
 
       if (mods.sortBy !== undefined) nextParams.set('sortBy', mods.sortBy);
 
       if (mods.q !== undefined) {
         if (mods.q.trim()) {
           nextParams.set('q', mods.q.trim());
-          nextParams.delete('letter'); // Typing a keyword clears starting letter index
+          nextParams.delete('letter');
         } else {
           nextParams.delete('q');
         }
@@ -70,7 +65,7 @@ export const DirectoryPage: FC = () => {
       if (mods.letter !== undefined) {
         if (mods.letter) {
           nextParams.set('letter', mods.letter);
-          nextParams.delete('q'); // Selecting a letter clears active string queries
+          nextParams.delete('q');
         } else {
           nextParams.delete('letter');
         }
@@ -85,7 +80,6 @@ export const DirectoryPage: FC = () => {
     [searchParams, setSearchParams],
   );
 
-  // Debounced live string search processing
   useEffect(() => {
     const cleanInput = inputBuffer.trim();
     if (cleanInput === activeQ) return;
@@ -112,7 +106,6 @@ export const DirectoryPage: FC = () => {
         const payload = await response.json();
         const incoming = payload.data.items as DirectoryUser[];
 
-        // Append unique entries by verifying IDs cleanly
         setUsers((prev) => {
           const existingIds = new Set(prev.map((u) => u.id));
           const filteredIncoming = incoming.filter(
@@ -166,7 +159,6 @@ export const DirectoryPage: FC = () => {
         </p>
       </header>
 
-      {/* SEARCH & SORT PANEL */}
       <div className={styles.filterWorkspaceDeck}>
         <div className={styles.searchControlBar}>
           <Search size={16} className={styles.searchSearchIcon} />
@@ -206,7 +198,6 @@ export const DirectoryPage: FC = () => {
         </div>
       </div>
 
-      {/* A-Z JUMP STRIP */}
       <div className={styles.alphabetIndexGridStrip}>
         {ALPHABET.map((char) => (
           <button
@@ -217,16 +208,11 @@ export const DirectoryPage: FC = () => {
               updateUrlParams({ letter: char === activeLetter ? '' : char })
             }
           >
-            {char === '#' ? (
-              <Hash size={12} style={{ display: 'inline' }} />
-            ) : (
-              char
-            )}
+            {char === '#' ? <Hash size={12} /> : char}
           </button>
         ))}
       </div>
 
-      {/* ACTIVE LABELS NOTIFICATION */}
       {(activeQ || activeLetter) && (
         <div className={styles.activeFiltersRow}>
           <span className={styles.resultsIndicatorLabel}>
@@ -247,7 +233,6 @@ export const DirectoryPage: FC = () => {
         </div>
       )}
 
-      {/* CARDS VIEWS DISPLAY CONTAINER */}
       {users.length === 0 ? (
         <div className={styles.emptyDirectoryState}>
           <p>No platform citizens found matching those criteria.</p>
