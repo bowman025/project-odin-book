@@ -32,9 +32,6 @@ export const ProfilePage: FC = () => {
   const toggleRegistryLike = useInteractionStore(
     (state) => state.toggleRegistryLike,
   );
-  const incrementRegistryCommentCount = useInteractionStore(
-    (state) => state.incrementRegistryCommentCount,
-  );
   const decrementRegistryCommentCount = useInteractionStore(
     (state) => state.decrementRegistryCommentCount,
   );
@@ -200,23 +197,6 @@ export const ProfilePage: FC = () => {
     },
     [isFetchingMore, loadMoreDataContextWorker],
   );
-
-  useEffect(() => {
-    const handleGlobalComment = (e: Event) => {
-      const customEvent = e as CustomEvent<{
-        postId: string;
-        comment: PostComment;
-      }>;
-      incrementRegistryCommentCount(customEvent.detail.postId);
-    };
-
-    window.addEventListener('odinum_global_comment_added', handleGlobalComment);
-    return () =>
-      window.removeEventListener(
-        'odinum_global_comment_added',
-        handleGlobalComment,
-      );
-  }, [incrementRegistryCommentCount]);
 
   const isOwnProfile = currentLoggedInUser?.id === profile.id;
   const handleProfileUpdateSuccess = (updatedProfile: UserProfile) =>

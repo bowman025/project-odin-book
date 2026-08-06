@@ -85,7 +85,6 @@ export const CommentComposer: FC<{
       };
 
       incrementRegistryCommentCount(activeCommentPostId);
-
       onCommentCreated(activeCommentPostId, newComment);
       closeCommentModal();
       addToast('Comment posted successfully!', 'success');

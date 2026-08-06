@@ -207,8 +207,14 @@ export const getUserLikes = async (
     const { page, limit } = queryResult.data;
     const skip = (page - 1) * limit;
 
+    const currentUserId = req.user?.id;
+    if (!currentUserId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
     const { items, hasMore } = await fetchUserLikes({
       targetUsername: username,
+      currentUserId,
       skip,
       take: limit,
     });

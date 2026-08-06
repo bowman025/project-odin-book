@@ -24,9 +24,6 @@ export const PostDetailPage: FC = () => {
   const toggleRegistryLike = useInteractionStore(
     (state) => state.toggleRegistryLike,
   );
-  const incrementRegistryCommentCount = useInteractionStore(
-    (state) => state.incrementRegistryCommentCount,
-  );
   const decrementRegistryCommentCount = useInteractionStore(
     (state) => state.decrementRegistryCommentCount,
   );
@@ -61,26 +58,6 @@ export const PostDetailPage: FC = () => {
     nextPageRef.current = initialData.initialComments.pagination.page + 1;
     hasMoreRef.current = initialData.initialComments.pagination.hasMore;
   }, [initialData, seedPostMeta]);
-
-  useEffect(() => {
-    const handleGlobalComment = (e: Event) => {
-      const customEvent = e as CustomEvent<{
-        postId: string;
-        comment: PostComment;
-      }>;
-
-      if (customEvent.detail.postId === parentPost.id) {
-        setComments((prev) => [customEvent.detail.comment, ...prev]);
-        incrementRegistryCommentCount(parentPost.id);
-      }
-    };
-    window.addEventListener('odinum_global_comment_added', handleGlobalComment);
-    return () =>
-      window.removeEventListener(
-        'odinum_global_comment_added',
-        handleGlobalComment,
-      );
-  }, [parentPost.id, incrementRegistryCommentCount]);
 
   useEffect(() => {
     nextPageRef.current = pagination.page + 1;

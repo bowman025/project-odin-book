@@ -13,17 +13,18 @@ type ToggleLikeResult = {
 
 export const fetchUserLikes = async (options: {
   targetUsername: string;
+  currentUserId: string;
   skip: number;
   take: number;
 }): Promise<TimelineResult> => {
-  const { targetUsername, skip, take } = options;
+  const { targetUsername, currentUserId, skip, take } = options;
 
-  const user = await db.user.findUnique({
+  const targetUser = await db.user.findUnique({
     where: { username: targetUsername },
     select: { id: true },
   });
 
-  if (!user) {
+  if (!targetUser) {
     throw new AppError('The requested citizen record was not found', 404);
   }
 
@@ -36,7 +37,7 @@ export const fetchUserLikes = async (options: {
     orderBy: { createdAt: 'desc' },
     select: {
       post: {
-        select: postSelect(user.id),
+        select: postSelect(currentUserId),
       },
     },
   });

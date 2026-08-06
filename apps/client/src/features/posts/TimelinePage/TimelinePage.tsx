@@ -7,7 +7,6 @@ import { useInteractionStore } from '../../../store/interactionStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { Post } from '../Post/Post';
 import { PostComposer } from '../PostComposer/PostComposer';
-import type { PostComment } from '../PostDetailPage/postDetailLoader.js';
 import styles from './TimelinePage.module.css';
 import type { TimelineLoaderResult, TimelinePost } from './timelineLoader.js';
 
@@ -22,9 +21,6 @@ export const TimelinePage: FC = () => {
   const seedPostMeta = useInteractionStore((state) => state.seedPostMeta);
   const toggleRegistryLike = useInteractionStore(
     (state) => state.toggleRegistryLike,
-  );
-  const incrementRegistryCommentCount = useInteractionStore(
-    (state) => state.incrementRegistryCommentCount,
   );
 
   const [posts, setPosts] = useState<TimelinePost[]>(initialData.items);
@@ -49,23 +45,6 @@ export const TimelinePage: FC = () => {
     nextPageRef.current = pagination.page + 1;
     hasMoreRef.current = pagination.hasMore;
   }, [pagination]);
-
-  useEffect(() => {
-    const handleGlobalComment = (e: Event) => {
-      const customEvent = e as CustomEvent<{
-        postId: string;
-        comment: PostComment;
-      }>;
-      incrementRegistryCommentCount(customEvent.detail.postId);
-    };
-
-    window.addEventListener('odinum_global_comment_added', handleGlobalComment);
-    return () =>
-      window.removeEventListener(
-        'odinum_global_comment_added',
-        handleGlobalComment,
-      );
-  }, [incrementRegistryCommentCount]);
 
   const loadMorePosts = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
