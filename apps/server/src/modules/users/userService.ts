@@ -1,4 +1,9 @@
-import { db, type FollowStatus, type User } from '@project-odin-book/db';
+import {
+  db,
+  type FollowStatus,
+  type Prisma,
+  type User,
+} from '@project-odin-book/db';
 import {
   type ChangePasswordInput,
   type DeleteAccountInput,
@@ -58,6 +63,15 @@ type UserWithCounts = {
     sentFollows: number;
     receivedFollows: number;
   };
+};
+
+export type FetchDirectoryOptions = {
+  currentUserId: string;
+  skip: number;
+  take: number;
+  q?: string;
+  sortBy?: 'alphabetical' | 'newest' | 'followers';
+  letter?: string;
 };
 
 export type DirectoryUserPayload = Pick<
@@ -247,18 +261,46 @@ export const updateUserProfile = async (options: {
   return mapToUserProfile(user);
 };
 
-export const fetchUserDirectory = async (options: {
-  currentUserId: string;
-  skip: number;
-  take: number;
-}): Promise<UsersDirectoryResult> => {
-  const { currentUserId, skip, take } = options;
+export const fetchUserDirectory = async (
+  options: FetchDirectoryOptions,
+): Promise<UsersDirectoryResult> => {
+  const { currentUserId, skip, take, q, sortBy, letter } = options;
+
+  const whereClause: Prisma.UserWhereInput = {
+    id: { not: currentUserId },
+  };
+
+  if (q) {
+    whereClause.username = {
+      contains: q,
+      mode: 'insensitive',
+    };
+  }
+
+  if (letter) {
+    whereClause.username = {
+      startsWith: letter,
+      mode: 'insensitive',
+    };
+  }
+
+  let orderByClause: Prisma.UserOrderByWithRelationInput = { username: 'asc' };
+
+  if (sortBy === 'newest') {
+    orderByClause = { createdAt: 'desc' };
+  } else if (sortBy === 'followers') {
+    orderByClause = {
+      receivedFollows: {
+        _count: 'desc',
+      },
+    };
+  }
 
   const users = await db.user.findMany({
-    where: { id: { not: currentUserId } },
+    where: whereClause,
     skip,
     take: take + 1,
-    orderBy: { username: 'asc' },
+    orderBy: orderByClause,
     select: {
       id: true,
       username: true,
@@ -280,7 +322,7 @@ export const fetchUserDirectory = async (options: {
   const pageUsers = hasMore ? users.slice(0, take) : users;
 
   const items: DirectoryUserPayload[] = pageUsers.map((user) => {
-    const relationshipStatus = user.receivedFollows[0]?.status ?? 'NONE';
+    const relationshipStatus = user.receivedFollows?.[0]?.status ?? 'NONE';
 
     return {
       id: user.id,

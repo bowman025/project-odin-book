@@ -6,7 +6,7 @@ export const RequestIdParamSchema = z.object({
 
 export type RequestIdParamInput = z.infer<typeof RequestIdParamSchema>;
 
-const positiveIntFromString = (defaultValue: number, max?: number) => {
+export const positiveIntFromString = (defaultValue: number, max?: number) => {
   let numberSchema = z.number().int().positive();
 
   if (max !== undefined) {

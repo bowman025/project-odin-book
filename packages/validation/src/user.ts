@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { positiveIntFromString } from './common.js';
 
 export const UsernameParamSchema = z.object({
   username: z.string().min(1, { error: 'Username is required' }),
@@ -40,3 +41,20 @@ export const UpdateFollowStatusSchema = z.object({
 });
 
 export type UpdateFollowStatusInput = z.infer<typeof UpdateFollowStatusSchema>;
+
+export const UserDirectoryQuerySchema = z.object({
+  page: positiveIntFromString(1),
+  limit: positiveIntFromString(10),
+  q: z.string().trim().optional(),
+  sortBy: z
+    .enum(['alphabetical', 'newest', 'followers'])
+    .default('alphabetical'),
+  letter: z
+    .string()
+    .length(1)
+    .regex(/^[a-zA-Z]$/, 'Must be a single alphabetical character')
+    .transform((val) => val.toUpperCase())
+    .optional(),
+});
+
+export type UserDirectoryQueryInput = z.infer<typeof UserDirectoryQuerySchema>;

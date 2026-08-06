@@ -1,6 +1,7 @@
 import {
   PaginationQuerySchema,
   UpdateProfileSchema,
+  UserDirectoryQuerySchema,
   UsernameParamSchema,
 } from '@project-odin-book/validation';
 import type { NextFunction, Request, Response } from 'express';
@@ -103,7 +104,7 @@ export const getUserDirectory = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const queryResult = PaginationQuerySchema.safeParse(req.query);
+  const queryResult = UserDirectoryQuerySchema.safeParse(req.query);
 
   if (!queryResult.success) {
     return next(queryResult.error);
@@ -116,13 +117,16 @@ export const getUserDirectory = async (
       return next(new AppError('Authentication context required', 401));
     }
 
-    const { page, limit } = queryResult.data;
+    const { page, limit, q, sortBy, letter } = queryResult.data;
     const skip = (page - 1) * limit;
 
     const { items, hasMore } = await fetchUserDirectory({
       currentUserId,
       skip,
       take: limit,
+      q,
+      sortBy,
+      letter,
     });
 
     return res.status(200).json({
