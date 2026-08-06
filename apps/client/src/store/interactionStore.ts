@@ -6,8 +6,14 @@ export type PostMeta = {
   commentsCount: number;
 };
 
+type ProfileStats = {
+  postsCount: number;
+};
+
 type InteractionState = {
   postRegistry: Record<string, PostMeta>;
+  profileStatsRegistry: Record<string, ProfileStats>;
+
   seedPostMeta: (
     posts: Array<{
       id: string;
@@ -23,10 +29,15 @@ type InteractionState = {
   incrementRegistryCommentCount: (postId: string) => void;
   decrementRegistryCommentCount: (postId: string) => void;
   evictPostMeta: (postId: string) => void;
+
+  seedProfileStats: (username: string, postsCount: number) => void;
+  decrementProfilePostCount: (username: string) => void;
+  incrementProfilePostCount: (username: string) => void;
 };
 
 export const useInteractionStore = create<InteractionState>((set) => ({
   postRegistry: {},
+  profileStatsRegistry: {},
 
   seedPostMeta: (posts) =>
     set((state) => {
@@ -99,5 +110,39 @@ export const useInteractionStore = create<InteractionState>((set) => ({
       const updatedRegistry = { ...state.postRegistry };
       delete updatedRegistry[postId];
       return { postRegistry: updatedRegistry };
+    }),
+
+  seedProfileStats: (username, postsCount) =>
+    set((state) => ({
+      profileStatsRegistry: {
+        ...state.profileStatsRegistry,
+        [username.toLowerCase()]: { postsCount },
+      },
+    })),
+
+  incrementProfilePostCount: (username) =>
+    set((state) => {
+      const key = username.toLowerCase();
+      const current = state.profileStatsRegistry[key];
+      if (!current) return {};
+      return {
+        profileStatsRegistry: {
+          ...state.profileStatsRegistry,
+          [key]: { postsCount: current.postsCount + 1 },
+        },
+      };
+    }),
+
+  decrementProfilePostCount: (username) =>
+    set((state) => {
+      const key = username.toLowerCase();
+      const current = state.profileStatsRegistry[key];
+      if (!current) return {};
+      return {
+        profileStatsRegistry: {
+          ...state.profileStatsRegistry,
+          [key]: { postsCount: Math.max(0, current.postsCount - 1) },
+        },
+      };
     }),
 }));

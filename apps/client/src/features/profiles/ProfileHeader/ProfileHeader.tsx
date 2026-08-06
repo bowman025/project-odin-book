@@ -10,6 +10,7 @@ import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
+import { useInteractionStore } from '../../../store/interactionStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import styles from '../ProfilePage/ProfilePage.module.css';
 import type {
@@ -36,6 +37,11 @@ export const ProfileHeader: FC<ProfileHeaderProps> = ({
   const [followerCount, setFollowerCount] = useState(profile.stats.followers);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isHoveringFollowing, setIsHoveringFollowing] = useState(false);
+
+  const profileMeta = useInteractionStore(
+    (state) => state.profileStatsRegistry[profile.username.toLowerCase()],
+  );
+  const postsCount = profileMeta ? profileMeta.postsCount : profile.stats.posts;
 
   useEffect(() => {
     setCurrentStatus(profile.followStatus);
@@ -171,7 +177,7 @@ export const ProfileHeader: FC<ProfileHeaderProps> = ({
 
       <div className={styles.statsRow}>
         <div className={styles.statBox}>
-          <span className={styles.statCount}>{profile.stats.posts}</span>
+          <span className={styles.statCount}>{postsCount}</span>
           <span className={styles.statLabel}>Chronicles</span>
         </div>
         <Link to={`/users/${profile.username}/followers`}>

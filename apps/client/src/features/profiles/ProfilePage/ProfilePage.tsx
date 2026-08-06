@@ -39,6 +39,13 @@ export const ProfilePage: FC = () => {
     (state) => state.decrementRegistryCommentCount,
   );
 
+  const seedProfileStats = useInteractionStore(
+    (state) => state.seedProfileStats,
+  );
+  const decrementProfilePostCount = useInteractionStore(
+    (state) => state.decrementProfilePostCount,
+  );
+
   const [activeTab, setActiveTab] = useState<ProfileTab>('chronicles');
   const [profile, setProfile] = useState<UserProfile>(initialData.profile);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -65,6 +72,10 @@ export const ProfilePage: FC = () => {
     setActiveTab('chronicles');
     activeTabRef.current = 'chronicles';
     setProfile(initialData.profile);
+    seedProfileStats(
+      initialData.profile.username,
+      initialData.profile.stats.posts,
+    );
     setPosts(initialData.initialPosts.items);
     seedPostMeta(initialData.initialPosts.items);
     setLikes([]);
@@ -80,7 +91,7 @@ export const ProfilePage: FC = () => {
       likes: true,
       comments: true,
     };
-  }, [initialData, seedPostMeta]);
+  }, [initialData, seedPostMeta, seedProfileStats]);
 
   const fetchNextSegmentChunkBatch = useCallback(
     async (targetType: ProfileTab, isInitialTabLoad = false) => {
@@ -241,6 +252,7 @@ export const ProfilePage: FC = () => {
       });
       if (response.ok) {
         addToast('Chronicle removed from the archives.', 'success');
+        decrementProfilePostCount(profile.username);
         setPosts((prev) => prev.filter((p) => p.id !== deletedId));
         setLikes((prev) => prev.filter((p) => p.id !== deletedId));
       } else {
