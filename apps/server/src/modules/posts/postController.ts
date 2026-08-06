@@ -2,6 +2,7 @@ import {
   CreatePostSchema,
   PaginationQuerySchema,
   PostIdParamSchema,
+  TimelineQuerySchema,
   UpdatePostSchema,
   UsernameParamSchema,
 } from '@project-odin-book/validation';
@@ -206,14 +207,14 @@ export const getGeneralTimeline = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const queryResult = PaginationQuerySchema.safeParse(req.query);
+  const queryResult = TimelineQuerySchema.safeParse(req.query);
 
   if (!queryResult.success) {
     return next(queryResult.error);
   }
 
   try {
-    const { page, limit } = queryResult.data;
+    const { page, limit, sort } = queryResult.data;
     const skip = (page - 1) * limit;
     const currentUserId = req.user?.id;
     const searchParam = req.query.search ? String(req.query.search) : undefined;
@@ -222,6 +223,7 @@ export const getGeneralTimeline = async (
       skip,
       take: limit,
       search: searchParam,
+      sort,
     });
 
     return res.status(200).json({

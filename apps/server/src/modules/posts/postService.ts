@@ -239,8 +239,9 @@ export const fetchGeneralTimeline = async (options: {
   skip: number;
   take: number;
   search?: string;
+  sort?: 'latest' | 'popular' | 'oldest';
 }): Promise<TimelineResult> => {
-  const { currentUserId, skip, take, search } = options;
+  const { currentUserId, skip, take, search, sort = 'latest' } = options;
 
   const whereClause = search?.trim()
     ? {
@@ -252,11 +253,33 @@ export const fetchGeneralTimeline = async (options: {
       }
     : {};
 
+  type PostFindManyArgs = Parameters<typeof db.post.findMany>;
+  type PostOrderByInput = NonNullable<PostFindManyArgs[0]>['orderBy'];
+
+  let orderByClause: PostOrderByInput = { createdAt: 'desc' };
+
+  if (sort === 'oldest') {
+    orderByClause = { createdAt: 'asc' };
+  } else if (sort === 'popular') {
+    orderByClause = [
+      {
+        likes: {
+          _count: 'desc',
+        },
+      },
+      {
+        comments: {
+          _count: 'desc',
+        },
+      },
+    ];
+  }
+
   const posts = await db.post.findMany({
     where: whereClause,
     skip,
     take: take + 1,
-    orderBy: { createdAt: 'desc' },
+    orderBy: orderByClause,
     select: postSelect(currentUserId),
   });
 

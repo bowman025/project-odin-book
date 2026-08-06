@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { positiveIntFromString } from './common.js';
 
 export const PostIdParamSchema = z.object({
   postId: z.cuid2({ error: 'Invalid post identifier format' }),
@@ -39,3 +40,11 @@ export type CreatePostInput = z.infer<typeof CreatePostSchema>;
 export const UpdatePostSchema = CreatePostSchema.partial();
 
 export type UpdatePostInput = z.infer<typeof UpdatePostSchema>;
+
+export const TimelineQuerySchema = z.object({
+  page: positiveIntFromString(1),
+  limit: positiveIntFromString(10),
+  sort: z.enum(['latest', 'popular', 'oldest']).default('latest'),
+});
+
+export type TimelineQueryInput = z.infer<typeof TimelineQuerySchema>;
