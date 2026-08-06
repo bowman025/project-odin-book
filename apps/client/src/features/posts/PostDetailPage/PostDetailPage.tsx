@@ -60,6 +60,29 @@ export const PostDetailPage: FC = () => {
   }, [initialData, seedPostMeta]);
 
   useEffect(() => {
+    const handleUiCommentAppend = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        postId: string;
+        comment: PostComment;
+      }>;
+
+      if (customEvent.detail.postId === parentPost.id) {
+        setComments((prev) => [customEvent.detail.comment, ...prev]);
+      }
+    };
+
+    window.addEventListener(
+      'odinum_ui_comment_appended',
+      handleUiCommentAppend,
+    );
+    return () =>
+      window.removeEventListener(
+        'odinum_ui_comment_appended',
+        handleUiCommentAppend,
+      );
+  }, [parentPost.id]);
+
+  useEffect(() => {
     nextPageRef.current = pagination.page + 1;
     hasMoreRef.current = pagination.hasMore;
   }, [pagination]);

@@ -86,6 +86,13 @@ export const CommentComposer: FC<{
 
       incrementRegistryCommentCount(activeCommentPostId);
       onCommentCreated(activeCommentPostId, newComment);
+
+      window.dispatchEvent(
+        new CustomEvent('odinum_ui_comment_appended', {
+          detail: { postId: activeCommentPostId, comment: newComment },
+        }),
+      );
+
       closeCommentModal();
       addToast('Comment posted successfully!', 'success');
     } catch {
