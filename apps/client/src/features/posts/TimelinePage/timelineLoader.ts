@@ -39,11 +39,12 @@ export const timelineLoader = async ({
   const page = url.searchParams.get('page') || '1';
   const limit = url.searchParams.get('limit') || '10';
   const feedType = url.searchParams.get('feed') || 'general';
+  const sort = url.searchParams.get('sort') || 'latest';
 
   const apiPath =
     feedType === 'following'
       ? `/posts/following?page=${page}&limit=${limit}`
-      : `/posts?page=${page}&limit=${limit}`;
+      : `/posts?page=${page}&limit=${limit}&sort=${sort}`;
 
   const response = await apiFetch(apiPath);
 

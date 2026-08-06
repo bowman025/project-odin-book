@@ -1,4 +1,4 @@
-import { Globe, Loader2, Users } from 'lucide-react';
+import { Clock, Flame, Globe, History, Loader2, Users } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useSearchParams } from 'react-router';
@@ -10,10 +10,15 @@ import { PostComposer } from '../PostComposer/PostComposer';
 import styles from './TimelinePage.module.css';
 import type { TimelineLoaderResult, TimelinePost } from './timelineLoader.js';
 
+type DiscoverySortMode = 'latest' | 'popular' | 'oldest';
+
 export const TimelinePage: FC = () => {
   const initialData = useLoaderData() as TimelineLoaderResult;
   const [searchParams, setSearchParams] = useSearchParams();
+
   const activeFeed = searchParams.get('feed') || 'general';
+  const activeSort = (searchParams.get('sort') ||
+    'latest') as DiscoverySortMode;
 
   const openCommentModal = useUIStore((state) => state.openCommentModal);
   const addToast = useUIStore((state) => state.addToast);
@@ -22,56 +27,73 @@ export const TimelinePage: FC = () => {
   const toggleRegistryLike = useInteractionStore(
     (state) => state.toggleRegistryLike,
   );
+  const evictPostMeta = useInteractionStore((state) => state.evictPostMeta);
 
   const [posts, setPosts] = useState<TimelinePost[]>(initialData.items);
-  const [pagination, setPagination] = useState(initialData.pagination);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const nextPageRef = useRef(initialData.pagination.page + 1);
+  const nextPageRef = useRef(2);
   const hasMoreRef = useRef(initialData.pagination.hasMore);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     setPosts(initialData.items);
-    setPagination(initialData.pagination);
-
     seedPostMeta(initialData.items);
 
-    nextPageRef.current = initialData.pagination.page + 1;
+    nextPageRef.current = 2;
     hasMoreRef.current = initialData.pagination.hasMore;
   }, [initialData, seedPostMeta]);
 
-  useEffect(() => {
-    nextPageRef.current = pagination.page + 1;
-    hasMoreRef.current = pagination.hasMore;
-  }, [pagination]);
+  const handleFeedChangeToggle = (feedType: 'general' | 'following') => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('page', '1');
+    nextParams.set('feed', feedType);
+    if (feedType === 'following') {
+      nextParams.delete('sort');
+    }
+    setSearchParams(nextParams);
+  };
+
+  const handleDiscoverySortToggle = (sortMode: DiscoverySortMode) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('page', '1');
+    nextParams.set('sort', sortMode);
+    setSearchParams(nextParams);
+  };
 
   const loadMorePosts = useCallback(async () => {
     if (isFetchingMore || !hasMoreRef.current) return;
-
     setIsFetchingMore(true);
+
     try {
       const apiPath =
         activeFeed === 'following'
           ? `/posts/following?page=${nextPageRef.current}&limit=10`
-          : `/posts?page=${nextPageRef.current}&limit=10`;
+          : `/posts?page=${nextPageRef.current}&limit=10&sort=${activeSort}`;
 
       const response = await apiFetch(apiPath);
       if (response.ok) {
         const payload = await response.json();
         const data: TimelineLoaderResult = payload.data;
 
-        setPosts((prev) => [...prev, ...data.items]);
-        setPagination(data.pagination);
+        setPosts((prev) => {
+          const distinctIds = new Set(prev.map((p) => p.id));
+          const filteredIncoming = data.items.filter(
+            (p) => !distinctIds.has(p.id),
+          );
+          return [...prev, ...filteredIncoming];
+        });
 
         seedPostMeta(data.items);
+        hasMoreRef.current = data.pagination.hasMore;
+        nextPageRef.current += 1;
       }
     } catch (error) {
       console.error('Failed to load infinite scroll batch:', error);
     } finally {
       setIsFetchingMore(false);
     }
-  }, [isFetchingMore, activeFeed, seedPostMeta]);
+  }, [isFetchingMore, activeFeed, activeSort, seedPostMeta]);
 
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -94,12 +116,10 @@ export const TimelinePage: FC = () => {
     [isFetchingMore, loadMorePosts],
   );
 
-  const handleFeedToggle = (feedType: 'general' | 'following') => {
-    setSearchParams({ feed: feedType });
-  };
-
   const handlePostCreated = (newPost: TimelinePost) => {
-    setPosts((prev) => [newPost, ...prev]);
+    if (activeSort === 'latest' || activeFeed === 'following') {
+      setPosts((prev) => [newPost, ...prev]);
+    }
     seedPostMeta([newPost]);
   };
 
@@ -111,11 +131,10 @@ export const TimelinePage: FC = () => {
       if (response.ok) {
         const body = await response.json();
         const { likeCount, liked } = body.data;
-
         toggleRegistryLike(postId, liked, likeCount);
       }
     } catch (error) {
-      console.error('Failed to execute timeline feed like mutation:', error);
+      console.error('Failed to toggle like:', error);
     }
   };
 
@@ -133,12 +152,13 @@ export const TimelinePage: FC = () => {
       });
       if (response.ok) {
         addToast('Chronicle removed from the archives.', 'success');
+        evictPostMeta(deletedId);
         setPosts((prev) => prev.filter((p) => p.id !== deletedId));
       } else {
         addToast('Failed to remove chronicle.', 'error');
       }
     } catch {
-      addToast('Network link transmission failure.', 'error');
+      addToast('Network error.', 'error');
     }
   };
 
@@ -146,11 +166,12 @@ export const TimelinePage: FC = () => {
     <div className={styles.container}>
       <header className={styles.feedHeader}>
         <h2 className={styles.title}>Home Feed</h2>
+
         <div className={styles.tabsContainer}>
           <button
             type="button"
             className={`${styles.tabButton} ${activeFeed === 'general' ? styles.tabButtonActive : ''}`}
-            onClick={() => handleFeedToggle('general')}
+            onClick={() => handleFeedChangeToggle('general')}
           >
             <Globe size={16} />
             <span>Global Realm</span>
@@ -158,12 +179,42 @@ export const TimelinePage: FC = () => {
           <button
             type="button"
             className={`${styles.tabButton} ${activeFeed === 'following' ? styles.tabButtonActive : ''}`}
-            onClick={() => handleFeedToggle('following')}
+            onClick={() => handleFeedChangeToggle('following')}
           >
             <Users size={16} />
             <span>Personal Realm</span>
           </button>
         </div>
+
+        {activeFeed === 'general' && (
+          <div className={styles.discoveryLanesBar}>
+            <button
+              type="button"
+              className={`${styles.laneBtn} ${activeSort === 'latest' ? styles.laneBtnActive : ''}`}
+              onClick={() => handleDiscoverySortToggle('latest')}
+            >
+              <Clock size={14} />
+              <span>Latest</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.laneBtn} ${activeSort === 'popular' ? styles.laneBtnActive : ''}`}
+              onClick={() => handleDiscoverySortToggle('popular')}
+            >
+              <Flame size={14} />
+              <span>Popular</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.laneBtn} ${activeSort === 'oldest' ? styles.laneBtnActive : ''}`}
+              onClick={() => handleDiscoverySortToggle('oldest')}
+            >
+              <History size={14} />
+              <span>Oldest</span>
+            </button>
+          </div>
+        )}
+
         <PostComposer onPostCreated={handlePostCreated} />
       </header>
 
@@ -173,7 +224,7 @@ export const TimelinePage: FC = () => {
             <p>
               {activeFeed === 'following'
                 ? 'Your connections haven’t posted recently.'
-                : 'The realm is completely quiet.'}
+                : 'The selected timeline discovery lane is completely quiet.'}
             </p>
           </div>
         ) : (
