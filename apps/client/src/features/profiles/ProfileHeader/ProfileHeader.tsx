@@ -171,8 +171,7 @@ export const ProfileHeader: FC<ProfileHeaderProps> = ({
         <span>Joined {joinDateLabel}</span>
       </div>
       <p className={styles.bioText}>
-        {profile.bio ||
-          'This citizen has yet to script a chronicle biography...'}
+        {profile.bio || 'This citizen has yet to write a biography...'}
       </p>
 
       <div className={styles.statsRow}>

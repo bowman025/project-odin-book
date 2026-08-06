@@ -19,6 +19,11 @@ export type DirectoryLoaderResult = {
     limit: number;
     hasMore: boolean;
   };
+  filters: {
+    q: string;
+    sortBy: 'alphabetical' | 'newest' | 'followers';
+    letter: string;
+  };
 };
 
 export const directoryLoader = async ({
@@ -30,7 +35,21 @@ export const directoryLoader = async ({
   const page = url.searchParams.get('page') || '1';
   const limit = url.searchParams.get('limit') || '12';
 
-  const response = await apiFetch(`/users?page=${page}&limit=${limit}`);
+  const q = url.searchParams.get('q') || '';
+  const sortBy = url.searchParams.get('sortBy') || 'alphabetical';
+  const letter = url.searchParams.get('letter') || '';
+
+  let apiPath = `/users?page=${page}&limit=${limit}&sortBy=${sortBy}`;
+
+  if (q.trim()) {
+    apiPath += `&q=${encodeURIComponent(q.trim())}`;
+  }
+
+  if (letter.trim()) {
+    apiPath += `&letter=${encodeURIComponent(letter.trim())}`;
+  }
+
+  const response = await apiFetch(apiPath);
 
   if (!response.ok) {
     throw new Response('Failed to sync general realm directory metrics', {
@@ -39,5 +58,14 @@ export const directoryLoader = async ({
   }
 
   const payload = await response.json();
-  return payload.data;
+
+  return {
+    items: payload.data.items,
+    pagination: payload.data.pagination,
+    filters: {
+      q,
+      sortBy: sortBy as 'alphabetical' | 'newest' | 'followers',
+      letter,
+    },
+  };
 };

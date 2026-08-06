@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 32px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .pageHeader {
@@ -21,6 +22,180 @@
 .subtitle {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+}
+
+.filterWorkspaceDeck {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.searchControlBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 420px;
+}
+
+.searchSearchIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.directoryInputText {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.directoryInputText:focus {
+  border-color: var(--color-accent-primary);
+}
+
+.clearTextQueryBtn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.clearTextQueryBtn:hover {
+  color: var(--color-text-primary);
+}
+
+.inputLoader {
+  position: absolute;
+  right: 12px;
+}
+
+.sortingRibbonTray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  padding: 4px 8px;
+  border-radius: var(--radius-lg);
+}
+
+.controlsIcon {
+  color: var(--color-text-muted);
+  margin-right: 4px;
+}
+
+.sortTriggerBtn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.sortTriggerBtn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-hover);
+}
+
+.sortTriggerBtn.sortBtnActive {
+  color: var(--color-accent-primary);
+  background-color: var(--color-bg-base);
+}
+
+.alphabetIndexGridStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
+  gap: 4px;
+  width: 100%;
+  padding: 8px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-sizing: border-box;
+}
+
+.letterIndexBadgeBtn {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.letterIndexBadgeBtn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-hover);
+}
+
+.letterIndexBadgeBtn.letterActive {
+  color: var(--color-text-inverse);
+  background-color: var(--color-accent-primary);
+}
+
+.activeFiltersRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background-color: var(--color-bg-hover);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  margin-top: -12px;
+}
+
+.resultsIndicatorLabel {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.resetAllFiltersCta {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-error-base);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.resetAllFiltersCta:hover {
+  text-decoration: underline;
 }
 
 .gridViewport {
@@ -44,13 +219,15 @@
   color: inherit;
   transition:
     border-color var(--transition-fast),
-    background-color var(--transition-fast);
+    background-color var(--transition-fast),
+    transform var(--transition-fast);
   cursor: pointer;
 }
 
 .userCard:hover {
   border-color: var(--color-accent-primary);
   background-color: var(--color-bg-hover);
+  transform: translateY(-2px);
 }
 
 .avatar {
@@ -93,8 +270,8 @@
   color: var(--color-text-secondary);
   line-height: 1.5;
   display: -webkit-box;
-  line-clamp: 2;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -129,35 +306,38 @@
   color: var(--color-accent-primary);
 }
 
-.backToProfileBtn {
-  display: inline-flex;
+.centerSyncLoader,
+.emptyDirectoryState {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
-  margin-bottom: 12px;
+  padding: 60px 20px;
   background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  text-align: center;
   color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: pointer;
-  width: max-content;
-  align-self: flex-start;
+  gap: 16px;
+  width: 100%;
   box-sizing: border-box;
-  text-decoration: none;
-  transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast);
 }
 
-.backToProfileBtn:hover {
-  background-color: var(--color-bg-hover);
-  border-color: var(--color-accent-primary);
-  color: var(--color-accent-primary);
+.emptyStateResetBtn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-inverse);
+  background-color: var(--color-accent-primary);
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.emptyStateResetBtn:hover {
+  background-color: var(--color-accent-hover);
 }
 
 .infiniteTrigger {
@@ -182,6 +362,10 @@
   color: var(--color-accent-primary);
 }
 
+.accentSpinner {
+  color: var(--color-accent-primary);
+}
+
 @keyframes rotate {
   from {
     transform: rotate(0deg);
@@ -191,8 +375,32 @@
   }
 }
 
+@media (max-width: 768px) {
+  .filterWorkspaceDeck {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .searchControlBar {
+    max-width: 100%;
+  }
+
+  .sortingRibbonTray {
+    justify-content: space-between;
+  }
+
+  .sortTriggerBtn {
+    flex: 1;
+    text-align: center;
+    padding: 6px 4px;
+  }
+}
+
 @media (max-width: 480px) {
-  .backToProfileBtn {
-    width: 100%;
+  .letterIndexBadgeBtn {
+    min-width: unset;
+    height: 32px;
+    font-size: 0.8125rem;
   }
 }

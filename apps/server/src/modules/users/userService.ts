@@ -278,10 +278,24 @@ export const fetchUserDirectory = async (
   }
 
   if (letter) {
-    whereClause.username = {
-      startsWith: letter,
-      mode: 'insensitive',
-    };
+    if (letter === '#') {
+      whereClause.AND = [
+        {
+          NOT: [
+            {
+              OR: 'abcdefghijklmnopqrstuvwxyz'.split('').map((char) => ({
+                username: { startsWith: char, mode: 'insensitive' },
+              })),
+            },
+          ],
+        },
+      ];
+    } else {
+      whereClause.username = {
+        startsWith: letter,
+        mode: 'insensitive',
+      };
+    }
   }
 
   let orderByClause: Prisma.UserOrderByWithRelationInput = { username: 'asc' };

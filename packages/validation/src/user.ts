@@ -44,15 +44,23 @@ export type UpdateFollowStatusInput = z.infer<typeof UpdateFollowStatusSchema>;
 
 export const UserDirectoryQuerySchema = z.object({
   page: positiveIntFromString(1),
-  limit: positiveIntFromString(10),
+  limit: positiveIntFromString(12),
   q: z.string().trim().optional(),
   sortBy: z
-    .enum(['alphabetical', 'newest', 'followers'])
-    .default('alphabetical'),
+    .preprocess((val) => val || 'alphabetical', z.string())
+    .refine((val) => ['alphabetical', 'newest', 'followers'].includes(val), {
+      message: 'Invalid sorting modifier criterion token selection',
+    })
+    .default('alphabetical') as z.ZodType<
+    'alphabetical' | 'newest' | 'followers'
+  >,
   letter: z
     .string()
     .length(1)
-    .regex(/^[a-zA-Z]$/, 'Must be a single alphabetical character')
+    .regex(
+      /^[a-zA-Z#]$/,
+      'Must be a single alphabetical character or symbol indicator',
+    )
     .transform((val) => val.toUpperCase())
     .optional(),
 });
