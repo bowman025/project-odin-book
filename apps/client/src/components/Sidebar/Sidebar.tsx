@@ -16,8 +16,10 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { apiFetch } from '../../lib/api.js';
 import { useAuthStore } from '../../store/authStore.js';
+import { useChatStore } from '../../store/chatStore.js';
 import { useThemeStore } from '../../store/themeStore.js';
 import { useUIStore } from '../../store/uiStore.js';
+
 import styles from './Sidebar.module.css';
 
 const SIDEBAR_COLLAPSED_KEY = 'odinum_sidebar_collapsed';
@@ -30,6 +32,8 @@ export const Sidebar: FC = () => {
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
 
   const isNavVisible = useUIStore((state) => state.isScrollingUp);
+
+  const disconnectSocket = useChatStore((state) => state.disconnectSocket);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,6 +55,7 @@ export const Sidebar: FC = () => {
       await apiFetch('/auth/logout', { method: 'POST' });
     } finally {
       clearAuth();
+      disconnectSocket();
       navigate('/login', { replace: true });
     }
   };

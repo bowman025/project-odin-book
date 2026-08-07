@@ -45,16 +45,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
   onlineUsers: new Set(),
 
   connectSocket: (accessToken) => {
-    if (get().socket?.connected) return;
+    if (get().socket) return;
 
-    const socketInstance = io(
-      import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
-      {
-        transports: ['websocket'],
-        auth: { token: `Bearer ${accessToken}` },
-        autoConnect: true,
-      },
-    );
+    const rawApiUrl =
+      import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    const socketTargetHost = rawApiUrl.replace(/\/api$/, '');
+
+    const socketInstance = io(socketTargetHost, {
+      transports: ['websocket'],
+      auth: { token: `Bearer ${accessToken}` },
+      autoConnect: true,
+    });
 
     socketInstance.on('message_created', (newMessage: MessagePayload) => {
       get().pushIncomingMessage(newMessage);
@@ -134,7 +135,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   disconnectSocket: () => {
-    get().socket?.disconnect();
+    const socket = get().socket;
+    if (socket) {
+      socket.disconnect();
+    }
     set({
       socket: null,
       onlineUsers: new Set(),

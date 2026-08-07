@@ -1,14 +1,24 @@
 import type { FC } from 'react';
+import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router';
 import { Header } from '../../components/Header/Header';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { CommentComposer } from '../../features/comments/CommentComposer/CommentComposer';
 import type { PostComment } from '../../features/posts/PostDetailPage/postDetailLoader.js';
-import { useIsAuthenticated } from '../../store/authStore.js';
+import { useAuthStore, useIsAuthenticated } from '../../store/authStore.js';
+import { useChatStore } from '../../store/chatStore.js';
 import styles from './ProtectedLayout.module.css';
 
 export const ProtectedLayout: FC = () => {
   const isAuthenticated = useIsAuthenticated();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const connectSocket = useChatStore((state) => state.connectSocket);
+
+  useEffect(() => {
+    if (isAuthenticated && accessToken) {
+      connectSocket(accessToken);
+    }
+  }, [isAuthenticated, accessToken, connectSocket]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
