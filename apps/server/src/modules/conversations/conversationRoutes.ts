@@ -5,6 +5,7 @@ import {
   createMessage,
   deleteMessage,
   getConversations,
+  getEligibleMessagingPartners,
   getMessageHistory,
   startConversation,
   updateMessage,
@@ -16,7 +17,7 @@ router.use(apiLimiter);
 router.use(authenticate);
 
 router.get('/', getConversations);
-
+router.get('/eligible-partners', getEligibleMessagingPartners);
 router.post('/:username', startConversation);
 
 router

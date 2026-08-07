@@ -19,3 +19,9 @@ export const JoinConversationsSchema = z.object({
 });
 
 export type JoinConversationsInput = z.infer<typeof JoinConversationsSchema>;
+
+export const SearchConnectionsSchema = z.object({
+  q: z.string().trim().default(''),
+});
+
+export type SearchConnectionsInput = z.infer<typeof SearchConnectionsSchema>;

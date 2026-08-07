@@ -45,6 +45,11 @@ export type MessageHistoryResult = {
   hasMore: boolean;
 };
 
+export type FetchEligiblePartnersOptions = {
+  currentUserId: string;
+  q: string;
+};
+
 const participantSelect = {
   id: true,
   username: true,
@@ -374,4 +379,41 @@ export const fetchMessageHistory = async (options: {
     items: [...pageMessages].reverse(),
     hasMore,
   };
+};
+
+export const fetchEligiblePartners = async (
+  options: FetchEligiblePartnersOptions,
+): Promise<ChatParticipant[]> => {
+  const { currentUserId, q } = options;
+  const users = await db.user.findMany({
+    where: {
+      id: { not: currentUserId },
+      username: {
+        contains: q,
+        mode: 'insensitive',
+      },
+      OR: [
+        {
+          receivedFollows: {
+            some: {
+              senderId: currentUserId,
+              status: 'ACCEPTED',
+            },
+          },
+        },
+        {
+          sentFollows: {
+            some: {
+              receiverId: currentUserId,
+              status: 'ACCEPTED',
+            },
+          },
+        },
+      ],
+    },
+    take: 10,
+    select: participantSelect,
+  });
+
+  return users;
 };

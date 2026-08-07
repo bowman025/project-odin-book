@@ -2,6 +2,7 @@ import {
   ConversationIdParamSchema,
   MessageIdParamSchema,
   PaginationQuerySchema,
+  SearchConnectionsSchema,
   SendMessageSchema,
   UsernameParamSchema,
 } from '@project-odin-book/validation';
@@ -10,12 +11,49 @@ import { getIO } from '../../shared/config/socket.js';
 import { AppError } from '../../shared/errors/AppError.js';
 import {
   fetchConversations,
+  fetchEligiblePartners,
   fetchMessageHistory,
   fetchOrCreateConversation,
   insertMessage,
   modifyMessage,
   removeMessage,
 } from './conversationService.js';
+
+export const getEligibleMessagingPartners = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const queryResult = SearchConnectionsSchema.safeParse(req.query);
+
+  if (!queryResult.success) {
+    return next(queryResult.error);
+  }
+
+  try {
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return next(new AppError('Authentication context required', 401));
+    }
+
+    const { q } = queryResult.data;
+
+    const items = await fetchEligiblePartners({
+      currentUserId,
+      q,
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        items,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
 
 export const getConversations = async (
   req: Request,
