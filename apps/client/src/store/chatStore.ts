@@ -17,6 +17,7 @@ type ChatState = {
   disconnectSocket: () => void;
   setActiveRoom: (conversationId: string | null) => void;
   setInbox: (conversations: InboxConversation[]) => void;
+  prependNewConversationToInbox: (newChat: InboxConversation) => void;
   setMessageHistory: (
     conversationId: string,
     messages: MessagePayload[],
@@ -163,6 +164,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setInbox: (conversations) => set({ inbox: conversations }),
+
+  prependNewConversationToInbox: (newChat: InboxConversation) =>
+    set((state) => {
+      if (state.inbox.some((chat) => chat.id === newChat.id)) {
+        return {};
+      }
+      return {
+        inbox: [newChat, ...state.inbox],
+      };
+    }),
 
   setMessageHistory: (conversationId, messages) =>
     set((state) => ({

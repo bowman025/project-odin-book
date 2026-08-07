@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { AccessibleModal } from '../../../../components/AccessibleModal/AccessibleModal';
 import { apiFetch } from '../../../../lib/api.js';
+import { useChatStore } from '../../../../store/chatStore.js';
 import styles from './NewChatModal.module.css';
 
 type EligiblePartner = {
@@ -28,6 +29,10 @@ export const NewChatModal: FC<NewChatModalProps> = ({ isOpen, onClose }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [isInitializingThread, setIsInitializingThread] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const prependNewConversationToInbox = useChatStore(
+    (state) => state.prependNewConversationToInbox,
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -90,10 +95,16 @@ export const NewChatModal: FC<NewChatModalProps> = ({ isOpen, onClose }) => {
 
       if (response.ok) {
         const payload = await response.json();
-        const conversationId = payload.data.conversation.id;
+        const conversation = payload.data.conversation;
+        prependNewConversationToInbox({
+          id: conversation.id,
+          updatedAt: conversation.updatedAt,
+          participants: conversation.participants,
+          lastMessage: null,
+        });
 
         onClose();
-        navigate(`/conversations/${conversationId}`);
+        navigate(`/conversations/${conversation.id}`);
       } else {
         const body = await response.json();
         setGlobalError(body.message || 'Could not initialize chat channel.');
