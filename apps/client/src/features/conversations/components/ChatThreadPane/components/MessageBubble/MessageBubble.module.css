@@ -82,7 +82,6 @@
   padding: 0 4px;
 }
 
-/* 🛠️ THE INLINE CONTROL BUTTONS RIBBON STRIP */
 .inlineManagementRibbonStrip {
   display: flex;
   align-items: center;
@@ -90,17 +89,6 @@
   margin-top: 6px;
   padding: 2px 4px;
   animation: ribbonSlideIn var(--transition-fast) ease;
-}
-
-@keyframes ribbonSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .inlineManagementRibbonStrip button {
@@ -138,13 +126,12 @@
   color: var(--color-error-base);
 }
 
-/* ✍️ INLINE EDIT INPUT FORM CHASSIS */
 .inlineEditFormStructure {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-width: 280px;
+  min-width: 0;
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-accent-primary);
   padding: 6px 12px;
@@ -154,6 +141,7 @@
 
 .inlineEditInputField {
   flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
@@ -167,6 +155,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .inlineEditActionsStrip button {
@@ -184,7 +173,7 @@
 }
 
 .actionIconButtonSave {
-  color: #10b981;
+  color: var(--color-accent-primary);
 }
 
 .actionIconButtonSave:hover:not(:disabled) {
@@ -213,8 +202,39 @@
   }
 }
 
+@keyframes ribbonSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
   .bubbleInteractionCell {
     max-width: 85%;
+  }
+}
+
+@media (max-width: 480px) {
+  .inlineEditFormStructure {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: var(--radius-lg);
+  }
+
+  .inlineEditInputField {
+    width: 100%;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding-bottom: 6px;
+  }
+
+  .inlineEditActionsStrip {
+    padding-top: 2px;
   }
 }

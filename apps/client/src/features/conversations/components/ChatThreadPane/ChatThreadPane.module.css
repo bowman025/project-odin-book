@@ -130,7 +130,7 @@
 }
 
 .threadInputConsoleTray {
-  padding: 18px 24px;
+  padding: 16px 24px;
   background-color: var(--color-bg-surface);
   border-top: 1px solid var(--color-border-subtle);
   flex-shrink: 0;
@@ -145,7 +145,7 @@
   align-items: center;
   justify-content: flex-start;
   box-sizing: border-box;
-  animation: typingFadeIn var(--transition-fast) ease;
+  animation: typingFadeIn var(--transition-fast);
   pointer-events: none;
 }
 
@@ -160,13 +160,14 @@
 .messageComposerFormStructure {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
 }
 
 .messagePayloadTextInputField {
   flex: 1;
-  padding: 12px 18px;
+  min-width: 0;
+  padding: 12px 16px;
   font-family: inherit;
   font-size: 0.9375rem;
   background-color: var(--color-bg-base);
@@ -175,8 +176,8 @@
   outline: none;
   color: var(--color-text-primary);
   transition:
-    border-color var(--transition-fast) ease,
-    background-color var(--transition-fast) ease;
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
 }
 
 .messagePayloadTextInputField:focus {
@@ -194,8 +195,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background-color: var(--color-accent-primary);
   color: var(--color-text-inverse);
@@ -203,9 +204,9 @@
   cursor: pointer;
   flex-shrink: 0;
   transition:
-    background-color var(--transition-fast) ease,
-    transform var(--transition-fast) ease,
-    opacity var(--transition-fast) ease;
+    background-color var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 .dispatchMessagePayloadBtn:hover:not(:disabled) {
@@ -259,6 +260,20 @@
   }
 
   .threadInputConsoleTray {
-    padding: 12px 16px;
+    padding: 10px 14px;
+  }
+
+  .messageComposerFormStructure {
+    gap: 8px;
+  }
+
+  .messagePayloadTextInputField {
+    padding: 10px 14px;
+    font-size: 0.875rem;
+  }
+
+  .dispatchMessagePayloadBtn {
+    width: 38px;
+    height: 38px;
   }
 }

@@ -241,7 +241,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
             <textarea
               id="bio-input-field"
               className={styles.bioTextarea}
-              placeholder="Script your chronicle background narrative summary..."
+              placeholder="Write your bio..."
               disabled={isSubmitting}
               maxLength={160}
               {...register('bio')}

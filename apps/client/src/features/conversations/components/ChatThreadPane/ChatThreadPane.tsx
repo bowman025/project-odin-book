@@ -223,7 +223,6 @@ export const ChatThreadPane: FC = () => {
 
   return (
     <div className={styles.activeChannelBoxStructure}>
-      {/* HEADER ROW BAR */}
       <header className={styles.threadHeaderSubBar}>
         <div className={styles.headerPartnerMetaBox}>
           <div className={styles.avatarWrapper}>
@@ -253,7 +252,6 @@ export const ChatThreadPane: FC = () => {
         </div>
       </header>
 
-      {/* MESSAGES CORE SCROLL FEEDS CONTAINER */}
       <div ref={scrollContainerRef} className={styles.dialogueScrollFeedBody}>
         <div ref={topSentinelRef} className={styles.topPaginationTrigger}>
           {isFetchingOlder && (
@@ -264,7 +262,6 @@ export const ChatThreadPane: FC = () => {
           )}
         </div>
 
-        {/* 🔌 INTEGRATED ENCAPSULATED INLINE ACTIONS MESSAGE BUBBLE LAYER */}
         {currentRoomMessages.map((msg) => {
           const isMyOwnMessage = msg.senderId === currentUserId;
           return (
@@ -280,7 +277,6 @@ export const ChatThreadPane: FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* CONSOLE INPUT TRAY COMPOSER COMPONENT WITH FLOATING INDICATOR */}
       <footer className={styles.threadInputConsoleTray}>
         {Object.entries(currentRoomTypingRegistry).some(
           ([uId, isTyping]) => uId !== currentUserId && isTyping,

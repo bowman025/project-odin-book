@@ -25,7 +25,6 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
 
   const editInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Focus the input text area the exact millisecond the user enters edit mode
   useEffect(() => {
     if (isEditing) {
       editInputRef.current?.focus();
@@ -33,13 +32,11 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
     }
   }, [isEditing]);
 
-  // Synchronize the input field buffer text if the backend mutates the record externally
   useEffect(() => {
     setEditTextBuffer(msg.content);
   }, [msg.content]);
 
   const handleToggleMenu = () => {
-    // Only allow clicking your own messages to access management tools
     if (!isMyOwnMessage || isEditing || isSubmitting) return;
     setIsMenuOpen((prev) => !prev);
   };
@@ -104,8 +101,6 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
         setLocalError('Failed to remove entry from archives.');
         setIsSubmitting(false);
       }
-      // Note: If successful, the global store's message_deleted socket listener
-      // will trigger and unmount this specific component dynamically!
     } catch {
       setLocalError('Network connection link failure.');
       setIsSubmitting(false);
@@ -117,7 +112,6 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
       className={`${styles.messageRowBubbleWrapper} ${isMyOwnMessage ? styles.rowMine : styles.rowForeign}`}
     >
       <div className={styles.bubbleInteractionCell}>
-        {/* INLINE EDIT INPUT FORM vs STANDARD BUBBLE STRING */}
         {isEditing ? (
           <form
             onSubmit={handleExecuteSaveEdit}
@@ -174,7 +168,6 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
           <div className={styles.bubbleLocalErrorText}>{localError}</div>
         )}
 
-        {/* 🛠️ INLINE MANAGED CONTROLS RIBBON (Appears cleanly right beneath active message row onClick) */}
         {isMenuOpen && !isEditing && (
           <div className={styles.inlineManagementRibbonStrip}>
             <button
