@@ -16,18 +16,32 @@ export const ConversationsPage: FC = () => {
   const socket = useChatStore((state) => state.socket);
 
   useEffect(() => {
-    if (initialInboxData?.items) {
-      setInbox(initialInboxData.items);
+    if (!initialInboxData?.items || !socket) return;
 
-      const visibleRoomIds = initialInboxData.items.map((chat) => chat.id);
-      if (socket?.connected && visibleRoomIds.length > 0) {
-        socket.emit('join_conversations', { conversationIds: visibleRoomIds });
-      }
+    setInbox(initialInboxData.items);
+
+    const visibleRoomIds = initialInboxData.items.map((chat) => chat.id);
+    if (visibleRoomIds.length === 0) return;
+
+    const joinRooms = () => {
+      socket.emit('join_conversations', { conversationIds: visibleRoomIds });
+    };
+
+    if (socket.connected) {
+      joinRooms();
+    } else {
+      socket.once('connect', joinRooms);
     }
+
+    return () => {
+      socket.off('connect', joinRooms);
+    };
   }, [initialInboxData, setInbox, socket]);
 
   useEffect(() => {
-    if (!conversationId && activeRoomId) {
+    if (conversationId) {
+      setActiveRoom(conversationId);
+    } else if (activeRoomId) {
       setActiveRoom(null);
     }
   }, [conversationId, activeRoomId, setActiveRoom]);
@@ -38,12 +52,15 @@ export const ConversationsPage: FC = () => {
 
       <main className={styles.chatViewportContainer}>
         {conversationId ? (
-          <Outlet />
+          <div
+            key={conversationId}
+            className={styles.activeChannelWrapperChassis}
+          >
+            <Outlet />
+          </div>
         ) : (
           <div className={styles.unselectedChannelEmptyStateBox}>
-            <h4 className={styles.emptyStateTitleHeadline}>
-              Communication Center
-            </h4>
+            <h4 className={styles.emptyStateTitleHeadline}>Your Messages</h4>
             <p className={styles.emptyStateDescriptionSummary}>
               Select a conversation from the sidebar or start a new chat to
               begin messaging.
