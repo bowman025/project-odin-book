@@ -7,6 +7,7 @@ import { useAuthStore } from '../../../../store/authStore.js';
 import { useChatStore } from '../../../../store/chatStore.js';
 import type { MessageHistoryLoaderResult } from '../../messageHistoryLoader.js';
 import styles from './ChatThreadPane.module.css';
+import { MessageBubble } from './components/MessageBubble/MessageBubble';
 
 export const ChatThreadPane: FC = () => {
   const initialHistoryData = useLoaderData() as MessageHistoryLoaderResult;
@@ -20,6 +21,9 @@ export const ChatThreadPane: FC = () => {
 
   const messageCache = useChatStore((state) => state.messageCache);
   const setMessageHistory = useChatStore((state) => state.setMessageHistory);
+  const prependMessageHistory = useChatStore(
+    (state) => state.prependMessageHistory,
+  );
   const pushIncomingMessage = useChatStore(
     (state) => state.pushIncomingMessage,
   );
@@ -29,32 +33,124 @@ export const ChatThreadPane: FC = () => {
 
   const [typedMessageInput, setTypedMessageInput] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [isFetchingOlder, setIsFetchingOlder] = useState(false);
 
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const currentPageRef = useRef(2);
+  const hasMoreRef = useRef(initialHistoryData.pagination.hasMore);
+  const previousCacheCountRef = useRef(initialHistoryData.items.length);
+  const previousScrollHeightRef = useRef(0);
+  const topObserverRef = useRef<IntersectionObserver | null>(null);
+
+  const isPrependActionRef = useRef(false);
+
   const typingDebounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
   const localIsTypingStateRef = useRef(false);
 
+  const currentRoomMessages = conversationId
+    ? messageCache[conversationId] || []
+    : [];
+
   useEffect(() => {
     if (initialHistoryData && conversationId) {
       setMessageHistory(conversationId, initialHistoryData.items);
       setActiveRoom(conversationId);
-    }
-  }, [initialHistoryData, conversationId, setMessageHistory, setActiveRoom]);
 
-  const scrollChatViewportToBottom = useCallback(
-    (behavior: ScrollBehavior = 'smooth') => {
-      messagesEndRef.current?.scrollIntoView({ behavior });
-    },
-    [],
-  );
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      });
+    }
+  }, [conversationId, initialHistoryData, setMessageHistory, setActiveRoom]);
 
   useEffect(() => {
-    if (conversationId && messageCache[conversationId]) {
-      scrollChatViewportToBottom('instant');
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer || currentRoomMessages.length === 0) return;
+
+    const currentCount = currentRoomMessages.length;
+    const previousCount = previousCacheCountRef.current;
+
+    if (isPrependActionRef.current && currentCount > previousCount) {
+      const newScrollHeight = scrollContainer.scrollHeight;
+      scrollContainer.scrollTop =
+        newScrollHeight - previousScrollHeightRef.current;
+
+      isPrependActionRef.current = false;
+    } else if (currentCount > previousCount) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      });
     }
-  }, [conversationId, messageCache, scrollChatViewportToBottom]);
+
+    previousCacheCountRef.current = currentCount;
+    previousScrollHeightRef.current = scrollContainer.scrollHeight;
+  }, [currentRoomMessages.length]);
+
+  const fetchOlderDialogueHistory = useCallback(async () => {
+    if (isFetchingOlder || !hasMoreRef.current || !conversationId) return;
+    setIsFetchingOlder(true);
+
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      previousScrollHeightRef.current = scrollContainer.scrollHeight;
+    }
+
+    try {
+      const response = await apiFetch(
+        `/conversations/${conversationId}/messages?page=${currentPageRef.current}&limit=30`,
+      );
+
+      if (response.ok) {
+        const payload = await response.json();
+        const olderMessages = payload.data.items;
+
+        hasMoreRef.current = payload.data.pagination.hasMore;
+        currentPageRef.current += 1;
+
+        isPrependActionRef.current = true;
+        prependMessageHistory(conversationId, olderMessages);
+      }
+    } catch (error) {
+      console.error(
+        'Failed to parse previous text logs history sequence:',
+        error,
+      );
+    } finally {
+      setIsFetchingOlder(false);
+    }
+  }, [conversationId, isFetchingOlder, prependMessageHistory]);
+
+  const topSentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node || isFetchingOlder || !hasMoreRef.current || !conversationId)
+        return;
+
+      if (topObserverRef.current) {
+        topObserverRef.current.disconnect();
+      }
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.at(0)?.isIntersecting && hasMoreRef.current) {
+            fetchOlderDialogueHistory();
+          }
+        },
+        { threshold: 0.1 },
+      );
+
+      observer.observe(node);
+      topObserverRef.current = observer;
+
+      return () => {
+        observer.disconnect();
+        topObserverRef.current = null;
+      };
+    },
+    [conversationId, isFetchingOlder, fetchOlderDialogueHistory],
+  );
 
   const handleUserKeystrokeActivity = (textValue: string) => {
     setTypedMessageInput(textValue);
@@ -75,7 +171,7 @@ export const ChatThreadPane: FC = () => {
     }, 2000);
   };
 
-  const executeFormMessageBroadcastSubmit = async (e: React.FormEvent) => {
+  const executeFormMessageBroadcastSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     const cleanText = typedMessageInput.trim();
     if (!cleanText || !conversationId || isSendingMessage) return;
@@ -101,7 +197,6 @@ export const ChatThreadPane: FC = () => {
 
         pushIncomingMessage(authoredMessage);
         setTypedMessageInput('');
-        setTimeout(() => scrollChatViewportToBottom('smooth'), 50);
       }
     } catch (error) {
       console.error(
@@ -113,13 +208,9 @@ export const ChatThreadPane: FC = () => {
     }
   };
 
-  const currentRoomMessages = conversationId
-    ? messageCache[conversationId] || []
-    : [];
   const currentRoomTypingRegistry = conversationId
     ? typingUsers[conversationId] || {}
     : {};
-
   const activeChatSessionMeta = inbox.find(
     (chat) => chat.id === conversationId,
   );
@@ -132,6 +223,7 @@ export const ChatThreadPane: FC = () => {
 
   return (
     <div className={styles.activeChannelBoxStructure}>
+      {/* HEADER ROW BAR */}
       <header className={styles.threadHeaderSubBar}>
         <div className={styles.headerPartnerMetaBox}>
           <div className={styles.avatarWrapper}>
@@ -161,55 +253,45 @@ export const ChatThreadPane: FC = () => {
         </div>
       </header>
 
-      <div className={styles.dialogueScrollFeedBody}>
-        {currentRoomMessages.length === 0 ? (
-          <div className={styles.emptyThreadPromptBlock}>
-            <p>
-              This is the start of your secure chat narrative channel with @
-              {foreignChatTargetCitizen.username}.
-            </p>
-          </div>
-        ) : (
-          currentRoomMessages.map((msg) => {
-            const isMyOwnMessage = msg.senderId === currentUserId;
-            return (
-              <div
-                key={`msg-row-${msg.id}`}
-                className={`${styles.messageRowBubbleWrapper} ${isMyOwnMessage ? styles.rowMine : styles.rowForeign}`}
-              >
-                <div
-                  className={`${styles.messageTextBubbleCell} ${isMyOwnMessage ? styles.bubbleMine : styles.bubbleForeign}`}
-                >
-                  <p className={styles.messageContentTextString}>
-                    {msg.content}
-                  </p>
-                  <div className={styles.messageMetaBadgeStrip}>
-                    {msg.edited && (
-                      <span className={styles.editedTextLabel}>edited</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-
-        {Object.entries(currentRoomTypingRegistry).some(
-          ([uId, isTyping]) => uId !== currentUserId && isTyping,
-        ) && (
-          <div className={styles.typingFeedbackRowBubble}>
-            <div className={styles.typingBubbleIndicatorCell}>
-              <span className={styles.typingTextFeedback}>
-                @{foreignChatTargetCitizen.username} is typing...
-              </span>
+      {/* MESSAGES CORE SCROLL FEEDS CONTAINER */}
+      <div ref={scrollContainerRef} className={styles.dialogueScrollFeedBody}>
+        <div ref={topSentinelRef} className={styles.topPaginationTrigger}>
+          {isFetchingOlder && (
+            <div className={styles.topLoaderRow}>
+              <Loader2 className={styles.spinner} size={16} />
+              <span>Fetching older history...</span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* 🔌 INTEGRATED ENCAPSULATED INLINE ACTIONS MESSAGE BUBBLE LAYER */}
+        {currentRoomMessages.map((msg) => {
+          const isMyOwnMessage = msg.senderId === currentUserId;
+          return (
+            <MessageBubble
+              key={`msg-row-${msg.id}`}
+              msg={msg}
+              isMyOwnMessage={isMyOwnMessage}
+              conversationId={conversationId || ''}
+            />
+          );
+        })}
 
         <div ref={messagesEndRef} />
       </div>
 
+      {/* CONSOLE INPUT TRAY COMPOSER COMPONENT WITH FLOATING INDICATOR */}
       <footer className={styles.threadInputConsoleTray}>
+        {Object.entries(currentRoomTypingRegistry).some(
+          ([uId, isTyping]) => uId !== currentUserId && isTyping,
+        ) && (
+          <div className={styles.typingFloatingTextStrip}>
+            <span className={styles.typingTextFeedback}>
+              @{foreignChatTargetCitizen.username} is typing...
+            </span>
+          </div>
+        )}
+
         <form
           onSubmit={executeFormMessageBroadcastSubmit}
           className={styles.messageComposerFormStructure}

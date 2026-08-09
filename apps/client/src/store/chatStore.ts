@@ -149,17 +149,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setActiveRoom: (conversationId) => {
-    const socket = get().socket;
-    const currentActiveRoom = get().activeConversationId;
-
-    if (currentActiveRoom) {
-      socket?.emit('leave_conversation', { conversationId: currentActiveRoom });
-    }
-
-    if (conversationId) {
-      socket?.emit('join_conversation', { conversationId });
-    }
-
     set({ activeConversationId: conversationId });
   },
 

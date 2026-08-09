@@ -1,0 +1,220 @@
+.messageRowBubbleWrapper {
+  display: flex;
+  width: 100%;
+}
+
+.messageRowBubbleWrapper.rowMine {
+  justify-content: flex-end;
+}
+
+.messageRowBubbleWrapper.rowForeign {
+  justify-content: flex-start;
+}
+
+.bubbleInteractionCell {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+  position: relative;
+}
+
+.messageTextBubbleCell {
+  padding: 12px 18px;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  text-align: left;
+  font-family: inherit;
+  border: none;
+  background: transparent;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bubbleMine {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+  border-bottom-right-radius: var(--radius-xs);
+}
+
+.bubbleForeign {
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border-bottom-left-radius: var(--radius-xs);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.clickableBubble {
+  cursor: pointer;
+  transition:
+    opacity var(--transition-fast) ease,
+    transform var(--transition-fast) ease;
+}
+
+.clickableBubble:hover {
+  opacity: 0.95;
+}
+
+.messageContentTextString {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.messageMetaBadgeStrip {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.editedTextLabel {
+  font-size: 0.6875rem;
+  opacity: 0.6;
+  font-weight: 500;
+}
+
+.bubbleLocalErrorText {
+  color: var(--color-error-base);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+/* 🛠️ THE INLINE CONTROL BUTTONS RIBBON STRIP */
+.inlineManagementRibbonStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 2px 4px;
+  animation: ribbonSlideIn var(--transition-fast) ease;
+}
+
+@keyframes ribbonSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.inlineManagementRibbonStrip button {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition:
+    background-color var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+}
+
+.ribbonActionBtnEdit {
+  color: var(--color-text-secondary);
+}
+
+.ribbonActionBtnEdit:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.ribbonActionBtnDelete {
+  color: var(--color-text-muted);
+}
+
+.ribbonActionBtnDelete:hover {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-base);
+}
+
+/* ✍️ INLINE EDIT INPUT FORM CHASSIS */
+.inlineEditFormStructure {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 280px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-accent-primary);
+  padding: 6px 12px;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.inlineEditInputField {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  padding: 4px 0;
+}
+
+.inlineEditActionsStrip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inlineEditActionsStrip button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+}
+
+.actionIconButtonSave {
+  color: #10b981;
+}
+
+.actionIconButtonSave:hover:not(:disabled) {
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.actionIconButtonCancel {
+  color: var(--color-text-muted);
+}
+
+.actionIconButtonCancel:hover:not(:disabled) {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .bubbleInteractionCell {
+    max-width: 85%;
+  }
+}
