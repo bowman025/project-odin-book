@@ -12,6 +12,7 @@ model User {
   email          String   @unique
   username       String   @unique
   passwordHash   String?
+  githubId       String?
   refreshToken   String?
   profilePicture String?
   bio            String?

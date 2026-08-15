@@ -19,6 +19,13 @@ export const envSchema = z
     CLOUDINARY_CLOUD_NAME: z.string().min(1),
     CLOUDINARY_API_KEY: z.string().min(1),
     CLOUDINARY_API_SECRET: z.string().min(1),
+
+    GITHUB_CLIENT_ID: z
+      .string()
+      .min(1, { error: 'GitHub Client ID configuration token required' }),
+    GITHUB_CLIENT_SECRET: z
+      .string()
+      .min(1, { error: 'GitHub Client Secret hash is required' }),
   })
   .refine((env) => env.NODE_ENV !== 'test' || !!env.TEST_DATABASE_URL, {
     message: 'TEST_DATABASE_URL is required in test environment',
