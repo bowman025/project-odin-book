@@ -77,6 +77,36 @@ export const LoginSchema = z.object({
 
 export type LoginInput = z.infer<typeof LoginSchema>;
 
+export const GithubExchangeCodeSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(1, { error: 'GitHub authorization code cannot be empty' }),
+});
+
+export type GithubExchangeCodeInput = z.infer<typeof GithubExchangeCodeSchema>;
+
+export const GitHubProfileApiResponseSchema = z.object({
+  id: z.coerce
+    .string()
+    .min(1, { error: 'Malformed third-party profile identifier' }),
+  login: z
+    .string()
+    .trim()
+    .min(1, { error: 'GitHub login handle required' })
+    .transform((val) => val.toLowerCase()),
+  email: z
+    .email({ error: 'GitHub profile must contain a valid email address' })
+    .nullable()
+    .optional(),
+  avatar_url: z.url().nullable().optional(),
+  bio: z.string().nullable().optional(),
+});
+
+export type GitHubProfileApiResponse = z.infer<
+  typeof GitHubProfileApiResponseSchema
+>;
+
 export const ChangePasswordSchema = z
   .object({
     currentPassword: z
