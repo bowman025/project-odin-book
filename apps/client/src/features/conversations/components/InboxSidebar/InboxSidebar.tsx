@@ -1,4 +1,4 @@
-import { Inbox, MessageSquarePlus } from 'lucide-react';
+import { Home, Inbox, MessageSquarePlus } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
@@ -19,6 +19,14 @@ export const InboxSidebar: FC = () => {
     <aside className={styles.inboxSidebar}>
       <header className={styles.sidebarHeader}>
         <div className={styles.headerLeftTitle}>
+          <button
+            type="button"
+            className={styles.exitWorkspaceBtn}
+            onClick={() => navigate('/')}
+            title="Exit messages to home feed"
+          >
+            <Home size={18} />
+          </button>
           <Inbox size={18} className={styles.inboxIcon} />
           <h3 className={styles.sidebarTitle}>Inbox</h3>
         </div>

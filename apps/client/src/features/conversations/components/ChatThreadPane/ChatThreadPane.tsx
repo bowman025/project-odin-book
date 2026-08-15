@@ -1,7 +1,7 @@
-import { Loader2, Send } from 'lucide-react';
+import { ArrowLeft, Loader2, Send } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useLoaderData, useParams } from 'react-router';
+import { useLoaderData, useNavigate, useParams } from 'react-router';
 import { apiFetch } from '../../../../lib/api.js';
 import { useAuthStore } from '../../../../store/authStore.js';
 import { useChatStore } from '../../../../store/chatStore.js';
@@ -12,6 +12,7 @@ import { MessageBubble } from './components/MessageBubble/MessageBubble';
 export const ChatThreadPane: FC = () => {
   const initialHistoryData = useLoaderData() as MessageHistoryLoaderResult;
   const { conversationId } = useParams();
+  const navigate = useNavigate();
 
   const currentUserId = useAuthStore((state) => state.user?.id);
 
@@ -225,6 +226,14 @@ export const ChatThreadPane: FC = () => {
     <div className={styles.activeChannelBoxStructure}>
       <header className={styles.threadHeaderSubBar}>
         <div className={styles.headerPartnerMetaBox}>
+          <button
+            type="button"
+            className={styles.mobileBackBtn}
+            onClick={() => navigate('/conversations')}
+            title="Back to inbox"
+          >
+            <ArrowLeft size={18} />
+          </button>
           <div className={styles.avatarWrapper}>
             {foreignChatTargetCitizen.profilePicture ? (
               <img
@@ -246,7 +255,7 @@ export const ChatThreadPane: FC = () => {
               @{foreignChatTargetCitizen.username}
             </span>
             <span className={styles.presenceSubLabelText}>
-              {isPartnerOnline ? 'Online in Realm' : 'Offline'}
+              {isPartnerOnline ? 'Online' : 'Offline'}
             </span>
           </div>
         </div>
@@ -298,7 +307,6 @@ export const ChatThreadPane: FC = () => {
             placeholder={`Send message to @${foreignChatTargetCitizen.username}...`}
             value={typedMessageInput}
             onChange={(e) => handleUserKeystrokeActivity(e.target.value)}
-            disabled={isSendingMessage}
             maxLength={500}
           />
           <button
