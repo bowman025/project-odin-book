@@ -332,7 +332,7 @@ export const ProfilePage: FC = () => {
           {activeTab === 'comments' &&
             (comments.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>This citizen has not appended any commentary logs yet.</p>
+                <p>This citizen has not written any comments yet.</p>
               </div>
             ) : (
               comments.map((item) => {
@@ -383,7 +383,7 @@ export const ProfilePage: FC = () => {
           {activeTab === 'likes' &&
             (likes.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>No chronicles found in this citizen's collection yet.</p>
+                <p>This citizen has not liked any chronicles yet.</p>
               </div>
             ) : (
               likes.map((post) => (

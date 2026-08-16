@@ -142,8 +142,8 @@ export const PendingRequestsPage: FC = () => {
         </button>
         <h2 className={styles.title}>Connection Requests</h2>
         <p className={styles.subtitle}>
-          Audit incoming requests, track outbound hooks, or manage and revoke
-          active connections.
+          Audit received requests, track sent requests, or revoke approved
+          requests.
         </p>
       </header>
 

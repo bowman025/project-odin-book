@@ -154,8 +154,9 @@ export const SettingsPage: FC = () => {
           <h3 className={styles.cardTitle}>Manage Requests</h3>
         </div>
         <p className={styles.dangerDescriptionText}>
-          Audit incoming citizen follow requests waiting for your clearance, or
-          manage and retract outbound relationship statuses.
+          Audit incoming citizen follow requests waiting for your approval,
+          manage outbound requests, or revoke the follow requests you previously
+          approved.
         </p>
         <div className={styles.formActionsRow}>
           <button
@@ -297,9 +298,8 @@ export const SettingsPage: FC = () => {
         </div>
 
         <p className={styles.dangerDescriptionText}>
-          Permanently erase your identity, digital footprint, chronicles, follow
-          graphs, and conversation logs. This action is absolute and cannot be
-          reversed.
+          Permanently erase your identity, digital footprint, chronicles,
+          follows, and conversations. This action cannot be reversed!
         </p>
 
         <div className={styles.dangerActionsRow}>
@@ -329,8 +329,8 @@ export const SettingsPage: FC = () => {
               Are you absolutely sure?
             </h3>
             <p id="delete-desc" className={styles.modalSubtitle}>
-              This will forcefully close your active credentials and completely
-              scrub your profile from Odinum.
+              This will close your account and completely scrub your profile
+              from Odinum.
             </p>
           </header>
 
