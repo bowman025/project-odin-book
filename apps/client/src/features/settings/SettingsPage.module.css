@@ -306,7 +306,6 @@
   font-family: inherit;
   font-size: 0.9375rem;
   outline: none;
-  box-sizing: border-box;
   transition: border-color var(--transition-fast);
 }
 
@@ -341,7 +340,6 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-sizing: border-box;
   transition:
     background-color var(--transition-fast),
     border-color var(--transition-fast);

@@ -101,7 +101,6 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  box-sizing: border-box;
   transition:
     background-color var(--transition-fast) ease,
     border-color var(--transition-fast) ease;

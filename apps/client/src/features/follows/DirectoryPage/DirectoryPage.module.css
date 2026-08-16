@@ -3,7 +3,6 @@
   flex-direction: column;
   gap: 32px;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .pageHeader {
@@ -41,7 +40,6 @@
   cursor: pointer;
   width: max-content;
   align-self: flex-start;
-  box-sizing: border-box;
   text-decoration: none;
   transition:
     background-color var(--transition-fast) ease,
@@ -168,7 +166,6 @@
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
-  box-sizing: border-box;
 }
 
 .letterIndexBadgeBtn {
@@ -351,7 +348,6 @@
   color: var(--color-text-secondary);
   gap: 16px;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .emptyStateResetBtn {
