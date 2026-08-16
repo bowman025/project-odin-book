@@ -5,6 +5,7 @@ import {
   changePassword,
   deleteAccount,
   getAuthDetails,
+  githubOAuthCallback,
   guestLogin,
   login,
   logout,
@@ -21,6 +22,7 @@ router.post('/login', login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
 router.post('/guest', guestLogin);
+router.post('/github', githubOAuthCallback);
 router.patch('/change-password', authenticate, changePassword);
 router.delete('/delete-account', authenticate, deleteAccount);
 router.get('/me/details', authenticate, getAuthDetails);

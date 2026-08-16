@@ -7,6 +7,7 @@ import {
 import {
   type ChangePasswordInput,
   type DeleteAccountInput,
+  type GitHubProfileApiResponse,
   getEmailPrefix,
   type UpdateProfileInput,
 } from '@project-odin-book/validation';
@@ -52,6 +53,7 @@ export type UserProfile = {
     following: number;
   };
 };
+
 type UserWithCounts = {
   id: string;
   username: string;
@@ -166,6 +168,65 @@ export const createOrUpdateGuestUser = async (): Promise<AuthUser> => {
       username: true,
       email: true,
     },
+  });
+};
+
+export const upsertOauthUser = async (
+  profile: GitHubProfileApiResponse,
+): Promise<SessionAuthUser> => {
+  const {
+    id: githubId,
+    login: githubUsername,
+    email,
+    avatar_url,
+    bio,
+  } = profile;
+
+  const existingBySocialId = await db.user.findUnique({
+    where: { githubId },
+    select: sessionAuthUserSelect,
+  });
+
+  if (existingBySocialId) {
+    return existingBySocialId;
+  }
+
+  if (email) {
+    const existingByEmail = await db.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (existingByEmail) {
+      return db.user.update({
+        where: { id: existingByEmail.id },
+        data: { githubId },
+        select: sessionAuthUserSelect,
+      });
+    }
+  }
+
+  const usernameTaken = await db.user.findUnique({
+    where: { username: githubUsername },
+    select: { id: true },
+  });
+
+  const resolvedUsername = usernameTaken
+    ? `${githubUsername}_${githubId}`
+    : githubUsername;
+
+  const resolvedEmail = email || `${resolvedUsername}_github_stub@odinum.local`;
+
+  return await db.user.create({
+    data: {
+      username: resolvedUsername,
+      email: resolvedEmail,
+      githubId,
+      profilePicture: avatar_url ?? null,
+      bio: bio || `GitHub explorer joining Odinum.`,
+      passwordHash: null,
+    },
+    select: sessionAuthUserSelect,
   });
 };
 

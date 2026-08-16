@@ -4,13 +4,15 @@ import {
   type BaseTokenPayload,
   ChangePasswordSchema,
   DeleteAccountSchema,
+  GitHubProfileApiResponseSchema,
+  GithubExchangeCodeSchema,
   LoginSchema,
   RegisterInputSchema,
 } from '@project-odin-book/validation';
 import bcrypt from 'bcryptjs';
 import type { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
-import { isProduction } from '../../shared/config/env.js';
+import { env, isProduction } from '../../shared/config/env.js';
 import { AppError } from '../../shared/errors/AppError.js';
 import {
   signAccessToken,
@@ -24,6 +26,7 @@ import {
   fetchUserAuthDetails,
   fetchUserSessionById,
   updateUserPassword,
+  upsertOauthUser,
 } from '../users/userService.js';
 import { updateRefreshToken } from './tokenService.js';
 
@@ -402,6 +405,123 @@ export const getAuthDetails = async (
     return res.status(200).json({
       status: 'success',
       data: authDetails,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const GITHUB_USER_AGENT = 'Odinum-Server-Engine';
+
+export const githubOAuthCallback = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const result = GithubExchangeCodeSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return next(result.error);
+  }
+
+  try {
+    const { code } = result.data;
+
+    const tokenResponse = await fetch(
+      'https://github.com/login/oauth/access_token',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          client_id: env.GITHUB_CLIENT_ID,
+          client_secret: env.GITHUB_CLIENT_SECRET,
+          code,
+          redirect_uri: env.GITHUB_REDIRECT_URI,
+        }),
+      },
+    );
+
+    if (!tokenResponse.ok) {
+      throw new AppError('Third-party token exchange failed.', 401);
+    }
+
+    const tokenData = (await tokenResponse.json()) as Record<string, unknown>;
+    const githubAccessToken = tokenData.access_token;
+
+    if (!githubAccessToken || typeof githubAccessToken !== 'string') {
+      throw new AppError('Invalid or malformed GitHub credentials.', 401);
+    }
+
+    const profileResponse = await fetch('https://api.github.com/user', {
+      headers: {
+        Authorization: `token ${githubAccessToken}`,
+        'User-Agent': GITHUB_USER_AGENT,
+      },
+    });
+
+    if (!profileResponse.ok) {
+      throw new AppError('Failed to fetch GitHub profile.', 401);
+    }
+
+    type LooseGitHubUserPayload = {
+      id: number | string;
+      login: string;
+      avatar_url?: string | null;
+      bio?: string | null;
+      email?: string | null;
+    };
+
+    const rawProfilePayload =
+      (await profileResponse.json()) as LooseGitHubUserPayload;
+
+    if (!rawProfilePayload.email) {
+      try {
+        const emailsResponse = await fetch(
+          'https://api.github.com/user/emails',
+          {
+            headers: {
+              Authorization: `token ${githubAccessToken}`,
+              'User-Agent': GITHUB_USER_AGENT,
+            },
+          },
+        );
+
+        if (emailsResponse.ok) {
+          type GitHubEmailNode = {
+            email: string;
+            primary: boolean;
+            verified: boolean;
+          };
+          const emailsList = (await emailsResponse.json()) as GitHubEmailNode[];
+
+          const primaryEmailRecord =
+            emailsList.find((e) => e.primary && e.verified) || emailsList.at(0);
+
+          if (primaryEmailRecord?.email) {
+            rawProfilePayload.email = primaryEmailRecord.email;
+          }
+        }
+      } catch (err) {
+        console.warn('[GitHub secondary emails query skipped]:', err);
+      }
+    }
+
+    const cleanProfile =
+      GitHubProfileApiResponseSchema.parse(rawProfilePayload);
+    const resolvedUser = await upsertOauthUser(cleanProfile);
+    const { accessToken, user: userResponse } = await issueSession(
+      res,
+      resolvedUser,
+    );
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Authenticated successfully via GitHub',
+      accessToken,
+      user: userResponse,
     });
   } catch (error) {
     return next(error);
