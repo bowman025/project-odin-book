@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { apiFetch } from '../../../lib/api.js';
+import { initiateGitHubLogin } from '../../../lib/githubOAuth.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import styles from '../auth.module.css';
 
@@ -145,6 +146,22 @@ export const LoginPage: FC = () => {
             <span>{isSubmitting ? 'Authenticating...' : 'Sign In'}</span>
           </button>
         </form>
+
+        {/* 🔌 THE GITHUB OAUTH CONNECTOR STRIP */}
+        <div className={styles.dividerContainer}>
+          <div className={styles.dividerLine} />
+          <span className={styles.dividerText}>Social Access</span>
+          <div className={styles.dividerLine} />
+        </div>
+
+        <button
+          type="button"
+          className={styles.guestButton}
+          onClick={initiateGitHubLogin}
+          disabled={isSubmitting}
+        >
+          <span>Continue with GitHub</span>
+        </button>
 
         <div className={styles.dividerContainer}>
           <div className={styles.dividerLine} />

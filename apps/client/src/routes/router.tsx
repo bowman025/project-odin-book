@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router';
 import { ErrorPage } from '../components/ErrorPage/ErrorPage';
 import { LoadingScreen } from '../components/LoadingScreen/LoadingScreen';
+import { AuthCallbackPage } from '../features/auth/AuthCallbackPage/AuthCallbackPage';
 import { LoginPage } from '../features/auth/LoginPage/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage/RegisterPage';
 import { ConversationsPage } from '../features/conversations/ConversationsPage';
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
       {
         path: 'register',
         element: <RegisterPage />,
+      },
+      {
+        path: 'auth/github/callback',
+        element: <AuthCallbackPage />,
       },
       {
         element: <ProtectedLayout />,
