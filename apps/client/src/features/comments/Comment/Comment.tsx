@@ -154,8 +154,8 @@ export const Comment: FC<CommentProps> = ({
             id={`comment-del-desc-${comment.id}`}
             className={styles.deleteWarningText}
           >
-            Are you sure you want to permanently remove this comment from the
-            discourse stream? This action is absolute.
+            Are you sure you want to permanently remove this comment? This
+            action is absolute.
           </p>
 
           <div className={styles.deleteModalActions}>

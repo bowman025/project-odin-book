@@ -73,10 +73,7 @@ export const SettingsPage: FC = () => {
       const payload = await response.json();
 
       if (response.ok) {
-        addToast(
-          'Password updated successfully. Please log back in.',
-          'success',
-        );
+        addToast('Password updated! Please log back in.', 'success');
         clearAuth();
         navigate('/login', { replace: true });
       } else {
@@ -112,7 +109,7 @@ export const SettingsPage: FC = () => {
 
       if (response.ok) {
         addToast(
-          'Your account and entire digital footprint were successfully purged.',
+          'Your account and entire digital footprint were purged!',
           'success',
         );
         setIsTerminationModalOpen(false);

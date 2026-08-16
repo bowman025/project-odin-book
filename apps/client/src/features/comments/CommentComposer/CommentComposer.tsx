@@ -94,7 +94,7 @@ export const CommentComposer: FC<{
       );
 
       closeCommentModal();
-      addToast('Comment posted successfully!', 'success');
+      addToast('Comment posted!', 'success');
     } catch {
       setGlobalFormError('Network error. Please try again.');
     } finally {

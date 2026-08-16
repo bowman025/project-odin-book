@@ -146,7 +146,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
         const payload = await response.json();
         const updated: UserProfile = payload.data.profile;
 
-        addToast('Your Odinum profile was successfully updated.', 'success');
+        addToast('Your Odinum profile was updated!', 'success');
 
         const existingUser = useAuthStore.getState().user;
         if (currentAccessToken && existingUser) {

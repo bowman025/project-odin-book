@@ -52,7 +52,7 @@ export const CommentEditor: FC<CommentEditorProps> = ({
 
       if (response.ok) {
         const body = await response.json();
-        addToast('Comment updated successfully.', 'success');
+        addToast('Comment updated!', 'success');
         onCommentUpdated(body.data.comment);
       } else {
         addToast('Server rejected comment update.', 'error');

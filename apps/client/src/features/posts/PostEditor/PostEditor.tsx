@@ -105,7 +105,7 @@ export const PostEditor: FC<PostEditorProps> = ({
 
       if (response.ok) {
         const body = await response.json();
-        addToast('Chronicle updated successfully.', 'success');
+        addToast('Chronicle updated!', 'success');
         setNewEditFile(null);
         setEditPreviewUrl(null);
         onPostUpdated(body.data.post);
