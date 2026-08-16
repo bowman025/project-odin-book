@@ -23,10 +23,11 @@ export const RegisterInputSchema = z
       .string()
       .trim()
       .min(3, { error: 'Username must be at least 3 characters long' })
-      .max(30, { error: 'Username cannot exceed 30 characters' })
+      .max(32, { error: 'Username cannot exceed 32 characters' })
       .regex(/^[a-zA-Z0-9_]+$/, {
         error: 'Username can only contain letters, numbers, and underscores',
-      }),
+      })
+      .transform((val) => val.toLowerCase()),
 
     email: z
       .email({ error: 'Please enter a valid email address' })
@@ -70,7 +71,8 @@ export const LoginSchema = z.object({
   username: z
     .string()
     .trim()
-    .min(1, { error: 'Username or email is required' }),
+    .min(1, { error: 'Username or email is required' })
+    .transform((val) => val.toLowerCase()),
 
   password: z.string().min(1, { error: 'Password is required' }),
 });
@@ -94,6 +96,7 @@ export const GitHubProfileApiResponseSchema = z.object({
     .string()
     .trim()
     .min(1, { error: 'GitHub login handle required' })
+    .max(20, { error: 'Github login handle exceeds maximum length' })
     .transform((val) => val.toLowerCase()),
   email: z
     .email({ error: 'GitHub profile must contain a valid email address' })

@@ -2,7 +2,11 @@ import { z } from 'zod';
 import { positiveIntFromString } from './common.js';
 
 export const UsernameParamSchema = z.object({
-  username: z.string().min(1, { error: 'Username is required' }),
+  username: z
+    .string()
+    .trim()
+    .min(1, { error: 'Username is required' })
+    .transform((val) => val.toLowerCase()),
 });
 
 export type UsernameParamInput = z.infer<typeof UsernameParamSchema>;

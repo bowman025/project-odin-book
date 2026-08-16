@@ -12,7 +12,7 @@ model User {
   email          String   @unique
   username       String   @unique
   passwordHash   String?
-  githubId       String?
+  githubId       String?  @unique
   refreshToken   String?
   profilePicture String?
   bio            String?

@@ -26,6 +26,7 @@ export const envSchema = z
     GITHUB_CLIENT_SECRET: z
       .string()
       .min(1, { error: 'GitHub Client Secret hash is required' }),
+    GITHUB_REDIRECT_URI: z.url(),
   })
   .refine((env) => env.NODE_ENV !== 'test' || !!env.TEST_DATABASE_URL, {
     message: 'TEST_DATABASE_URL is required in test environment',
