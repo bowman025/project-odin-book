@@ -84,13 +84,13 @@ export const FollowersPage: FC = () => {
           @{initialData.targetUsername}'s Followers
         </h2>
         <p className={styles.subtitle}>
-          Citizens who subscribe to this timeline chronicle
+          Citizens who actively follow this chronicle archive
         </p>
       </header>
 
       {users.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No citizens have connected to this network node chronicle yet.</p>
+          <p>This citizen has no followers yet.</p>
         </div>
       ) : (
         <div className={styles.gridViewport}>

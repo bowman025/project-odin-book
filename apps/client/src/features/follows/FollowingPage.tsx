@@ -84,13 +84,13 @@ export const FollowingPage: FC = () => {
           Following by @{initialData.targetUsername}
         </h2>
         <p className={styles.subtitle}>
-          Chronicle archives this citizen actively streams
+          Chronicle archives this citizen actively follows
         </p>
       </header>
 
       {users.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>This citizen has not established any external graph links yet.</p>
+          <p>This citizen has not followed anyone yet.</p>
         </div>
       ) : (
         <div className={styles.gridViewport}>
