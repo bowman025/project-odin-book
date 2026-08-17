@@ -285,8 +285,13 @@ export const fetchUserAuthDetails = async (
 export const fetchUserProfileByUsername = async (
   username: string,
 ): Promise<UserProfile | null> => {
-  const user = await db.user.findUnique({
-    where: { username },
+  const user = await db.user.findFirst({
+    where: {
+      username: {
+        equals: username,
+        mode: 'insensitive',
+      },
+    },
     select: userProfileSelect,
   });
 
