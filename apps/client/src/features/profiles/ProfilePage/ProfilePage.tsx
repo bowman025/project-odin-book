@@ -403,7 +403,7 @@ export const ProfilePage: FC = () => {
       <div ref={sentinelRef} className={styles.infiniteTrigger}>
         {isFetchingMore && (
           <div className={styles.scrollLoader}>
-            <span>Retrieving additional content segments...</span>
+            <span>Retrieving content...</span>
           </div>
         )}
       </div>

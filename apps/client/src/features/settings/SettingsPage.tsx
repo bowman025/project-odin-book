@@ -58,7 +58,10 @@ export const SettingsPage: FC = () => {
 
   const terminationForm = useForm<DeleteAccountInput>({
     resolver: zodResolver(DeleteAccountSchema),
-    defaultValues: { password: '', confirmation: undefined },
+    defaultValues: {
+      password: hasPassword ? '' : undefined,
+      confirmation: undefined,
+    },
   });
 
   const handlePasswordRotationSubmit = async (values: ChangePasswordDTO) => {
@@ -78,13 +81,13 @@ export const SettingsPage: FC = () => {
         navigate('/login', { replace: true });
       } else {
         setPasswordRotationError(
-          payload.message || 'Failed to modify account credentials.',
+          payload.message || 'Failed to update password.',
         );
         addToast(payload.message || 'Credential verification failed.', 'error');
       }
     } catch {
-      setPasswordRotationError('Network transmission link connection failure.');
-      addToast('Network transmission failure.', 'error');
+      setPasswordRotationError('Network error.');
+      addToast('Network error.', 'error');
     } finally {
       setIsChangingPassword(false);
     }
@@ -108,10 +111,7 @@ export const SettingsPage: FC = () => {
       });
 
       if (response.ok) {
-        addToast(
-          'Your account and entire digital footprint were purged!',
-          'success',
-        );
+        addToast('Your account was purged!', 'success');
         setIsTerminationModalOpen(false);
         clearAuth();
         navigate('/login', { replace: true });
@@ -120,14 +120,11 @@ export const SettingsPage: FC = () => {
         setTerminationError(
           payload.message || 'Verification failed. Unable to delete account.',
         );
-        addToast(
-          payload.message || 'Termination authorization rejected.',
-          'error',
-        );
+        addToast(payload.message || 'Termination rejected.', 'error');
       }
     } catch {
-      setTerminationError('Network connection link failure.');
-      addToast('Network transmission failure.', 'error');
+      setTerminationError('Network error');
+      addToast('Network error.', 'error');
     } finally {
       setIsTerminatingAccount(false);
     }
@@ -136,7 +133,10 @@ export const SettingsPage: FC = () => {
   const handleCloseTerminationModal = () => {
     setIsTerminationModalOpen(false);
     setTerminationError(null);
-    terminationForm.reset();
+    terminationForm.reset({
+      password: hasPassword ? '' : undefined,
+      confirmation: undefined,
+    });
   };
 
   return (
@@ -144,7 +144,7 @@ export const SettingsPage: FC = () => {
       <header className={styles.pageHeader}>
         <h2 className={styles.title}>Account Settings</h2>
         <p className={styles.subtitle}>
-          Manage your profile security workspace configurations.
+          Manage your account and profile settings.
         </p>
       </header>
 
@@ -173,122 +173,146 @@ export const SettingsPage: FC = () => {
       <div className={styles.workspaceCard}>
         <div className={styles.cardHeaderRow}>
           <KeyRound className={styles.headerIcon} size={20} />
-          <h3 className={styles.cardTitle}>Change Password</h3>
+          <h3 className={styles.cardTitle}>Account Security</h3>
         </div>
-
-        {passwordRotationError && (
-          <div className={styles.globalErrorBanner}>
-            <span>{passwordRotationError}</span>
-          </div>
-        )}
-
-        <form
-          onSubmit={passwordForm.handleSubmit(handlePasswordRotationSubmit)}
-          className={styles.rotationForm}
-        >
-          <div className={styles.inputFieldBlock}>
-            <label htmlFor="current-pass-field" className={styles.fieldLabel}>
-              Current Password
-            </label>
-            <div className={styles.inputWrapper}>
-              <input
-                id="current-pass-field"
-                type={showCurrentPassword ? 'text' : 'password'}
-                className={styles.passwordInput}
-                placeholder="Enter your current password..."
-                disabled={isChangingPassword}
-                {...passwordForm.register('currentPassword')}
-              />
-              <button
-                type="button"
-                className={styles.visibilityToggleBtn}
-                onClick={() => setShowCurrentPassword((prev) => !prev)}
-              >
-                {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            {passwordForm.formState.errors.currentPassword && (
-              <span className={styles.validationError}>
-                {passwordForm.formState.errors.currentPassword.message}
-              </span>
+        {hasPassword ? (
+          <>
+            {passwordRotationError && (
+              <div className={styles.globalErrorBanner}>
+                <span>{passwordRotationError}</span>
+              </div>
             )}
-          </div>
 
-          <div className={styles.inputFieldBlock}>
-            <label htmlFor="new-pass-field" className={styles.fieldLabel}>
-              New Password
-            </label>
-            <div className={styles.inputWrapper}>
-              <input
-                id="new-pass-field"
-                type={showNewPassword ? 'text' : 'password'}
-                className={styles.passwordInput}
-                placeholder="Compose a strong new password..."
-                disabled={isChangingPassword}
-                {...passwordForm.register('newPassword')}
-              />
-              <button
-                type="button"
-                className={styles.visibilityToggleBtn}
-                onClick={() => setShowNewPassword((prev) => !prev)}
-              >
-                {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            {passwordForm.formState.errors.newPassword && (
-              <span className={styles.validationError}>
-                {passwordForm.formState.errors.newPassword.message}
-              </span>
-            )}
-          </div>
-
-          <div className={styles.inputFieldBlock}>
-            <label htmlFor="confirm-pass-field" className={styles.fieldLabel}>
-              Confirm New Password
-            </label>
-            <div className={styles.inputWrapper}>
-              <input
-                id="confirm-pass-field"
-                type={showConfirmPassword ? 'text' : 'password'}
-                className={styles.passwordInput}
-                placeholder="Re-type your new password..."
-                disabled={isChangingPassword}
-                {...passwordForm.register('confirmNewPassword')}
-              />
-              <button
-                type="button"
-                className={styles.visibilityToggleBtn}
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
-              >
-                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            {passwordForm.formState.errors.confirmNewPassword && (
-              <span className={styles.validationError}>
-                {passwordForm.formState.errors.confirmNewPassword.message}
-              </span>
-            )}
-          </div>
-
-          <div className={styles.formActionsRow}>
-            <button
-              type="submit"
-              className={styles.submitBtn}
-              disabled={isChangingPassword}
+            <form
+              onSubmit={passwordForm.handleSubmit(handlePasswordRotationSubmit)}
+              className={styles.rotationForm}
             >
-              {isChangingPassword ? (
-                <Loader2 size={16} className={styles.spinner} />
-              ) : (
-                <ShieldCheck size={16} />
-              )}
-              <span>
-                {isChangingPassword
-                  ? 'Updating Password...'
-                  : 'Update Password'}
-              </span>
-            </button>
-          </div>
-        </form>
+              <div className={styles.inputFieldBlock}>
+                <label
+                  htmlFor="current-pass-field"
+                  className={styles.fieldLabel}
+                >
+                  Current Password
+                </label>
+                <div className={styles.inputWrapper}>
+                  <input
+                    id="current-pass-field"
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    className={styles.passwordInput}
+                    placeholder="Enter your current password..."
+                    disabled={isChangingPassword}
+                    {...passwordForm.register('currentPassword')}
+                  />
+                  <button
+                    type="button"
+                    className={styles.visibilityToggleBtn}
+                    onClick={() => setShowCurrentPassword((prev) => !prev)}
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff size={16} />
+                    ) : (
+                      <Eye size={16} />
+                    )}
+                  </button>
+                </div>
+                {passwordForm.formState.errors.currentPassword && (
+                  <span className={styles.validationError}>
+                    {passwordForm.formState.errors.currentPassword.message}
+                  </span>
+                )}
+              </div>
+
+              <div className={styles.inputFieldBlock}>
+                <label htmlFor="new-pass-field" className={styles.fieldLabel}>
+                  New Password
+                </label>
+                <div className={styles.inputWrapper}>
+                  <input
+                    id="new-pass-field"
+                    type={showNewPassword ? 'text' : 'password'}
+                    className={styles.passwordInput}
+                    placeholder="Compose a strong new password..."
+                    disabled={isChangingPassword}
+                    {...passwordForm.register('newPassword')}
+                  />
+                  <button
+                    type="button"
+                    className={styles.visibilityToggleBtn}
+                    onClick={() => setShowNewPassword((prev) => !prev)}
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {passwordForm.formState.errors.newPassword && (
+                  <span className={styles.validationError}>
+                    {passwordForm.formState.errors.newPassword.message}
+                  </span>
+                )}
+              </div>
+
+              <div className={styles.inputFieldBlock}>
+                <label
+                  htmlFor="confirm-pass-field"
+                  className={styles.fieldLabel}
+                >
+                  Confirm New Password
+                </label>
+                <div className={styles.inputWrapper}>
+                  <input
+                    id="confirm-pass-field"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className={styles.passwordInput}
+                    placeholder="Re-type your new password..."
+                    disabled={isChangingPassword}
+                    {...passwordForm.register('confirmNewPassword')}
+                  />
+                  <button
+                    type="button"
+                    className={styles.visibilityToggleBtn}
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={16} />
+                    ) : (
+                      <Eye size={16} />
+                    )}
+                  </button>
+                </div>
+                {passwordForm.formState.errors.confirmNewPassword && (
+                  <span className={styles.validationError}>
+                    {passwordForm.formState.errors.confirmNewPassword.message}
+                  </span>
+                )}
+              </div>
+
+              <div className={styles.formActionsRow}>
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  disabled={isChangingPassword}
+                >
+                  {isChangingPassword ? (
+                    <Loader2 size={16} className={styles.spinner} />
+                  ) : (
+                    <ShieldCheck size={16} />
+                  )}
+                  <span>
+                    {isChangingPassword
+                      ? 'Updating Password...'
+                      : 'Update Password'}
+                  </span>
+                </button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <p className={styles.dangerDescriptionText}>
+            Your account identity is securely managed through{' '}
+            <em>GitHub OAuth</em>. Because you use a third-party social
+            provider, password configuration and rotation are handled directly
+            via your GitHub security portals.
+          </p>
+        )}
       </div>
 
       <div className={styles.dangerCard}>

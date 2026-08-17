@@ -29,11 +29,16 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
   const addToast = useUIStore((state) => state.addToast);
   const setAuthData = useAuthStore((state) => state.setAuthData);
   const currentAccessToken = useAuthStore((state) => state.accessToken);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const [isAvatarRemoved, setIsAvatarRemoved] = useState(false);
+
+  const isCloudinaryUrl =
+    currentProfile.profilePicture?.includes('cloudinary.com');
+  const safeProfilePictureDefault = isCloudinaryUrl
+    ? currentProfile.profilePicture
+    : undefined;
 
   const {
     register,
@@ -45,23 +50,29 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
     resolver: zodResolver(UpdateProfileSchema),
     defaultValues: {
       bio: currentProfile.bio || '',
-      profilePicture: currentProfile.profilePicture || undefined,
+      profilePicture: safeProfilePictureDefault,
     },
   });
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedFile(null);
       setLocalPreviewUrl(null);
+      setIsUploadingImage(false);
       setIsAvatarRemoved(false);
-      setValue('profilePicture', currentProfile.profilePicture || undefined);
+
+      const isCloudinary =
+        currentProfile.profilePicture?.includes('cloudinary.com');
+      const safePicture = isCloudinary
+        ? currentProfile.profilePicture
+        : undefined;
+
+      setValue('profilePicture', safePicture);
       setValue('bio', currentProfile.bio || '');
     }
   }, [isOpen, currentProfile, setValue]);
 
   const bioWatchValue = watch('bio') || '';
   const currentInitial = currentProfile.username.charAt(0);
-  const profilePictureWatchValue = watch('profilePicture');
 
   const RenderStagedPreview = localPreviewUrl ? (
     <img
@@ -71,9 +82,9 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
     />
   ) : null;
 
-  const RenderDatabaseAvatar = profilePictureWatchValue ? (
+  const RenderDatabaseAvatar = currentProfile.profilePicture ? (
     <img
-      src={profilePictureWatchValue}
+      src={currentProfile.profilePicture}
       alt={currentProfile.username}
       className={styles.previewAvatar}
     />
@@ -85,57 +96,57 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
 
   const showStaged = !!localPreviewUrl;
   const showDatabase =
-    !localPreviewUrl &&
-    profilePictureWatchValue !== null &&
-    profilePictureWatchValue !== undefined;
+    !localPreviewUrl && !!currentProfile.profilePicture && !isAvatarRemoved;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setSelectedFile(file);
-    setIsAvatarRemoved(false);
     const objectUrl = URL.createObjectURL(file);
     setLocalPreviewUrl(objectUrl);
+    setIsAvatarRemoved(false);
+    setIsUploadingImage(true);
+
+    try {
+      const secureCloudinaryUrl = await uploadImageToCloudinary(
+        file,
+        'profiles',
+      );
+
+      setValue('profilePicture', secureCloudinaryUrl, { shouldValidate: true });
+      addToast('Image uploaded successfully!', 'success');
+    } catch (uploadError) {
+      const errMsg =
+        uploadError instanceof Error
+          ? uploadError.message
+          : 'Image upload failed';
+      addToast(errMsg, 'error');
+      setLocalPreviewUrl(null);
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const handleRemoveAvatarClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    setSelectedFile(null);
     setLocalPreviewUrl(null);
     setIsAvatarRemoved(true);
-    setValue('profilePicture', null);
+    setValue('profilePicture', undefined, { shouldValidate: true });
   };
 
   const handleFormSubmission = async (values: UpdateProfileInput) => {
     setIsSubmitting(true);
 
-    let uploadedImageUrl = currentProfile.profilePicture;
-
-    if (isAvatarRemoved) {
-      uploadedImageUrl = null;
-    } else if (selectedFile) {
-      try {
-        uploadedImageUrl = await uploadImageToCloudinary(
-          selectedFile,
-          'profiles',
-        );
-      } catch (uploadError) {
-        const errMsg =
-          uploadError instanceof Error
-            ? uploadError.message
-            : 'Image upload failed';
-        addToast(errMsg, 'error');
-        setIsSubmitting(false);
-        return;
-      }
-    }
-
     try {
       const patchPayload: UpdateProfileInput = {
         bio: values.bio === '' ? null : values.bio,
-        profilePicture: uploadedImageUrl,
       };
+
+      if (isAvatarRemoved) {
+        patchPayload.profilePicture = null;
+      } else if (values.profilePicture) {
+        patchPayload.profilePicture = values.profilePicture;
+      }
 
       const response = await apiFetch('/users/me', {
         method: 'PATCH',
@@ -161,10 +172,10 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
         onProfileUpdated(updated);
         onClose();
       } else {
-        addToast('Server rejected identity updates.', 'error');
+        addToast('Server rejected updates.', 'error');
       }
     } catch {
-      addToast('Network link connection failure.', 'error');
+      addToast('Network error.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -193,16 +204,24 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
         >
           <div className={styles.avatarUploadGroup}>
             <div className={styles.previewWrapper}>
-              {showStaged && RenderStagedPreview}
-              {!showStaged && showDatabase && RenderDatabaseAvatar}
-              {!showStaged && !showDatabase && RenderDefaultFallback}
+              {isUploadingImage ? (
+                <div className={styles.previewAvatarFallback}>
+                  <Loader2 size={18} className={styles.spinner} />
+                </div>
+              ) : (
+                <>
+                  {showStaged && RenderStagedPreview}
+                  {!showStaged && showDatabase && RenderDatabaseAvatar}
+                  {!showStaged && !showDatabase && RenderDefaultFallback}
+                </>
+              )}
             </div>
 
             <div className={styles.uploadActionsContainer}>
               <div className={styles.actionButtonsRow}>
                 <label
                   htmlFor="avatar-file-input"
-                  className={styles.fileInputLabel}
+                  className={`${styles.fileInputLabel} ${isUploadingImage || isSubmitting ? styles.disabledLabel : ''}`}
                 >
                   <Camera size={14} />
                   <span>Choose Image</span>
@@ -212,8 +231,8 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                   <button
                     type="button"
                     className={styles.removeAvatarBtn}
-                    onClick={(e) => handleRemoveAvatarClick(e)}
-                    disabled={isSubmitting}
+                    onClick={handleRemoveAvatarClick}
+                    disabled={isSubmitting || isUploadingImage}
                   >
                     Remove Image
                   </button>
@@ -226,7 +245,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                 accept="image/jpeg,image/png,image/webp"
                 className={styles.hiddenFileInput}
                 onChange={handleFileChange}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploadingImage}
               />
               <span className={styles.uploadInstructionText}>
                 Supports JPEG, PNG, or WEBP up to 5MB.
@@ -242,7 +261,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
               id="bio-input-field"
               className={styles.bioTextarea}
               placeholder="Write your bio..."
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploadingImage}
               maxLength={160}
               {...register('bio')}
             />
@@ -263,14 +282,14 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
               type="button"
               className={styles.cancelBtn}
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploadingImage}
             >
               Cancel
             </button>
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploadingImage}
             >
               {isSubmitting && <Loader2 size={14} className={styles.spinner} />}
               <span>Save Changes</span>
