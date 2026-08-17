@@ -166,13 +166,13 @@ export const ProfileHeader: FC<ProfileHeaderProps> = ({
       </div>
 
       <h2 className={styles.usernameTitle}>@{profile.username}</h2>
+      <p className={styles.bioText}>
+        {profile.bio || 'This citizen has yet to write a biography...'}
+      </p>
       <div className={styles.joinDateContainer}>
         <Calendar size={14} />
         <span>Joined {joinDateLabel}</span>
       </div>
-      <p className={styles.bioText}>
-        {profile.bio || 'This citizen has yet to write a biography...'}
-      </p>
 
       <div className={styles.statsRow}>
         <div className={styles.statBox}>

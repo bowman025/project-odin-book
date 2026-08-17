@@ -14,7 +14,7 @@
   padding: 32px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .headerTopRow {
@@ -103,12 +103,6 @@
   border-radius: var(--radius-sm);
 }
 
-.identityGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .usernameTitle {
   font-size: 1.5rem;
   font-weight: 800;
@@ -117,10 +111,11 @@
 }
 
 .joinDateContainer {
+  align-self: flex-end;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8125rem;
+  font-size: 0.8rem;
   color: var(--color-text-muted);
 }
 
@@ -128,7 +123,6 @@
   font-size: 0.9375rem;
   color: var(--color-text-secondary);
   line-height: 1.6;
-  margin-top: 4px;
 }
 
 .statsRow {
