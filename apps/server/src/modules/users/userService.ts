@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import {
   db,
   type FollowStatus,
@@ -154,21 +155,85 @@ export const createUser = async (
 };
 
 export const createOrUpdateGuestUser = async (): Promise<AuthUser> => {
-  return await db.user.upsert({
-    where: { email: 'user@example.com' },
-    update: {},
-    create: {
-      username: 'guest',
-      email: 'user@example.com',
-      passwordHash: 'GUEST_ACCOUNT_BYPASS_NO_HASH_REQUIRED',
-      bio: 'Welcome! I am a guest exploring this social network.',
+  const expirationThreshold = new Date(Date.now() - 6 * 60 * 60 * 1000);
+
+  try {
+    await db.user.deleteMany({
+      where: {
+        username: { startsWith: 'guest_' },
+        createdAt: { lt: expirationThreshold },
+      },
+    });
+  } catch (cleanupError) {
+    console.warn('[Lazy Garbage Collection skipped]:', cleanupError);
+  }
+
+  const uniqueToken = crypto.randomBytes(3).toString('hex');
+  const guestUsername = `guest_${uniqueToken}`;
+  const guestEmail = `${guestUsername}@odinum.local`;
+
+  return await db.$transaction(
+    async (tx) => {
+      const newGuest = await tx.user.create({
+        data: {
+          username: guestUsername,
+          email: guestEmail,
+          passwordHash: null,
+          bio: 'This is a transient guest profile.',
+        },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+        },
+      });
+
+      const baselineUsers = await tx.user.findMany({
+        where: {
+          NOT: { id: newGuest.id },
+          email: { endsWith: '@odinum.seeded' },
+        },
+        take: 30,
+        select: { id: true },
+      });
+
+      if (baselineUsers.length > 0) {
+        const profilesForGuestToFollow = baselineUsers.slice(0, 20);
+        const profilesToFollowTheGuest = baselineUsers.slice(20);
+
+        const followPayloads: Array<{
+          senderId: string;
+          receiverId: string;
+          status: 'ACCEPTED';
+        }> = [];
+
+        for (const peer of profilesForGuestToFollow) {
+          followPayloads.push({
+            senderId: newGuest.id,
+            receiverId: peer.id,
+            status: 'ACCEPTED',
+          });
+        }
+
+        for (const peer of profilesToFollowTheGuest) {
+          followPayloads.push({
+            senderId: peer.id,
+            receiverId: newGuest.id,
+            status: 'ACCEPTED',
+          });
+        }
+
+        await tx.follow.createMany({
+          data: followPayloads,
+        });
+      }
+
+      return newGuest;
     },
-    select: {
-      id: true,
-      username: true,
-      email: true,
+    {
+      timeout: 15000,
     },
-  });
+  );
 };
 
 export const upsertOauthUser = async (

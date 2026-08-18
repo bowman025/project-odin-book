@@ -34,9 +34,7 @@ async function main() {
           .replace(/[^a-zA-z0-9_]/g, '_')
           .toLowerCase()
           .slice(0, 30);
-        const email = faker.internet
-          .email({ firstName, lastName })
-          .toLowerCase();
+        const email = `${username}@odinum.seeded`.toLowerCase();
         const uniqueRandomPassword = crypto.randomUUID();
         const passwordHash = await bcrypt.hash(uniqueRandomPassword, 10);
         const newUser = await tx.user.create({
@@ -53,7 +51,9 @@ async function main() {
         userIds.push(newUser.id);
       }
 
-      console.log(`Successfully seeded ${userIds.length} unique user profiles`);
+      console.log(
+        `Successfully seeded ${userIds.length} unique user profiles.`,
+      );
       console.log('Structuring general network peer follows...');
 
       const shuffledUsers = faker.helpers.shuffle([...userIds]);

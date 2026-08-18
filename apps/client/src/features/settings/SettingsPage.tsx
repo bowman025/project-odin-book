@@ -31,6 +31,7 @@ import type { SettingsLoaderResult } from './settingsLoader.js';
 export const SettingsPage: FC = () => {
   const { hasPassword } = useLoaderData() as SettingsLoaderResult;
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const addToast = useUIStore((state) => state.addToast);
 
@@ -305,6 +306,13 @@ export const SettingsPage: FC = () => {
               </div>
             </form>
           </>
+        ) : user?.username.startsWith('guest_') ? (
+          <p className={styles.dangerDescriptionText}>
+            You are currently evaluating Odinum within an{' '}
+            <em>Ephemeral Guest Session</em>. This workspace and its associated
+            edits will be completely recycled in the next automatic platform
+            sweeping pass.
+          </p>
         ) : (
           <p className={styles.dangerDescriptionText}>
             Your account identity is securely managed through{' '}
