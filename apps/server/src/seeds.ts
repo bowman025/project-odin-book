@@ -24,18 +24,6 @@ async function main() {
 
   await db.$transaction(
     async (tx) => {
-      const guestUser = await tx.user.upsert({
-        where: { email: 'user@example.com' },
-        update: {},
-        create: {
-          username: 'guest',
-          email: 'user@example.com',
-          passwordHash: 'GUEST_ACCOUNT_BYPASS_NO_HASH_REQUIRED',
-          bio: 'I am a guest exploring this social network.',
-        },
-        select: { id: true },
-      });
-
       const userIds: string[] = [];
 
       for (let i = 0; i < 200; i++) {
@@ -66,47 +54,13 @@ async function main() {
       }
 
       console.log(`Successfully seeded ${userIds.length} unique user profiles`);
-      console.log('Structuring guest user follows...');
+      console.log('Structuring general network peer follows...');
 
       const shuffledUsers = faker.helpers.shuffle([...userIds]);
-      const usersToAcceptGuest = shuffledUsers.slice(0, 30);
-      const usersPendingGuest = shuffledUsers.slice(30, 40);
-      const usersRejectedByGuest = shuffledUsers.slice(40, 50);
-      const generalNetworkUsers = shuffledUsers.slice(50);
 
-      for (const targetId of usersToAcceptGuest) {
-        await tx.follow.create({
-          data: {
-            senderId: guestUser.id,
-            receiverId: targetId,
-            status: 'ACCEPTED',
-          },
-        });
-      }
-
-      for (const targetId of usersPendingGuest) {
-        await tx.follow.create({
-          data: {
-            senderId: targetId,
-            receiverId: guestUser.id,
-            status: 'PENDING',
-          },
-        });
-      }
-
-      for (const targetId of usersRejectedByGuest) {
-        await tx.follow.create({
-          data: {
-            senderId: targetId,
-            receiverId: guestUser.id,
-            status: 'REJECTED',
-          },
-        });
-      }
-
-      for (const peerId of generalNetworkUsers) {
+      for (const peerId of shuffledUsers) {
         const peerOptions = userIds.filter((id) => id !== peerId);
-        const randomConnections = faker.helpers.arrayElements(peerOptions, 5);
+        const randomConnections = faker.helpers.arrayElements(peerOptions, 6);
 
         for (const connId of randomConnections) {
           await tx.follow.create({
@@ -114,8 +68,6 @@ async function main() {
           });
         }
       }
-
-      const entireUserPool = [guestUser.id, ...userIds];
 
       console.log('Pre-seeding tags...');
       const tagNames = [
@@ -146,7 +98,7 @@ async function main() {
       const postIds: string[] = [];
 
       for (let i = 0; i < 1000; i++) {
-        const authorId = faker.helpers.arrayElement(entireUserPool);
+        const authorId = faker.helpers.arrayElement(userIds);
         const hasImage = Math.random() < 0.3;
         const imageUrl = hasImage
           ? faker.image.urlPicsumPhotos({ width: 640, height: 480 })
@@ -196,9 +148,9 @@ async function main() {
 
       while (
         seededLikesCount < 5000 &&
-        existingLikesTracker.size < entireUserPool.length * postIds.length
+        existingLikesTracker.size < userIds.length * postIds.length
       ) {
-        const userId = faker.helpers.arrayElement(entireUserPool);
+        const userId = faker.helpers.arrayElement(userIds);
         const postId = faker.helpers.arrayElement(postIds);
         const compoundKey = `${userId}_${postId}`;
 
@@ -215,7 +167,7 @@ async function main() {
 
       console.log('Creating 3000 comments across posts...');
       for (let i = 0; i < 3000; i++) {
-        const authorId = faker.helpers.arrayElement(entireUserPool);
+        const authorId = faker.helpers.arrayElement(userIds);
         const postId = faker.helpers.arrayElement(postIds);
 
         await tx.comment.create({
