@@ -47,7 +47,7 @@ app.use('/api/uploads', cloudinaryRouter);
 app.use('/api/tags', tagRouter);
 
 app.get('/status', (_req: Request, res: Response) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', message: 'The Realm is awake.' });
 });
 
 app.use(notFound);
