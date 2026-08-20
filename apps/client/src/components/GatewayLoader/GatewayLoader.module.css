@@ -24,10 +24,10 @@
 }
 
 .brand {
-  font-size: 3.25rem;
+  font-family: "Metamorphous", serif;
+  font-size: clamp(2.5rem, 10vw, 4rem);
   font-weight: 900;
   letter-spacing: 0.15em;
-  text-transform: uppercase;
   margin: 0;
   background: linear-gradient(
     90deg,
