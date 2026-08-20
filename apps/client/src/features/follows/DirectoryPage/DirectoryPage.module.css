@@ -291,6 +291,7 @@
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--color-text-primary);
+  line-break: anywhere;
 }
 
 .bio {
