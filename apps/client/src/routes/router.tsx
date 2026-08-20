@@ -32,88 +32,89 @@ import { ProtectedLayout } from '../layouts/ProtectedLayout/ProtectedLayout';
 import { RootLayout } from '../layouts/RootLayout/RootLayout';
 import { rootLoader } from '../layouts/RootLayout/rootLoader.js';
 
-export const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <RootLayout />,
-    loader: rootLoader,
-    errorElement: <ErrorPage />,
-    hydrateFallbackElement: <LoadingScreen />,
-    children: [
-      {
-        path: 'login',
-        element: <LoginPage />,
-      },
-      {
-        path: 'register',
-        element: <RegisterPage />,
-      },
-      {
-        path: 'auth/github/callback',
-        element: <AuthCallbackPage />,
-      },
-      {
-        element: <ProtectedLayout />,
-        children: [
-          {
-            index: true,
-            element: <TimelinePage />,
-            loader: timelineLoader,
-          },
-          {
-            path: 'conversations',
-            element: <ConversationsPage />,
-            loader: conversationsLoader,
-            children: [
-              {
-                path: ':conversationId',
-                element: <ChatThreadPane />,
-                loader: messageHistoryLoader,
-              },
-            ],
-          },
-          {
-            path: 'posts/:postId',
-            element: <PostDetailPage />,
-            loader: postDetailLoader,
-          },
-          {
-            path: 'users',
-            element: <DirectoryPage />,
-            loader: directoryLoader,
-          },
-          {
-            path: 'users/:username',
-            element: <ProfilePage />,
-            loader: profileLoader,
-          },
-          {
-            path: 'users/:username/followers',
-            element: <FollowersPage />,
-            loader: followersLoader,
-          },
-          {
-            path: 'users/:username/following',
-            element: <FollowingPage />,
-            loader: followingLoader,
-          },
-          {
-            path: 'tags',
-            element: <HashtagFeedPage />,
-            loader: hashtagFeedLoader,
-          },
-          {
-            path: 'settings',
-            element: <SettingsPage />,
-            loader: settingsLoader,
-          },
-          {
-            path: 'settings/requests',
-            element: <PendingRequestsPage />,
-            loader: pendingRequestsLoader,
-          },
-        ],
-      },
-    ],
-  },
-]);
+export const getRouter = () =>
+  createBrowserRouter([
+    {
+      path: '/',
+      element: <RootLayout />,
+      loader: rootLoader,
+      errorElement: <ErrorPage />,
+      hydrateFallbackElement: <LoadingScreen />,
+      children: [
+        {
+          path: 'login',
+          element: <LoginPage />,
+        },
+        {
+          path: 'register',
+          element: <RegisterPage />,
+        },
+        {
+          path: 'auth/github/callback',
+          element: <AuthCallbackPage />,
+        },
+        {
+          element: <ProtectedLayout />,
+          children: [
+            {
+              index: true,
+              element: <TimelinePage />,
+              loader: timelineLoader,
+            },
+            {
+              path: 'conversations',
+              element: <ConversationsPage />,
+              loader: conversationsLoader,
+              children: [
+                {
+                  path: ':conversationId',
+                  element: <ChatThreadPane />,
+                  loader: messageHistoryLoader,
+                },
+              ],
+            },
+            {
+              path: 'posts/:postId',
+              element: <PostDetailPage />,
+              loader: postDetailLoader,
+            },
+            {
+              path: 'users',
+              element: <DirectoryPage />,
+              loader: directoryLoader,
+            },
+            {
+              path: 'users/:username',
+              element: <ProfilePage />,
+              loader: profileLoader,
+            },
+            {
+              path: 'users/:username/followers',
+              element: <FollowersPage />,
+              loader: followersLoader,
+            },
+            {
+              path: 'users/:username/following',
+              element: <FollowingPage />,
+              loader: followingLoader,
+            },
+            {
+              path: 'tags',
+              element: <HashtagFeedPage />,
+              loader: hashtagFeedLoader,
+            },
+            {
+              path: 'settings',
+              element: <SettingsPage />,
+              loader: settingsLoader,
+            },
+            {
+              path: 'settings/requests',
+              element: <PendingRequestsPage />,
+              loader: pendingRequestsLoader,
+            },
+          ],
+        },
+      ],
+    },
+  ]);

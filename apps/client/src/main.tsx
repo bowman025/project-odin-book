@@ -1,7 +1,8 @@
-import { StrictMode } from 'react';
+import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
-import { router } from './routes/router';
+import { GatewayLoader } from './components/GatewayLoader/GatewayLoader';
+import { getRouter } from './routes/router';
 import './styles/global.css';
 
 const container = document.getElementById('root');
@@ -12,8 +13,20 @@ if (!container) {
   );
 }
 
+const ApplicationEntryBootstrap = () => {
+  const [isServerAwake, setIsServerAwake] = useState(false);
+
+  if (!isServerAwake) {
+    return <GatewayLoader onAwake={() => setIsServerAwake(true)} />;
+  }
+
+  const runtimeRouter = getRouter();
+
+  return <RouterProvider router={runtimeRouter} />;
+};
+
 createRoot(container).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ApplicationEntryBootstrap />
   </StrictMode>,
 );
