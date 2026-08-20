@@ -1,18 +1,18 @@
 import { db } from '@project-odin-book/db';
 import bcrypt from 'bcryptjs';
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import app from '../../src/app.js';
 
 describe('Auth Module: End-to-End API Integration Suites', () => {
-  const pristineRegistrationPayload = {
-    username: 'test_user',
-    email: 'integration@odinum.com',
-    password: 'SecureTestPassword123!',
-    confirmPassword: 'SecureTestPassword123!',
-  };
-
   describe('POST /api/auth/register - User Account Provisioning Gate', () => {
+    const pristineRegistrationPayload = {
+      username: 'reg_user',
+      email: 'integration@odinum.com',
+      password: 'SecureTestPassword123!',
+      confirmPassword: 'SecureTestPassword123!',
+    };
+
     it('should parse a valid payload, commit a new user row to disk, and return a 201 status', async () => {
       const response = await request(app)
         .post('/api/auth/register')
@@ -25,26 +25,25 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
         accessToken: expect.any(String),
         user: {
           id: expect.any(String),
-          username: pristineRegistrationPayload.username,
+          username: pristineRegistrationPayload.username.toLowerCase(),
           profilePicture: null,
         },
       });
 
       const databaseUserRecord = await db.user.findUnique({
-        where: { email: pristineRegistrationPayload.email },
+        where: { email: pristineRegistrationPayload.email.toLowerCase() },
         select: { id: true, username: true, passwordHash: true },
       });
 
       expect(databaseUserRecord).toBeDefined();
       expect(databaseUserRecord?.username).toBe(
-        pristineRegistrationPayload.username,
+        pristineRegistrationPayload.username.toLowerCase(),
       );
 
       if (databaseUserRecord?.passwordHash) {
         expect(databaseUserRecord.passwordHash).not.toBe(
           pristineRegistrationPayload.password,
         );
-
         const isBcryptHash =
           databaseUserRecord.passwordHash.startsWith('$2a$') ||
           databaseUserRecord.passwordHash.startsWith('$2b$');
@@ -81,7 +80,7 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       await db.user.create({
         data: {
           username: 'existing_username',
-          email: pristineRegistrationPayload.email,
+          email: pristineRegistrationPayload.email.toLowerCase(),
           passwordHash: 'mock_hash',
         },
       });
@@ -91,41 +90,23 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
         .send(pristineRegistrationPayload);
 
       expect(response.status).toBe(409);
-      expect.objectContaining({
-        status: 'error',
-        message: 'Duplicate value',
-      });
     });
   });
 
   describe('POST /api/auth/login - Authentication Session Initializer Gate', () => {
     const loginUserPassword = 'SecureTestPassword123!';
-    let seededUser: {
-      id: string;
-      username: string;
-      email: string;
-      profilePicture: string | null;
-    };
-
-    beforeEach(async () => {
-      const hashedPassword = await bcrypt.hash(loginUserPassword, 10);
-      seededUser = await db.user.create({
-        data: {
-          username: 'test_user',
-          email: 'login@odinum.com',
-          passwordHash: hashedPassword,
-          profilePicture: 'https://www.link-to-a-fake-picture.com',
-        },
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          profilePicture: true,
-        },
-      });
-    });
 
     it('should authenticate with a valid email, set a refresh cookie, and return an access token', async () => {
+      const seededUser = await db.user.create({
+        data: {
+          username: 'login_user',
+          email: 'login@odinum.com',
+          passwordHash: await bcrypt.hash(loginUserPassword, 10),
+          profilePicture: 'https://link-to-a-fake-picture.com',
+        },
+        select: { id: true, username: true, email: true, profilePicture: true },
+      });
+
       const response = await request(app).post('/api/auth/login').send({
         username: seededUser.email,
         password: loginUserPassword,
@@ -160,8 +141,16 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should accept space-padded username strings via internal identifier normalization logic', async () => {
+      await db.user.create({
+        data: {
+          username: 'login_user',
+          email: 'login_space@odinum.com',
+          passwordHash: await bcrypt.hash(loginUserPassword, 10),
+        },
+      });
+
       const response = await request(app).post('/api/auth/login').send({
-        username: '   test_user   ',
+        username: '   login_user   ',
         password: loginUserPassword,
       });
 
@@ -170,6 +159,14 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should block incorrect password attempts at the passport strategy firewall and return a 401 status', async () => {
+      const seededUser = await db.user.create({
+        data: {
+          username: 'login_user',
+          email: 'login_fail@odinum.com',
+          passwordHash: await bcrypt.hash(loginUserPassword, 10),
+        },
+      });
+
       const response = await request(app).post('/api/auth/login').send({
         username: seededUser.username,
         password: 'AnIncorrectPasswordAttempt123!',
@@ -199,28 +196,21 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       );
     });
   });
-
   describe('POST /api/auth/refresh - Session Token Rotation Gate', () => {
     const testerPassword = 'SecureRefreshPassword123!';
-    let seededUser: {
-      id: string;
-      username: string;
-      email: string;
-      profilePicture: string | null;
-    };
-    let initialRefreshToken: string;
 
-    beforeEach(async () => {
+    it('should rotate session credentials cleanly when passed a valid refresh cookie token', async () => {
       const hashedPassword = await bcrypt.hash(testerPassword, 10);
-      seededUser = await db.user.create({
+      const seededUser = await db.user.create({
         data: {
-          username: 'test_user',
+          username: 'refresh_user',
           email: 'refresh@odinum.com',
           passwordHash: hashedPassword,
           profilePicture: null,
         },
         select: { id: true, username: true, email: true, profilePicture: true },
       });
+
       const loginResponse = await request(app).post('/api/auth/login').send({
         username: seededUser.email,
         password: testerPassword,
@@ -230,10 +220,9 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       expect(cookieHeaderArray).toBeDefined();
 
       const rawCookieString = cookieHeaderArray?.[0] || '';
-      initialRefreshToken = rawCookieString.split(';')[0]?.split('=')[1] || '';
-    });
+      const initialRefreshToken =
+        rawCookieString.split(';')[0]?.split('=')[1] || '';
 
-    it('should rotate session credentials cleanly when passed a valid refresh cookie token', async () => {
       vi.useFakeTimers({ toFake: ['Date'] });
       vi.advanceTimersByTime(5000);
 
@@ -282,6 +271,25 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should reject reuse attempts of old refresh tokens, clear the cookie, and throw a 401 error', async () => {
+      const hashedPassword = await bcrypt.hash(testerPassword, 10);
+      const seededUser = await db.user.create({
+        data: {
+          username: 'refresh_reuse_user',
+          email: 'refresh_reuse@odinum.com',
+          passwordHash: hashedPassword,
+        },
+      });
+
+      const loginResponse = await request(app).post('/api/auth/login').send({
+        username: seededUser.email,
+        password: testerPassword,
+      });
+
+      const cookieHeaderArray = loginResponse.headers['set-cookie'];
+      const rawCookieString = cookieHeaderArray?.[0] || '';
+      const initialRefreshToken =
+        rawCookieString.split(';')[0]?.split('=')[1] || '';
+
       vi.useFakeTimers({ toFake: ['Date'] });
       vi.advanceTimersByTime(5000);
 
@@ -307,14 +315,12 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
 
   describe('POST /api/auth/logout - Session Revocation & Sign-Out Gate', () => {
     const logoutPassword = 'SecureTestPassword123!';
-    let seededUser: { id: string; username: string; email: string };
-    let activeRefreshToken: string;
 
-    beforeEach(async () => {
+    it('should clear out the database token hash and return a cookie erasure directive', async () => {
       const hashedPassword = await bcrypt.hash(logoutPassword, 10);
-      seededUser = await db.user.create({
+      const seededUser = await db.user.create({
         data: {
-          username: 'test_user',
+          username: 'logout_user',
           email: 'logout@odinum.com',
           passwordHash: hashedPassword,
         },
@@ -329,10 +335,9 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       const cookieHeaderArray = loginResponse.headers['set-cookie'];
       expect(cookieHeaderArray).toBeDefined();
       const rawCookieString = cookieHeaderArray?.[0] || '';
-      activeRefreshToken = rawCookieString.split(';')[0]?.split('=')[1] || '';
-    });
+      const activeRefreshToken =
+        rawCookieString.split(';')[0]?.split('=')[1] || '';
 
-    it('should clear out the database token hash and return a cookie erasure directive', async () => {
       const response = await request(app)
         .post('/api/auth/logout')
         .set('Cookie', [`refreshToken=${activeRefreshToken}`]);
@@ -364,9 +369,8 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
       expect(clearCookieHeader?.[0]).toContain('refreshToken=;');
     });
   });
-
   describe('POST /api/auth/guest - Recruiter Bypass Authentication Gate', () => {
-    it('should provision a guest profile and return an access token with a refresh cookie', async () => {
+    it('should provision an ephemeral guest profile and return an access token with a refresh cookie', async () => {
       const response = await request(app).post('/api/auth/guest').send();
 
       expect(response.status).toBe(200);
@@ -376,8 +380,9 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
           message: 'Authenticated successfully as a guest',
           accessToken: expect.any(String),
           user: expect.objectContaining({
-            username: 'guest',
-            email: 'user@example.com',
+            id: expect.any(String),
+            username: expect.stringMatching(/^guest_[a-f0-9]+$/),
+            email: expect.stringMatching(/^guest_[a-f0-9]+@odinum\.local$/),
           }),
         }),
       );
@@ -391,14 +396,12 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
   describe('PATCH /api/auth/change-password - Protected Password Mutation Gate', () => {
     const originalPassword = 'OldSecurePassword123!';
     const brandNewPassword = 'BrandNewSecurePassword123!';
-    let seededUser: { id: string; username: string; email: string };
-    let validAccessToken: string;
 
-    beforeEach(async () => {
+    it('should mutate the user password when provided a valid access token and matching current password', async () => {
       const hashedPassword = await bcrypt.hash(originalPassword, 10);
-      seededUser = await db.user.create({
+      const seededUser = await db.user.create({
         data: {
-          username: 'test_user',
+          username: 'changer_user',
           email: 'changer@odinum.com',
           passwordHash: hashedPassword,
         },
@@ -410,11 +413,9 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
         password: originalPassword,
       });
 
-      validAccessToken = loginResponse.body.accessToken;
+      const validAccessToken = loginResponse.body.accessToken;
       expect(validAccessToken).toBeTypeOf('string');
-    });
 
-    it('should mutate the user password when provided a valid access token and matching current password', async () => {
       const response = await request(app)
         .patch('/api/auth/change-password')
         .set('Authorization', `Bearer ${validAccessToken}`)
@@ -464,6 +465,23 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
     });
 
     it('should catch a wrong current password at your user service layer and return a 400 status', async () => {
+      const hashedPassword = await bcrypt.hash(originalPassword, 10);
+      const seededUser = await db.user.create({
+        data: {
+          username: 'changer_fail_user',
+          email: 'changer_fail@odinum.com',
+          passwordHash: hashedPassword,
+        },
+        select: { id: true, username: true, email: true },
+      });
+
+      const loginResponse = await request(app).post('/api/auth/login').send({
+        username: seededUser.email,
+        password: originalPassword,
+      });
+
+      const validAccessToken = loginResponse.body.accessToken;
+
       const response = await request(app)
         .patch('/api/auth/change-password')
         .set('Authorization', `Bearer ${validAccessToken}`)
@@ -480,14 +498,12 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
 
   describe('DELETE /api/auth/delete-account - Protected Account Destruction Gate', () => {
     const deletePassword = 'SecureDeleteUserPassword123!';
-    let seededUser: { id: string; username: string; email: string };
-    let validAccessToken: string;
 
-    beforeEach(async () => {
+    it('should purge the user profile from disk and clear the cookie returning a 204 status', async () => {
       const hashedPassword = await bcrypt.hash(deletePassword, 10);
-      seededUser = await db.user.create({
+      const seededUser = await db.user.create({
         data: {
-          username: 'test_user',
+          username: 'deleter_user',
           email: 'deleter@odinum.com',
           passwordHash: hashedPassword,
         },
@@ -499,10 +515,8 @@ describe('Auth Module: End-to-End API Integration Suites', () => {
         password: deletePassword,
       });
 
-      validAccessToken = loginResponse.body.accessToken;
-    });
+      const validAccessToken = loginResponse.body.accessToken;
 
-    it('should purge the user profile from disk and clear the cookie returning a 204 status', async () => {
       const response = await request(app)
         .delete('/api/auth/delete-account')
         .set('Authorization', `Bearer ${validAccessToken}`)

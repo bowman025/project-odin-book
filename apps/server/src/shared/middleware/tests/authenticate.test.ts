@@ -5,7 +5,7 @@ import { AppError } from '../../errors/AppError.js';
 import { verifyAccessToken } from '../../utils/jwt.js';
 import { authenticate } from '../authenticate.js';
 
-vi.mock('../../utils/jwt.ts', () => ({
+vi.mock('../../utils/jwt.js', () => ({
   verifyAccessToken: vi.fn(),
 }));
 
@@ -50,7 +50,7 @@ describe('Shared Authentication Gateway Middleware Module', () => {
     const mockDecodedTokenPayload: AccessTokenPayload = {
       id: '123456qwertyuasdfghzxcvbn',
       username: 'test_user',
-      email: 'test_user@odin.com',
+      email: 'test_user@odinum.com',
       type: 'access',
     };
 

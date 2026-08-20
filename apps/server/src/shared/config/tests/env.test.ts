@@ -16,6 +16,9 @@ describe('Shared Environment Schema Validation Engine', () => {
     CLOUDINARY_CLOUD_NAME: 'project_odin_book',
     CLOUDINARY_API_KEY: '123456789',
     CLOUDINARY_API_SECRET: 'abcdefg',
+    GITHUB_CLIENT_ID: 'mock_github_client_id_token',
+    GITHUB_CLIENT_SECRET: 'mock_github_client_secret_token',
+    GITHUB_REDIRECT_URI: 'http://localhost:3000/auth/github/callback',
   };
 
   describe('Success Assertions', () => {

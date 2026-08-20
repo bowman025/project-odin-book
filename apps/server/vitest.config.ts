@@ -14,5 +14,6 @@ export default defineConfig({
     },
     setupFiles: ['./tests/setup.ts'],
     reporters: ['verbose'],
+    exclude: ['**/dist/**', '**/node_modules/**'],
   },
 });
