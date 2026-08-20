@@ -9,7 +9,11 @@
     "dev:server": "pnpm --filter @project-odin-book/server dev",
     "dev:client": "pnpm --filter @project-odin-book/client dev",
     "format": "pnpm biome check --write .",
-    "lint": "pnpm biome lint ."
+    "lint": "pnpm biome lint .",
+    "test": "pnpm --filter @project-odin-book/server test",
+    "build": "pnpm --recursive build",
+    "db:push": "pnpm --filter @project-odin-book/db exec prisma db push",
+    "db:seed": "pnpm --filter @project-odin-book/server run db:seed"
   },
   "keywords": [],
   "author": "Rastko Andonov",
