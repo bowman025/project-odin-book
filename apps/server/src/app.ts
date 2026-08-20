@@ -46,7 +46,7 @@ app.use('/api/conversations', conversationRouter);
 app.use('/api/uploads', cloudinaryRouter);
 app.use('/api/tags', tagRouter);
 
-app.get('/status', (_req: Request, res: Response) => {
+app.get('/api/status', (_req: Request, res: Response) => {
   res.json({ status: 'ok', message: 'The Realm is awake.' });
 });
 
