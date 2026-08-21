@@ -57,17 +57,26 @@ async function main() {
       console.log('Structuring general network peer follows...');
 
       const shuffledUsers = faker.helpers.shuffle([...userIds]);
+      const followPayloads: Array<{
+        senderId: string;
+        receiverId: string;
+        status: 'ACCEPTED';
+      }> = [];
 
       for (const peerId of shuffledUsers) {
         const peerOptions = userIds.filter((id) => id !== peerId);
         const randomConnections = faker.helpers.arrayElements(peerOptions, 6);
 
         for (const connId of randomConnections) {
-          await tx.follow.create({
-            data: { senderId: peerId, receiverId: connId, status: 'ACCEPTED' },
+          followPayloads.push({
+            senderId: peerId,
+            receiverId: connId,
+            status: 'ACCEPTED',
           });
         }
       }
+
+      await tx.follow.createMany({ data: followPayloads });
 
       console.log('Pre-seeding tags...');
       const tagNames = [
@@ -166,23 +175,32 @@ async function main() {
       }
 
       console.log('Creating 3000 comments across posts...');
+
+      const commentPayloads: Array<{
+        postId: string;
+        authorId: string;
+        content: string;
+        createdAt: Date;
+      }> = [];
+
       for (let i = 0; i < 3000; i++) {
         const authorId = faker.helpers.arrayElement(userIds);
         const postId = faker.helpers.arrayElement(postIds);
 
-        await tx.comment.create({
-          data: {
-            postId,
-            authorId,
-            content: faker.lorem.sentence({ min: 5, max: 15 }),
-            createdAt: faker.date.recent({ days: 7 }),
-          },
+        commentPayloads.push({
+          postId,
+          authorId,
+          content: faker.lorem.sentence({ min: 5, max: 15 }),
+          createdAt: faker.date.recent({ days: 7 }),
         });
       }
+
+      await tx.comment.createMany({ data: commentPayloads });
+
       console.log('Transaction complete! Database successfully seeded!');
     },
     {
-      timeout: 60000,
+      timeout: 300000,
     },
   );
 }
