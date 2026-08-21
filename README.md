@@ -1,4 +1,7 @@
+
 # Odinum (Project: Odin-Book)
+
+![Odinum](.github/images/odinum-header.png)
 
 Odinum is a full-stack, real-time social networking platform built with a **TypeScript Monorepo architecture**. It’s a portfolio project built as the final project in [The Odin Project](https://www.theodinproject.com/lessons/node-path-nodejs-odin-book) Node.js course and designed to explore how complex validation, decoupled workspace packages, and fluid real-time communication work together across full-stack applications.
 
