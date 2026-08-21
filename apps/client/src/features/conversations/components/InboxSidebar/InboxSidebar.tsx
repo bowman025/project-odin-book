@@ -2,6 +2,7 @@ import { Home, Inbox, MessageSquarePlus } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useAuthStore } from '../../../../store/authStore.js';
 import { useChatStore } from '../../../../store/chatStore.js';
 import { NewChatModal } from '../NewChatModal/NewChatModal';
 import styles from './InboxSidebar.module.css';
@@ -9,10 +10,9 @@ import styles from './InboxSidebar.module.css';
 export const InboxSidebar: FC = () => {
   const navigate = useNavigate();
   const { conversationId: activeUrlRoomId } = useParams();
-
+  const currentUserId = useAuthStore((state) => state.user?.id);
   const inbox = useChatStore((state) => state.inbox);
   const onlineUsers = useChatStore((state) => state.onlineUsers);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -49,7 +49,9 @@ export const InboxSidebar: FC = () => {
           </div>
         ) : (
           inbox.map((chat) => {
-            const partner = chat.participants.at(0);
+            const partner = chat.participants.find(
+              (p) => p.id !== currentUserId,
+            );
             if (!partner) return null;
 
             const initial = partner.username.charAt(0);

@@ -215,7 +215,9 @@ export const ChatThreadPane: FC = () => {
   const activeChatSessionMeta = inbox.find(
     (chat) => chat.id === conversationId,
   );
-  const foreignChatTargetCitizen = activeChatSessionMeta?.participants.at(0);
+  const foreignChatTargetCitizen = activeChatSessionMeta?.participants.find(
+    (p) => p.id !== currentUserId,
+  );
 
   if (!foreignChatTargetCitizen) return null;
 
