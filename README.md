@@ -2,15 +2,16 @@
 
 Odinum is a full-stack, real-time social networking platform built with a **TypeScript Monorepo architecture**. It’s a portfolio project built as the final project in [The Odin Project](https://www.theodinproject.com/lessons/node-path-nodejs-odin-book) Node.js course and designed to explore how complex validation, decoupled workspace packages, and fluid real-time communication work together across full-stack applications.
 
-Rather than taking easy shortcuts, this platform was built to tackle real-world development challenges, like handling serverless cloud cold starts smoothly and keeping asynchronous database mutations fully type-safe. It goes well beyond TOP's project requirements, as it was written in TypeScript over JavaScript, Zod was used for platform-wide validation, Zustand was utilized for state management on the frontend, etc.
+Rather than taking quick and easy shortcuts, this platform was built to tackle real-world development challenges, like handling serverless cloud cold starts smoothly and keeping asynchronous database mutations fully type-safe. It goes well beyond TOP's project requirements, as it was written in TypeScript over JavaScript, while implementing real-time messaging via Socket.io, and using Zod for platform-wide validation and Zustand for state management on the frontend.
 
 ---
 
 ## The Tech Stack
 
-The workspace is organized using **pnpm workspaces** to keep the codebase modular, clean, and perfectly synchronized between the frontend and backend.
+The workspace is organized using **pnpm workspaces** to keep the codebase modular, clean, and synchronized between the frontend and backend.
 
 * **Monorepo Workspace:** `pnpm` Workspaces orchestration.
+* **Real-Time Architecture:** **Socket.io** utilizing bidirectional WebSocket channels for instantaneous event streaming.
 * **Database & ORM:** PostgreSQL hosted on serverless cloud nodes via **Neon**, integrated using **Prisma ORM**.
 * **Backend Server:** **Node.js** running **Express** with modular, feature-isolated routing.
 * **Frontend Interface:** **React 19** paired with **React Router 7** and native CSS Modules for isolated, semantic styling.
@@ -21,6 +22,13 @@ The workspace is organized using **pnpm workspaces** to keep the codebase modula
 ---
 
 ## Interesting Engineering Challenges & Solutions
+
+### Bidirectional Real-Time Communication Hub
+
+To deliver zero-latency chat messaging and instant state updates, Odinum bypasses traditional HTTP polling overhead by implementing a stateful, event-driven network layer using **Socket.io**.
+
+* **State Synchronization**: The backend initializes a dedicated socket manager that dynamically maps unique user IDs to active connection channels. This allows instant message distribution and fluid online/offline indicator updates.
+* **Defensive Reconnection**: The client wrapper encapsulates native socket listeners within React hooks, establishing automatic backoff-reconnection strategies if the network link wavers or the browser tab enters a background suspend state.
 
 ### The Shared Validation Firewall
 
@@ -41,7 +49,7 @@ Shared guest accounts are a common bottleneck in portfolio sites—if one visito
 Because the API server sits on a free cloud tier subject to sudden sleep cycles, a recruiter clicking your link could easily face a 404 error page or a 45-second blank screen while the container wakes up.
 
 * **The Cinematic Shield:** A high-fantasy **Gateway Loading Screen** intercepts the view on frame zero right inside `main.tsx`. It launches a background polling loop that pings a lightweight, public `/status` route on the server every 3 seconds to test the hardware link.
-* **Lazy Router Delay:** React Router 7 eagerly parses configuration schemas on file import, meaning its initial authentication loaders would normally detonate into an unhandled connection exception against a sleeping server. To prevent this, the routing config is wrapped inside a lazy `getRouter()` constructor function. It remains completely dormant in memory until the server responds with a clean `200 OK`, dropping the shield and hydrating the routing network perfectly.
+* **Lazy Router Delay:** React Router 7 eagerly parses configuration schemas on file import, meaning its initial authentication loaders would normally detonate into an unhandled connection exception against a sleeping server. To prevent this, the routing config is wrapped inside a lazy `getRouter()` constructor function. It remains completely dormant in memory until the server responds with a clean `200 OK`, dropping the shield and hydrating the routing network.
 
 ### Technical Trade-offs: Pagination Architecture
 
@@ -121,7 +129,7 @@ Launch the concurrent developer compilation watch loops. Your Vite client SPA wi
 pnpm dev
 ```
 
-### 5. Run the Automated Tests Pass
+### 5. Run the Automated Tests
 
 The application utilizes an isolated, independent test database to guard development entries. Synchronize your local test schema shell and trigger the full 134-assertion Vitest suite:
 
