@@ -224,11 +224,13 @@ export const Post: FC<PostProps> = ({
         )}
 
         {!isEditing && post.imageUrl && (
-          <img
-            src={post.imageUrl}
-            alt="Chronicle media context"
-            className={styles.postImage}
-          />
+          <div className={styles.postImageWrapper}>
+            <img
+              src={post.imageUrl}
+              alt="Chronicle media context"
+              className={styles.postImage}
+            />
+          </div>
         )}
       </div>
 
