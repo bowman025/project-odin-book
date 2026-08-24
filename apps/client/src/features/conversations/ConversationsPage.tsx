@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { useEffect } from 'react';
 import { Outlet, useLoaderData, useParams } from 'react-router';
+import { apiFetch } from '../../lib/api.js';
 import { useChatStore } from '../../store/chatStore.js';
 import styles from './ConversationsPage.module.css';
 import { InboxSidebar } from './components/InboxSidebar/InboxSidebar';
@@ -10,21 +11,53 @@ export const ConversationsPage: FC = () => {
   const initialInboxData = useLoaderData() as InboxLoaderResult;
   const { conversationId } = useParams();
 
+  const inbox = useChatStore((state) => state.inbox);
   const setInbox = useChatStore((state) => state.setInbox);
+  const prependNewConversationToInbox = useChatStore(
+    (state) => state.prependNewConversationToInbox,
+  );
   const activeRoomId = useChatStore((state) => state.activeConversationId);
   const setActiveRoom = useChatStore((state) => state.setActiveRoom);
   const socket = useChatStore((state) => state.socket);
 
   useEffect(() => {
-    if (!initialInboxData?.items || !socket) return;
+    if (initialInboxData?.items) {
+      setInbox(initialInboxData.items);
+    }
+  }, [initialInboxData, setInbox]);
 
-    setInbox(initialInboxData.items);
+  useEffect(() => {
+    if (
+      !conversationId ||
+      initialInboxData?.items.some((chat) => chat.id === conversationId)
+    )
+      return;
 
-    const visibleRoomIds = initialInboxData.items.map((chat) => chat.id);
-    if (visibleRoomIds.length === 0) return;
+    const hydrateEmptyConversationShell = async () => {
+      try {
+        const response = await apiFetch(`/conversations/${conversationId}`);
+        if (response.ok) {
+          const payload = await response.json();
+          prependNewConversationToInbox(payload.data.conversation);
+        }
+      } catch (error) {
+        console.error(
+          'Failed to pre-hydrate empty conversation sidebar row:',
+          error,
+        );
+      }
+    };
+
+    hydrateEmptyConversationShell();
+  }, [conversationId, initialInboxData, prependNewConversationToInbox]);
+
+  useEffect(() => {
+    if (!socket || inbox.length === 0) return;
+
+    const visibleRoomsIds = inbox.map((chat) => chat.id);
 
     const joinRooms = () => {
-      socket.emit('join_conversations', { conversationIds: visibleRoomIds });
+      socket.emit('join_conversations', { conversationIds: visibleRoomsIds });
     };
 
     if (socket.connected) {
@@ -36,7 +69,7 @@ export const ConversationsPage: FC = () => {
     return () => {
       socket.off('connect', joinRooms);
     };
-  }, [initialInboxData, setInbox, socket]);
+  }, [inbox, socket]);
 
   useEffect(() => {
     if (conversationId) {
