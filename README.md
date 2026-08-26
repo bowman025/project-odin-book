@@ -28,38 +28,38 @@ The workspace is organized using **pnpm workspaces** to keep the codebase modula
 
 ### Bidirectional Real-Time Communication Hub
 
-To deliver zero-latency chat messaging and instant state updates, Odinum bypasses traditional HTTP polling overhead by implementing a stateful, event-driven network layer using **Socket.io**.
+To deliver zero-latency chat messaging and instant state updates across the platform, Odinum bypasses traditional HTTP polling overhead by implementing a stateful, event-driven network layer using **Socket.io**.
 
-* **State Synchronization**: The backend initializes a dedicated socket manager that dynamically maps unique user IDs to active connection channels. This allows instant message distribution and fluid online/offline indicator updates.
-* **Defensive Reconnection**: The client wrapper encapsulates native socket listeners within React hooks, establishing automatic backoff-reconnection strategies if the network link wavers or the browser tab enters a background suspend state.
+* **Centralized State Management:** All global socket connection events (`user_online`, `message_created`, etc.) are encapsulated directly within a persistent **Zustand store** rather than short-lived React component lifecycles. This ensures event listeners remain active across view transitions, allowing the application to cleanly absorb Socket.io's native backoff-reconnection loops without leaking event listeners.
+* **Hybrid Sync Guard:** To fix a silent room-desynchronization issue where freshly created channels left users appearing offline to each other, the server-side route controller automatically forces both participants' active socket ids to join the socket room channel natively on the conversation's creation frame.
 
 ### The Shared Validation Firewall
 
-To keep the frontend form states and the backend REST API controllers in proper structural alignment, all schema definitions live inside an isolated npm-style workspace package called `@project-odin-book/validation`.
+To keep the frontend form states and the backend REST API controllers in perfect structural alignment, all schema definitions live inside an isolated workspace package called `@project-odin-book/validation`.
 
-* **How it works:** Both the React Hook Form client-side input data resolvers and the Express API server controllers import the *exact same* Zod validation models natively.
-* **Security Enforcement:** The schema aggressively sanitizes incoming parameters (`PATCH /users/me`). For instance, profile pictures must pass a strict Cloudinary HTTPS URL regex check to prevent tracking pixel injections or malicious third-party script links.
+* **Single Source of Truth:** Both the React Hook Form client-side resolvers and the Express API request parsing controllers import the *exact same* **Zod** models natively, guaranteeing zero data contract drifting across the network bridge.
+* **Security Enforcement:** The application aggressively sanitizes parameters on sensitive endpoints (`PATCH /users/me`). For instance, profile pictures must clear a strict Cloudinary HTTPS URL regex validator to prevent hidden tracking pixel injections or malicious link tracking attacks.
 
 ### On-Demand Ephemeral Guest Sandboxes
 
-Shared guest accounts are a common bottleneck in portfolio sites—if one visitor updates the bio, deletes posts, or compromises data, the next recruiter sees a completely broken app. Odinum solves this using an **On-Demand Ephemeral Sandbox Pattern**.
+Shared guest accounts are a massive bottleneck for portfolio apps—if one reviewer changes a profile bio or deletes messages, the next visitor opens a completely broken experience. Odinum resolves this by spinning up dynamic, isolated sandbox environments.
 
-* **Just-In-Time (JIT) Cleaning:** When someone clicks "Guest Sign-In", the backend triggers a non-blocking `deleteMany` sweep to drop expired sandbox rows older than 6 hours. This keeps storage clean automatically without artificial server-uptime hacks.
-* **Isolated Sessions:** Every guest receives a completely unique account signature on the fly (e.g., `guest_7a2f9b@odinbook.local`). The factory transaction automatically seeds the profile with a fresh, mutual follow mesh connected to 20 baseline simulation accounts, ensuring their home feed timeline is full, active, and fully operational right on day zero.
+* **Just-In-Time (JIT) Cleanup:** The exact second a reviewer clicks "Guest Sign-In", the backend triggers a non-blocking Prisma `deleteMany` sweep to drop sandbox records older than 6 hours, keeping cloud database storage clean automatically.
+* **Isolated Sessions:** Every guest receives a completely unique account signature on the fly (e.g., `guest_7a2f9b@odinum.local`). The database transaction automatically seeds the profile with a fresh follow mesh connected to 20 baseline simulation accounts, ensuring their timeline feed is full, active, and interactive on day zero.
 
 ### Handling Cold Starts with a Lazy Route Interceptor
 
-Because the API server sits on a free cloud tier subject to sudden sleep cycles, a recruiter clicking your link could easily face a 404 error page or a 45-second blank screen while the container wakes up.
+Because the backend API server sits on a free cloud hosting tier subject to idle sleep cycles, a recruiter clicking the live link could easily face a broken error page or a 45-second blank screen while the container wakes up.
 
-* **The Cinematic Shield:** A high-fantasy **Gateway Loading Screen** intercepts the view on frame zero right inside `main.tsx`. It launches a background polling loop that pings a lightweight, public `/status` route on the server every 3 seconds to test the hardware link.
-* **Lazy Router Delay:** React Router 7 eagerly parses configuration schemas on file import, meaning its initial authentication loaders would normally detonate into an unhandled connection exception against a sleeping server. To prevent this, the routing config is wrapped inside a lazy `getRouter()` constructor function. It remains completely dormant in memory until the server responds with a clean `200 OK`, dropping the shield and hydrating the routing network.
+* **The Atmospheric Shield:** A minimalist **Gateway Loading Screen** intercepts the view on frame zero right inside `main.tsx`, running a background polling loop that pings a public, lightweight `/status` route on the server every 3 seconds to monitor the server link.
+* **Lazy Router Delay:** React Router 7 eagerly parses configuration schemas on file import, meaning its initial authentication loaders would normally drop an uncaught connection exception against a sleeping server. To prevent this, the routing engine is wrapped inside a lazy `getRouter()` function. It remains completely dormant in memory until the server responds with a clean `200 OK`, dropping the shield and rendering the app routes cleanly.
 
 ### Technical Trade-offs: Pagination Architecture
 
 The platform's feeds currently utilize an **Offset-based pagination mechanism** (`skip`/`take`) combined with an infinite scrolling frontend viewport.
 
-* **The Reality:** Offset-based pagination was a conscious choice to prioritize rapid implementation of the real-time core messaging layers and GitHub OAuth integrations.
-* **The Next Steps:** In active, high-mutation feeds, offset pagination is less than optimal because new posts or deletions cause content to duplicate or slip out of view mid-scroll. It also incurs an O(N) scanning penalty as database depth grows. Moving the timeline query engine to **Cursor-based pagination** (using an immutable timestamp or CUID anchor for highly efficient \(O(\log N)\) indexed lookups) is marked as a future milestone for the platform architecture.
+* **The Reality:** Offset-based pagination was a conscious choice to prioritize the implementation of the real-time core messaging layers and GitHub OAuth integrations.
+* **The Next Steps:** In active, high-mutation feeds, offset pagination can cause content to duplicate or slip out of view mid-scroll if items are posted or deleted while browsing. It also incurs an O(N) scanning penalty at extreme database depths. Moving the timeline query engine to **Cursor-based pagination** (using an immutable timestamp or CUID anchor for highly efficient $O(\log N)$ indexed lookups) is marked as a future platform optimization goal.
 
 ---
 
