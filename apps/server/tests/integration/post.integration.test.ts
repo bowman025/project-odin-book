@@ -43,7 +43,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
 
       expect(response.body).toEqual({
         status: 'success',
-        message: 'Post created successfully',
+        message: 'Chronicle created successfully',
         data: {
           post: expect.objectContaining({
             id: expect.any(String),
@@ -100,7 +100,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
       );
 
       expect(response.status).toBe(404);
-      expect(response.body.message).toBe('Post not found');
+      expect(response.body.message).toBe('Chronicle not found');
     });
   });
 
@@ -121,7 +121,7 @@ describe('Posts Module: End-to-End API Integration Suites', () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body.message).toBe('Post updated successfully');
+      expect(response.body.message).toBe('Chronicle updated successfully');
       expect(response.body.data.post.content).toBe(
         'Modified and evolved string content',
       );

@@ -1,9 +1,15 @@
+import { DataSet, englishDataset, RegExpMatcher } from 'obscenity';
 import { z } from 'zod';
 
 export const getEmailPrefix = (email: string): string | null => {
   const [prefix] = email.split('@');
   return prefix ? prefix.toLowerCase() : null;
 };
+
+const usernameDataset = new DataSet().addAll(englishDataset);
+const usernameMatcher = new RegExpMatcher({
+  ...usernameDataset.build(),
+});
 
 const basePasswordSchema = z
   .string()
@@ -27,8 +33,10 @@ export const RegisterInputSchema = z
       .regex(/^[a-zA-Z0-9_]+$/, {
         error: 'Username can only contain letters, numbers, and underscores',
       })
+      .refine((val) => !usernameMatcher.hasMatch(val.toLowerCase()), {
+        error: 'Username contains profanities and is not allowed',
+      })
       .transform((val) => val.toLowerCase()),
-
     email: z
       .email({ error: 'Please enter a valid email address' })
       .toLowerCase(),

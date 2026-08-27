@@ -3,8 +3,10 @@ import {
   CreateCommentSchema,
   PaginationQuerySchema,
   PostIdParamSchema,
+  type UpdateCommentInput,
   UpdateCommentSchema,
 } from '@project-odin-book/validation';
+import { Filter } from 'bad-words';
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../../shared/errors/AppError.js';
 import {
@@ -13,6 +15,8 @@ import {
   modifyComment,
   removeComment,
 } from './commentService.js';
+
+const contentFilter = new Filter();
 
 export const createComment = async (
   req: Request,
@@ -39,10 +43,12 @@ export const createComment = async (
     }
 
     const { postId } = paramResult.data;
+    const cleanContent = contentFilter.clean(bodyResult.data.content);
+
     const newComment = await insertComment({
       postId,
       authorId,
-      ...bodyResult.data,
+      content: cleanContent,
     });
 
     return res.status(201).json({
@@ -127,10 +133,16 @@ export const updateComment = async (
       return next(new AppError('Authentication context required', 401));
     }
 
+    const commentPayload: UpdateCommentInput = { ...bodyResult.data };
+
+    if (commentPayload.content) {
+      commentPayload.content = contentFilter.clean(commentPayload.content);
+    }
+
     const updatedComment = await modifyComment({
       id: commentId,
       requesterId,
-      data: bodyResult.data,
+      data: commentPayload,
     });
 
     if (!updatedComment) {

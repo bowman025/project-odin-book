@@ -3,9 +3,11 @@ import {
   PaginationQuerySchema,
   PostIdParamSchema,
   TimelineQuerySchema,
+  type UpdatePostInput,
   UpdatePostSchema,
   UsernameParamSchema,
 } from '@project-odin-book/validation';
+import { Filter } from 'bad-words';
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../../shared/errors/AppError.js';
 import { fetchUserProfileByUsername } from '../users/userService.js';
@@ -18,6 +20,8 @@ import {
   modifyPost,
   removePost,
 } from './postService.js';
+
+const contentFilter = new Filter();
 
 export const createPost = async (
   req: Request,
@@ -37,14 +41,18 @@ export const createPost = async (
       return next(new AppError('Authentication context required', 401));
     }
 
+    const cleanContent = contentFilter.clean(bodyResult.data.content);
+
     const newPost = await insertPost({
       authorId,
-      ...bodyResult.data,
+      imageUrl: bodyResult.data?.imageUrl,
+      tags: bodyResult.data?.tags,
+      content: cleanContent,
     });
 
     return res.status(201).json({
       status: 'success',
-      message: 'Post created successfully',
+      message: 'Chronicle created successfully',
       data: { post: newPost },
     });
   } catch (error) {
@@ -69,7 +77,7 @@ export const getPost = async (
     const post = await fetchPost({ currentUserId, id: postId });
 
     if (!post) {
-      return next(new AppError('Post not found', 404));
+      return next(new AppError('Chronicle not found', 404));
     }
 
     return res.status(200).json({
@@ -110,19 +118,25 @@ export const updatePost = async (
       return next(new AppError('Authentication context required', 401));
     }
 
+    const postPayload: UpdatePostInput = { ...bodyResult.data };
+
+    if (postPayload.content) {
+      postPayload.content = contentFilter.clean(postPayload.content);
+    }
+
     const updatedPost = await modifyPost({
       id: postId,
       requesterId: authorId,
-      data: bodyResult.data,
+      data: postPayload,
     });
 
     if (!updatedPost) {
-      return next(new AppError('Post not found', 404));
+      return next(new AppError('Chronicle not found', 404));
     }
 
     return res.status(200).json({
       status: 'success',
-      message: 'Post updated successfully',
+      message: 'Chronicle updated successfully',
       data: { post: updatedPost },
     });
   } catch (error) {
@@ -155,7 +169,7 @@ export const deletePost = async (
     });
 
     if (!wasDeleted) {
-      return next(new AppError('Post not found', 404));
+      return next(new AppError('Chronicle not found', 404));
     }
 
     return res.status(204).end();
