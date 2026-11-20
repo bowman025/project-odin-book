@@ -5,13 +5,9 @@
 
 Odinum is a full-stack, real-time social networking platform built with a **TypeScript Monorepo architecture**. It’s a portfolio project built as the final project in [The Odin Project](https://www.theodinproject.com/lessons/node-path-nodejs-odin-book) Node.js course.
 
----
-
 ## Motivation
 
 I wanted to avoid taking quick and easy shortcuts, so I built this platform to try and tackle real-world development challenges, like handling serverless cloud cold starts smoothly and keeping asynchronous database mutations fully type-safe. I designed it to explore how complex validation, decoupled workspace packages, and fluid real-time communication work together across full-stack applications. It goes well beyond TOP's project requirements, as it was written in TypeScript instead of JavaScript, while implementing real-time messaging via Socket.io, and using Zod for platform-wide validation and Zustand for state management on the frontend.
-
----
 
 ## The Tech Stack
 
@@ -25,8 +21,6 @@ The workspace is organized using **pnpm workspaces** to keep the codebase modula
 * **Data Validation:** Shared data models powered by **Zod** that enforce type boundaries platform-wide.
 * **Media Storage:** Direct client-to-cloud asset uploads via **Cloudinary**.
 * **Testing Suite:** Automated E2E API integration and unit assertions running on **Vitest** and **Supertest**.
-
----
 
 ## Interesting Engineering Challenges & Solutions
 
@@ -65,8 +59,6 @@ The platform's feeds currently utilize an **Offset-based pagination mechanism** 
 * **The Reality:** Offset-based pagination was a conscious choice to prioritize the implementation of the real-time core messaging layers and GitHub OAuth integrations.
 * **The Next Steps:** In active, high-mutation feeds, offset pagination can cause content to duplicate or slip out of view mid-scroll if items are posted or deleted while browsing. It also incurs an O(N) scanning penalty at extreme database depths. Moving the timeline query engine to **Cursor-based pagination** (using an immutable timestamp or CUID anchor for highly efficient $O(\log N)$ indexed lookups) is marked as a future platform optimization goal.
 
----
-
 ## Repository Structure
 
 ```text
@@ -80,15 +72,11 @@ The platform's feeds currently utilize an **Offset-based pagination mechanism** 
 └── pnpm-workspace.yaml
 ```
 
----
-
 ## Quick Start
 
 Navigate to [odinum.netlify.app](https://odinum.netlify.app/).
 Register as a user or log in if you already have an account OR use the guest sign-in feature to access the app without registering.
 Post, like, comment, or just click around and have fun! :)
-
----
 
 ## Usage Guide
 
@@ -155,8 +143,6 @@ npx prisma db push --url "postgresql://your_user:pass@localhost:5432/project_odi
 # Run the full suite sweep
 pnpm test
 ```
-
----
 
 ## Contributing
 
