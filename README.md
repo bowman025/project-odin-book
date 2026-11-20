@@ -3,9 +3,13 @@
 
 ![Odinum](.github/images/odinum-header.png)
 
-Odinum is a full-stack, real-time social networking platform built with a **TypeScript Monorepo architecture**. It’s a portfolio project built as the final project in [The Odin Project](https://www.theodinproject.com/lessons/node-path-nodejs-odin-book) Node.js course and designed to explore how complex validation, decoupled workspace packages, and fluid real-time communication work together across full-stack applications.
+Odinum is a full-stack, real-time social networking platform built with a **TypeScript Monorepo architecture**. It’s a portfolio project built as the final project in [The Odin Project](https://www.theodinproject.com/lessons/node-path-nodejs-odin-book) Node.js course.
 
-Rather than taking quick and easy shortcuts, this platform was built to tackle real-world development challenges, like handling serverless cloud cold starts smoothly and keeping asynchronous database mutations fully type-safe. It goes well beyond TOP's project requirements, as it was written in TypeScript over JavaScript, while implementing real-time messaging via Socket.io, and using Zod for platform-wide validation and Zustand for state management on the frontend.
+---
+
+## Motivation
+
+I wanted to avoid taking quick and easy shortcuts, so I built this platform to try and tackle real-world development challenges, like handling serverless cloud cold starts smoothly and keeping asynchronous database mutations fully type-safe. I designed it to explore how complex validation, decoupled workspace packages, and fluid real-time communication work together across full-stack applications. It goes well beyond TOP's project requirements, as it was written in TypeScript instead of JavaScript, while implementing real-time messaging via Socket.io, and using Zod for platform-wide validation and Zustand for state management on the frontend.
 
 ---
 
@@ -78,7 +82,15 @@ The platform's feeds currently utilize an **Offset-based pagination mechanism** 
 
 ---
 
-## Quickstart Setup Guide
+## Quick Start
+
+Navigate to [odinum.netlify.app](https://odinum.netlify.app/).
+Register as a user or log in if you already have an account OR use the guest sign-in feature to access the app without registering.
+Post, like, comment, or just click around and have fun! :)
+
+---
+
+## Usage Guide
 
 Make sure you have **Node.js v20+** and **pnpm v9+** installed globally.
 
@@ -143,3 +155,10 @@ npx prisma db push --url "postgresql://your_user:pass@localhost:5432/project_odi
 # Run the full suite sweep
 pnpm test
 ```
+
+---
+
+## Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the issues page if you want to contribute.
+If you'd like to submit a change, please fork the repository and open a pull request with a clear description of your updates.
